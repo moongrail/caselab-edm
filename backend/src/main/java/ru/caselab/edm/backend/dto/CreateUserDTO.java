@@ -1,7 +1,13 @@
 package ru.caselab.edm.backend.dto;
 
 
-public record CreateUserDTO(String login,
-                            String email, String password, String firstName,
-                            String lastName, String patronymic) {
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+
+public record CreateUserDTO(@NotBlank String login,
+                            @NotBlank @Email String email,
+                            @NotBlank String password,
+                            @NotBlank String firstName,
+                            @NotBlank String lastName,
+                            String patronymic) {
 }

@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import ru.caselab.edm.backend.dto.CreateUserDTO;
+import ru.caselab.edm.backend.dto.UpdatePasswordDTO;
 import ru.caselab.edm.backend.dto.UpdateUserDTO;
 import ru.caselab.edm.backend.dto.UserDTO;
 import ru.caselab.edm.backend.service.UserService;
@@ -51,6 +53,13 @@ public class UserController {
     public ResponseEntity<UserDTO> updateUser(@RequestParam("id") UUID id,
                                               @RequestBody @Valid UpdateUserDTO updatedUser) {
         return ResponseEntity.ok(userService.updateUser(id, updatedUser));
+    }
+
+    @PatchMapping("/{id}/password")
+    public ResponseEntity<Void> updatePassword(@RequestParam("id") UUID id,
+                                                  @RequestBody @Valid UpdatePasswordDTO updatePasswordDTO) {
+        userService.updatePassword(id, updatePasswordDTO);
+        return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{id}")

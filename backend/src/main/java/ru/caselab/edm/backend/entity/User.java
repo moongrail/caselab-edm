@@ -47,13 +47,13 @@ public class User {
     @Column(name = "patronymic")
     private String patronymic;
 
-    @ManyToMany
-    @JoinTable(name = "user_roles",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "role_id"))
-    private List<Role> roles;
-
-    @OneToMany(mappedBy = "user")
-    private List<Document> documents;
+//    @ManyToMany
+//    @JoinTable(name = "user_roles",
+//            joinColumns = @JoinColumn(name = "user_id"),
+//            inverseJoinColumns = @JoinColumn(name = "role_id"))
+//    private List<Role> roles;
+//
+//    @OneToMany(mappedBy = "user")
+//    private List<Document> documents;
 
 }
