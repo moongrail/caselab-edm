@@ -4,6 +4,8 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 import lombok.Getter;
@@ -28,6 +30,11 @@ public class DocumentType {
     private String description;
     private LocalDateTime createAt;
     private LocalDateTime updatedAt;
-    @ManyToMany(mappedBy = attribute_id)
+    @ManyToMany
+    @JoinTable(
+            name = "document_type_attributes",
+            joinColumns = @JoinColumn(name = "doc_type_id "),
+            inverseJoinColumns = @JoinColumn(name = "attribute_id")
+    )
     private List<DocumentAttribute> attributes = new ArrayList<>();
 }
