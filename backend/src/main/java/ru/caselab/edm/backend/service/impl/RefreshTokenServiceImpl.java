@@ -19,6 +19,8 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     private final UserRepository userRepository;
     private final RefreshTokenRepository refreshTokenRepository;
 
+    private static final Long REFRESH_TOKEN_LIFETIME = 30L * 24 * 60 * 60 * 1000; // 30 дней
+
     public RefreshTokenServiceImpl(UserRepository userRepository, RefreshTokenRepository refreshTokenRepository) {
         this.userRepository = userRepository;
         this.refreshTokenRepository = refreshTokenRepository;
@@ -28,7 +30,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     public RefreshToken createRefreshToken(String login) {
         RefreshToken refreshToken = RefreshToken.builder()
                 .token(UUID.randomUUID().toString())
-                .expirationDate(Instant.now().plusMillis(30L * 24 * 60 * 60 * 1000))
+                .expirationDate(Instant.now().plusMillis(REFRESH_TOKEN_LIFETIME))
                 .user(userRepository.findUserByLogin(login)
                         .orElseThrow(() -> new ResourceNotFoundException("User not found"))).build();
 
