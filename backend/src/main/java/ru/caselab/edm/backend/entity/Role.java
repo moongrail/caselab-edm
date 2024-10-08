@@ -14,9 +14,9 @@ import lombok.Setter;
 @Table(name = "\"roles\"")
 public class Role {
     @Id
-    @Column(name = "id")
+    @Column(name = "id", nullable = false, unique = true)
     private long id;
 
-    @Column(name = "name")
+    @Column(name = "name", nullable = false, unique = true)
     private String name;
 }

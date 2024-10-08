@@ -17,13 +17,13 @@ public class RefreshToken {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @Column(name = "token")
+    @Column(name = "token", nullable = false, unique = true)
     private String token;
 
-    @Column(name = "expiration_date")
+    @Column(name = "expiration_date", nullable = false)
     private Instant expirationDate;
 
     @OneToOne
-    @JoinColumn(name = "user_id", referencedColumnName = "id")
+    @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false, unique = true)
     private User user;
 }
