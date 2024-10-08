@@ -6,6 +6,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -28,6 +29,9 @@ public class DocumentDTO {
 
     @JsonProperty("userId")
     private UUID userId;
+
+    @JsonProperty("name")
+    private String name;
 
     @JsonProperty("createdAt")
     private LocalDateTime creationDate;

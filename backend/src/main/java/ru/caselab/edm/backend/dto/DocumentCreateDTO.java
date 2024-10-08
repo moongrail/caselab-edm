@@ -2,6 +2,7 @@ package ru.caselab.edm.backend.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -14,22 +15,24 @@ import java.util.UUID;
 public class DocumentCreateDTO {
 
     @JsonProperty("documentTypeId")
-    @NotBlank
+    @NotNull
     private Long documentTypeId;
 
     @JsonProperty("userId")
-    @NotBlank
+    @NotNull
     private UUID userId;
 
+    @JsonProperty("name")
+    @NotNull
+    private String name;
+
     @JsonProperty("createdAt")
-    @NotBlank
     private LocalDateTime creationDate;
 
     @JsonProperty("updatedAt")
-    @NotBlank
     private LocalDateTime updateDate;
 
     @JsonProperty("data")
-    @NotBlank
+    @NotNull
     private byte[] data;
 }

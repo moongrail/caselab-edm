@@ -1,6 +1,7 @@
 package ru.caselab.edm.backend.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -23,6 +24,9 @@ public class DocumentUpdateDTO {
 
     @JsonProperty("createdAt")
     private LocalDateTime creationDate;
+
+    @JsonProperty("name")
+    private String name;
 
     @JsonProperty("updatedAt")
     private LocalDateTime updateDate;
