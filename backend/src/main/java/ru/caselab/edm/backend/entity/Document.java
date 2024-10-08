@@ -43,15 +43,4 @@ public class Document {
     @OneToMany(mappedBy = "document")
     private List<DocumentAttributeValue> documentAttributeValues;
 
-    @Override
-    public String toString() {
-        return "Document{" +
-                "id=" + id +
-                ", userId=" + user.getId() +
-                ", documentTypeId=" + documentType.getId() +
-                ", creationDate=" + creationDate +
-                ", updateDate=" + updateDate +
-                ", data=" + Arrays.toString(data) +
-                '}';
-    }
 }
