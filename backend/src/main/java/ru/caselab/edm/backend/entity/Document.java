@@ -10,7 +10,6 @@ import lombok.Setter;
 @Setter
 @Getter
 @Entity
-@Data
 @Table(name = "\"documents\"")
 public class Document {
     @Id
