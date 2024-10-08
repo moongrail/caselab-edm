@@ -24,7 +24,7 @@ public class TestController {
          return "It's ALIVE!!!!!!";
     }
 
-    @PostMapping("/jwt")
+    @PostMapping("/jwtTest")
     @Operation(summary = "JWT TEST")
     public ResponseEntity<JwtDto> jwtTest(@RequestBody LoginUserDto dto) {
         return ResponseEntity.ok(testService.testJwt(dto));

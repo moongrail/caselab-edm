@@ -34,9 +34,11 @@ public class WebSecurityConfiguration {
             "/swagger-resources",
             "/api/v1/check/**",
             "/api/v1/users/**",
+            "/api/v1/jwt/**",
             "/swagger/**",
             "/check/**",
-            "/users/**"
+            "/users/**",
+            "/jwt/**"
     };
 
 

@@ -11,13 +11,13 @@ import java.util.List;
 
 public class UserInfoDetails implements UserDetails {
 
-    private String username;
+    private String login;
     private String password;
     Collection<? extends GrantedAuthority> authorities;
 
 
     public UserInfoDetails (User user) {
-        this.username = user.getLogin();
+        this.login = user.getLogin();
         this.password = user.getPassword();
 
         this.authorities = getUserAuthorities(user);
@@ -46,7 +46,7 @@ public class UserInfoDetails implements UserDetails {
 
     @Override
     public String getUsername() {
-        return username;
+        return login;
     }
 
     @Override
