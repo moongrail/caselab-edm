@@ -20,15 +20,24 @@
 
     <changeSet id="db.1.0-create_document_types_script" author="Maevgal" runOnChange="true">
         <sql>
-            DROP TABLE IF EXISTS document_type;
+            DROP TABLE IF EXISTS document_types;
 
             CREATE TABLE document_types
             (
-            id           bigint     PRIMARY KEY,
+            id           BigSerial      PRIMARY KEY,
             name         VARCHAR (255)  not null,
-            description  TEXT           not null,
-            created_at   TIMESTAMP      not null,
-            updated_at   TIMESTAMP      not null,
+            descriptions TEXT,
+            created_at   TIMESTAMP,
+            updated_at   TIMESTAMP
+            );
+
+            DROP TABLE IF EXISTS attributes;
+
+            CREATE TABLE attributes
+            (
+            id           BigSerial      PRIMARY KEY,
+            name         VARCHAR (255)  not null,
+            data_type    VARCHAR (255)  not null
             );
 
             DROP TABLE IF EXISTS document_type_attributes;
@@ -40,6 +49,8 @@
             CONSTRAINT doc_type_id_foreign_key FOREIGN KEY (doc_type_id) REFERENCES document_types (id),
             CONSTRAINT attribute_id_foreign_key FOREIGN KEY (attribute_id) REFERENCES attributes(id)
             );
+
+
         </sql>
     </changeSet>
 

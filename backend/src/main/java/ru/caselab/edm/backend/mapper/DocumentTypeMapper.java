@@ -5,7 +5,7 @@ import org.mapstruct.MappingConstants;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.ReportingPolicy;
 import ru.caselab.edm.backend.dto.DocumentTypeDTO;
-import ru.caselab.edm.backend.model.DocumentType;
+import ru.caselab.edm.backend.entity.DocumentType;
 
 @Mapper(
         nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,

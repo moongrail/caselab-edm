@@ -1,15 +1,15 @@
 package ru.caselab.edm.backend.service.Impl;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import ru.caselab.edm.backend.dto.DocumentTypeCreateDTO;
 import ru.caselab.edm.backend.dto.DocumentTypeDTO;
 import ru.caselab.edm.backend.dto.DocumentTypeUpdateDTO;
+import ru.caselab.edm.backend.entity.DocumentType;
 import ru.caselab.edm.backend.exceptions.ResourceNotFoundException;
 import ru.caselab.edm.backend.mapper.DocumentTypeMapper;
-import ru.caselab.edm.backend.model.DocumentType;
 import ru.caselab.edm.backend.repository.AttributesRepository;
 import ru.caselab.edm.backend.repository.DocumentTypeRepository;
 import ru.caselab.edm.backend.service.DocumentTypeService;
@@ -17,25 +17,17 @@ import ru.caselab.edm.backend.service.DocumentTypeService;
 import java.util.Collections;
 
 @Service
+@RequiredArgsConstructor
 public class DocumentTypeImpl implements DocumentTypeService {
-    @Autowired
     private final DocumentTypeRepository documentTypeRepository;
-    @Autowired
     private final AttributesRepository attributesRepository;
-    @Autowired
     private final DocumentTypeMapper mapper;
-
-    public DocumentTypeImpl(DocumentTypeRepository documentTypeRepository, AttributesRepository attributesRepository, DocumentTypeMapper mapper) {
-        this.documentTypeRepository = documentTypeRepository;
-        this.attributesRepository = attributesRepository;
-        this.mapper = mapper;
-    }
 
     public Page<DocumentTypeDTO> getAllDocumentType(int page, int size) {
         Page<DocumentType> documentTypes = documentTypeRepository.findAll(
                 PageRequest.of(page, size)
         );
-        return documentTypes.map(mapper::map);
+        return documentTypes.map(model -> mapper.map(model));
     }
 
     public DocumentTypeDTO getDocumentTypeById(Long id) {
@@ -61,7 +53,7 @@ public class DocumentTypeImpl implements DocumentTypeService {
                 .orElseThrow(() -> new ResourceNotFoundException("Not Found: " + id));
         documentType.setName(updateDocumentType.getName());
         documentType.setDescription(updateDocumentType.getDescription());
-        documentType.setAttributes(attributesRepository.findAllById(Collections.singleton(updateDocumentType.getDocumentTypeId())));
+        documentType.setAttributes(attributesRepository.findAllById(updateDocumentType.getAttributesDocumentTypeId()));
 
         documentTypeRepository.save(documentType);
 

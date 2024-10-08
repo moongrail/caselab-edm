@@ -4,6 +4,8 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 public class DocumentTypeUpdateDTO {
     @NotNull
@@ -13,7 +15,6 @@ public class DocumentTypeUpdateDTO {
     @NotEmpty
     private String description;
     @NotNull
-    @NotEmpty
-    private Long documentTypeId;
+    private List<Long> attributesDocumentTypeId;
 
 }

@@ -1,6 +1,6 @@
 package ru.caselab.edm.backend.repository;
 
-import ru.caselab.edm.backend.model.DocumentType;
+import ru.caselab.edm.backend.entity.DocumentType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
