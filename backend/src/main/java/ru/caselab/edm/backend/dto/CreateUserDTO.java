@@ -1,7 +1,27 @@
 package ru.caselab.edm.backend.dto;
 
 
-public record CreateUserDTO(String login,
-                            String email, String password, String firstName,
-                            String lastName, String patronymic) {
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+
+@Schema(description = "DTO for creating user")
+public record CreateUserDTO(
+        @Schema(description = "Login", example = "login")
+        @NotBlank String login,
+
+        @Schema(description = "Email", example = "email@email.com")
+        @NotBlank @Email String email,
+
+        @Schema(description = "Password", example = "password")
+        @NotBlank String password,
+
+        @Schema(description = "First name", example = "first name")
+        @NotBlank String firstName,
+
+        @Schema(description = "Last name", example = "last name")
+        @NotBlank String lastName,
+
+        @Schema(description = "Patronymic", example = "patronymic", nullable = true)
+        String patronymic) {
 }

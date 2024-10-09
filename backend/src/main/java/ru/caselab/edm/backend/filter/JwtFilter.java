@@ -15,7 +15,6 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import ru.caselab.edm.backend.service.JwtService;
-import ru.caselab.edm.backend.service.impl.UserDetailsServiceImpl;
 
 import java.io.IOException;
 
@@ -23,11 +22,11 @@ import java.io.IOException;
 public class JwtFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
-    private final UserDetailsServiceImpl userService;
+    private final UserDetailsService userService;
     private static final Logger LOGGER = LoggerFactory.getLogger(JwtFilter.class);
 
     @Autowired
-    public JwtFilter(UserDetailsServiceImpl userService, JwtService jwtService) {
+    public JwtFilter(UserDetailsService userService, JwtService jwtService) {
         this.userService = userService;
         this.jwtService = jwtService;
     }

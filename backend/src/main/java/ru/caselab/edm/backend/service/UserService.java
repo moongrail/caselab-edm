@@ -1,6 +1,7 @@
 package ru.caselab.edm.backend.service;
 
 import ru.caselab.edm.backend.dto.CreateUserDTO;
+import ru.caselab.edm.backend.dto.UpdatePasswordDTO;
 import ru.caselab.edm.backend.dto.UpdateUserDTO;
 import ru.caselab.edm.backend.dto.UserDTO;
 
@@ -16,6 +17,8 @@ public interface UserService {
     UserDTO createUser(CreateUserDTO createdUser);
 
     UserDTO updateUser(UUID id, UpdateUserDTO updatedUser);
+
+    void updatePassword(UUID id, UpdatePasswordDTO updatePasswordDTO);
 
     void deleteUser(UUID id);
 
