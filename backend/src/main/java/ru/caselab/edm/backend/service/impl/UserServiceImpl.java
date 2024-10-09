@@ -3,6 +3,9 @@ package ru.caselab.edm.backend.service.impl;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.parameters.P;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -17,6 +20,7 @@ import ru.caselab.edm.backend.mapper.UserMapper;
 import ru.caselab.edm.backend.repository.UserRepository;
 import ru.caselab.edm.backend.service.UserService;
 
+import javax.security.auth.login.CredentialException;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -26,11 +30,13 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+    private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public UserServiceImpl(UserRepository userRepository, UserMapper userMapper) {
+    public UserServiceImpl(UserRepository userRepository, UserMapper userMapper, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.userMapper = userMapper;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Transactional(readOnly = true)
@@ -63,7 +69,7 @@ public class UserServiceImpl implements UserService {
         User newUser = User.builder()
                 .login(createdUser.login())
                 .email(createdUser.email())
-                .password(createdUser.password())
+                .password(passwordEncoder.encode(createdUser.password()))
                 .firstName(createdUser.firstName())
                 .lastName(createdUser.lastName())
                 .patronymic(createdUser.patronymic())
@@ -77,22 +83,24 @@ public class UserServiceImpl implements UserService {
     public UserDTO updateUser(UUID id, UpdateUserDTO updatedUser) {
         Optional<User> user = userRepository.findById(id);
         if (user.isPresent()) {
-            User exisingUser = user.get();
-            if (!exisingUser.getLogin().equals(updatedUser.login())
+            User existingUser = user.get();
+            if (!existingUser.getLogin().equals(updatedUser.login())
                     && userRepository.existsByLogin(updatedUser.login())) {
                 throw new UserAlreadyExistsException("User already exists with this login = %s".formatted(updatedUser.login()));
             }
-            if (!exisingUser.getEmail().equals(updatedUser.email())
+            if (!existingUser.getEmail().equals(updatedUser.email())
                     && userRepository.existsByEmail(updatedUser.email())) {
                 throw new UserAlreadyExistsException("User already exists with this email = %s".formatted(updatedUser.email()));
             }
-            exisingUser.setLogin(updatedUser.login());
-            exisingUser.setEmail(updatedUser.email());
-            exisingUser.setFirstName(updatedUser.firstName());
-            exisingUser.setLastName(updatedUser.lastName());
-            exisingUser.setPatronymic(updatedUser.patronymic());
-            userRepository.save(exisingUser);
-            return userMapper.toDTO(exisingUser);
+            existingUser.setLogin(updatedUser.login());
+            existingUser.setEmail(updatedUser.email());
+            existingUser.setFirstName(updatedUser.firstName());
+            existingUser.setLastName(updatedUser.lastName());
+            if (updatedUser.patronymic() != null) {
+                existingUser.setPatronymic(updatedUser.patronymic());
+            }
+            userRepository.save(existingUser);
+            return userMapper.toDTO(existingUser);
         } else {
             throw new ResourceNotFoundException("User not found with this id = %s".formatted(id));
         }
@@ -103,9 +111,12 @@ public class UserServiceImpl implements UserService {
     public void updatePassword(UUID id, UpdatePasswordDTO updatePasswordDTO) {
         Optional<User> user = userRepository.findById(id);
         if (user.isPresent()) {
-            User exisingUser = user.get();
-            exisingUser.setPassword(updatePasswordDTO.newPassword());
-            userRepository.save(exisingUser);
+            User existingUser = user.get();
+            if (!passwordEncoder.matches(updatePasswordDTO.oldPassword(), existingUser.getPassword())) {
+                throw new BadCredentialsException("Invalid old password");
+            }
+            existingUser.setPassword(passwordEncoder.encode(updatePasswordDTO.newPassword()));
+            userRepository.save(existingUser);
         } else {
             throw new ResourceNotFoundException("User not found with this id = %s".formatted(id));
         }

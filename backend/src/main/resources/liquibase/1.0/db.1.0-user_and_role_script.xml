@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="db.1.0-user_and_role_script" author="Shukhrat" runOnChange="true">
+        <sql>
+            CREATE TABLE IF NOT EXISTS users (
+            id UUID PRIMARY KEY,
+            login VARCHAR(255) UNIQUE NOT NULL,
+            email VARCHAR(255) UNIQUE NOT NULL,
+            password VARCHAR(255) NOT NULL,
+            first_name VARCHAR(100) NOT NULL,
+            last_name VARCHAR(100) NOT NULL,
+            patronymic VARCHAR(100)
+            );
+
+            CREATE TABLE IF NOT EXISTS roles (
+            id BIGINT PRIMARY KEY,
+            name VARCHAR(100) UNIQUE NOT NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS user_roles (
+            user_id UUID REFERENCES users(id) ON DELETE CASCADE NOT NULL,
+            role_id BIGINT REFERENCES roles(id) ON DELETE CASCADE NOT NULL
+            );
+
+        </sql>
+    </changeSet>
+</databaseChangeLog>
