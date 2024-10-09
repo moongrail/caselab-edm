@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 import ru.caselab.edm.backend.dto.DocumentTypeDTO;
 import ru.caselab.edm.backend.dto.DocumentsAttributesDTO;
-import ru.caselab.edm.backend.entity.DocumentAttribute;
 import ru.caselab.edm.backend.entity.DocumentType;
 
 import java.time.LocalDateTime;
@@ -33,12 +32,12 @@ class DocumentTypeMapperTest {
 
         DocumentType testDocumenttype = new DocumentType();
 
-        DocumentAttribute documentAttribute = new DocumentAttribute();
-        documentAttribute.setName("подписант");
-        documentAttribute.setDataType("текст");
+        Attribute attribute = new Attribute();
+        attribute.setName("подписант");
+        attribute.setDataType("текст");
 
-        List<DocumentAttribute> documentAttributeList = new ArrayList<>();
-        documentAttributeList.add(documentAttribute);
+        List<Attribute> documentAttributeList = new ArrayList<>();
+        documentAttributeList.add(attribute);
 
         testDocumenttype.setId(1L);
         testDocumenttype.setName("договор");

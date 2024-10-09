@@ -14,11 +14,10 @@ import ru.caselab.edm.backend.dto.DocumentTypeCreateDTO;
 import ru.caselab.edm.backend.dto.DocumentTypeDTO;
 import ru.caselab.edm.backend.dto.DocumentTypeUpdateDTO;
 import ru.caselab.edm.backend.dto.DocumentsAttributesDTO;
-import ru.caselab.edm.backend.entity.DocumentAttribute;
 import ru.caselab.edm.backend.entity.DocumentType;
 import ru.caselab.edm.backend.mapper.DocumentTypeMapper;
-import ru.caselab.edm.backend.repository.AttributesRepository;
 import ru.caselab.edm.backend.repository.DocumentTypeRepository;
+import ru.caselab.edm.backend.service.impl.DocumentTypeImpl;
 
 import java.time.LocalDateTime;
 import java.time.Month;
@@ -33,7 +32,7 @@ class DocumentTypeImplTest {
     @Mock
     private DocumentTypeRepository documentTypeRepository;
     @Mock
-    private AttributesRepository attributesRepository;
+    private AttributeRepository attributesRepository;
     @InjectMocks
     private DocumentTypeImpl documentTypeService;
 
@@ -123,7 +122,7 @@ class DocumentTypeImplTest {
         documentType.setName("договор");
         documentType.setDescription("какое-то описание");
 
-        List<DocumentAttribute> attributes = new ArrayList<>();
+        List<Attribute> attributes = new ArrayList<>();
 
         Mockito.when(attributesRepository.findAllById(attributesDocumentTypeId)).thenReturn(attributes);
 
@@ -162,7 +161,7 @@ class DocumentTypeImplTest {
         //DocumentType
         DocumentType documentType = getDocumentType();
 
-        List<DocumentAttribute> attributes = new ArrayList<>();
+        List<Attribute> attributes = new ArrayList<>();
         List<Long> attributesDocumentTypeId = new ArrayList<>(List.of(1L));
 
         Mockito.when(documentTypeRepository.findById(id)).thenReturn(Optional.of(documentType));
@@ -197,12 +196,12 @@ class DocumentTypeImplTest {
         LocalDateTime now = LocalDateTime
                 .of(2024, Month.FEBRUARY, 22, 9, 49, 19, 275039200);
 
-        DocumentAttribute documentAttribute = new DocumentAttribute();
-        documentAttribute.setName("подписант");
-        documentAttribute.setDataType("текст");
+        Attribute attribute = new Attribute();
+        attribute.setName("подписант");
+        attribute.setDataType("текст");
 
-        List<DocumentAttribute> documentAttributeList = new ArrayList<>();
-        documentAttributeList.add(documentAttribute);
+        List<Attribute> documentAttributeList = new ArrayList<>();
+        documentAttributeList.add(attribute);
 
         DocumentType documentType = new DocumentType();
         documentType.setId(1L);

@@ -41,5 +41,5 @@ public class DocumentType {
             joinColumns = @JoinColumn(name = "doc_type_id "),
             inverseJoinColumns = @JoinColumn(name = "attribute_id")
     )
-    private List<DocumentAttribute> attributes = new ArrayList<>();
+    private List<Attribute> attributes = new ArrayList<>();
 }

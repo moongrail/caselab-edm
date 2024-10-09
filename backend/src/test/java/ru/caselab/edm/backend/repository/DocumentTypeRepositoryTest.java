@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.ActiveProfiles;
-import ru.caselab.edm.backend.entity.DocumentAttribute;
 import ru.caselab.edm.backend.entity.DocumentType;
 
 import java.util.ArrayList;
@@ -17,17 +16,17 @@ class DocumentTypeRepositoryTest {
     @Autowired
     DocumentTypeRepository documentTypeRepository;
     @Autowired
-    AttributesRepository attributesRepository;
+    AttributeRepository attributesRepository;
 
     @Test
     void findByName() {
-        DocumentAttribute documentAttribute = new DocumentAttribute();
-        documentAttribute.setName("подписант");
-        documentAttribute.setDataType("текст");
-        attributesRepository.saveAndFlush(documentAttribute);
+        Attribute attribute = new Attribute();
+        attribute.setName("подписант");
+        attribute.setDataType("текст");
+        attributesRepository.saveAndFlush(attribute);
 
-        List<DocumentAttribute> documentAttributeList = new ArrayList<>();
-        documentAttributeList.add(documentAttribute);
+        List<Attribute> documentAttributeList = new ArrayList<>();
+        documentAttributeList.add(attribute);
 
         DocumentType documentType = new DocumentType();
         documentType.setId(1L);

@@ -18,26 +18,13 @@
             updated_at   TIMESTAMP
             );
 
-            DROP TABLE IF EXISTS attributes;
-
-            CREATE TABLE attributes
-            (
-            id           BigSerial      PRIMARY KEY,
-            name         VARCHAR (255)  not null,
-            data_type    VARCHAR (255)  not null
-            );
-
-            DROP TABLE IF EXISTS document_type_attributes;
-
-            CREATE TABLE document_type_attributes
+            CREATE TABLE if EXISTS document_type_attributes
             (
             doc_type_id     bigint,
             attribute_id    bigint,
             CONSTRAINT doc_type_id_foreign_key FOREIGN KEY (doc_type_id) REFERENCES document_types (id),
             CONSTRAINT attribute_id_foreign_key FOREIGN KEY (attribute_id) REFERENCES attributes(id)
             );
-
-
         </sql>
     </changeSet>
 

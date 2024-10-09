@@ -1,4 +1,4 @@
-package ru.caselab.edm.backend.service.Impl;
+package ru.caselab.edm.backend.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -10,7 +10,6 @@ import ru.caselab.edm.backend.dto.DocumentTypeUpdateDTO;
 import ru.caselab.edm.backend.entity.DocumentType;
 import ru.caselab.edm.backend.exceptions.ResourceNotFoundException;
 import ru.caselab.edm.backend.mapper.DocumentTypeMapper;
-import ru.caselab.edm.backend.repository.AttributesRepository;
 import ru.caselab.edm.backend.repository.DocumentTypeRepository;
 import ru.caselab.edm.backend.service.DocumentTypeService;
 
@@ -18,7 +17,7 @@ import ru.caselab.edm.backend.service.DocumentTypeService;
 @RequiredArgsConstructor
 public class DocumentTypeImpl implements DocumentTypeService {
     private final DocumentTypeRepository documentTypeRepository;
-    private final AttributesRepository attributesRepository;
+    private final AttributeRepository attributesRepository;
     private final DocumentTypeMapper mapper;
 
     public Page<DocumentTypeDTO> getAllDocumentType(int page, int size) {
