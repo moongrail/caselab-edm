@@ -1,6 +1,5 @@
 package ru.caselab.edm.backend.service.impl;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.caselab.edm.backend.entity.RefreshToken;
 import ru.caselab.edm.backend.entity.User;
