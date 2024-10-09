@@ -20,6 +20,7 @@ import java.util.function.Function;
 public class JwtServiceImpl implements JwtService {
 
     private static String SECRET_KEY;
+    private static final int JWT_TOKEN_LIFETIME = 60 * 60 * 1000; // 1 час
 
     private final JwtParser jwtParser;
 
@@ -76,8 +77,10 @@ public class JwtServiceImpl implements JwtService {
                 .setClaims(claims)
                 .setSubject(user.getUsername())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + (30L * 24 * 60 * 60 * 100000)))
+                .setExpiration(new Date(System.currentTimeMillis() + (JWT_TOKEN_LIFETIME)))
                 .signWith(getSignKey(), SignatureAlgorithm.HS256).compact();
     }
+
+
 
 }
