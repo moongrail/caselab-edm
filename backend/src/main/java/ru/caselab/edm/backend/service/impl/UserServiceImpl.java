@@ -1,14 +1,12 @@
 package ru.caselab.edm.backend.service.impl;
 
-import jakarta.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.core.parameters.P;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.RequestBody;
 import ru.caselab.edm.backend.dto.CreateUserDTO;
 import ru.caselab.edm.backend.dto.UpdatePasswordDTO;
 import ru.caselab.edm.backend.dto.UpdateUserDTO;
@@ -20,7 +18,7 @@ import ru.caselab.edm.backend.mapper.UserMapper;
 import ru.caselab.edm.backend.repository.UserRepository;
 import ru.caselab.edm.backend.service.UserService;
 
-import javax.security.auth.login.CredentialException;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;

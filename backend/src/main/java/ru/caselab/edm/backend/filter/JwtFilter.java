@@ -15,7 +15,6 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import ru.caselab.edm.backend.service.JwtService;
-import ru.caselab.edm.backend.service.impl.UserDetailsServiceImpl;
 
 import java.io.IOException;
 

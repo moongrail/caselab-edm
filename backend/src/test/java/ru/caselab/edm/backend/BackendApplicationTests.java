@@ -1,7 +1,6 @@
 package ru.caselab.edm.backend;
 
 import org.apache.catalina.core.ApplicationContext;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
