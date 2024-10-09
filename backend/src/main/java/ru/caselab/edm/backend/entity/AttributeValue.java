@@ -1,9 +1,17 @@
 package ru.caselab.edm.backend.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "document_attribute_value")
+@Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class AttributeValue {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

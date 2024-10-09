@@ -1,8 +1,11 @@
 package ru.caselab.edm.backend.controllers;
 
+import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ru.caselab.edm.backend.dto.AttributeCreateDTO;
 import ru.caselab.edm.backend.dto.AttributeDTO;
 import ru.caselab.edm.backend.dto.AttributeUpdateDTO;
 import ru.caselab.edm.backend.service.AttributeService;
@@ -19,6 +22,13 @@ public class AttributeController {
     }
 
 
+    @PostMapping
+    public ResponseEntity<AttributeDTO> createAttribute(@Valid @RequestBody AttributeCreateDTO attributeDTO) {
+
+        AttributeDTO attribute=attributeService.createAttribute(attributeDTO);
+        return new ResponseEntity<>(attribute, HttpStatus.CREATED);
+    }
+
 
     @GetMapping("/{id}")
     public ResponseEntity<AttributeDTO> getAttributeById(@PathVariable Long id) {
@@ -28,8 +38,9 @@ public class AttributeController {
 
 
     @GetMapping
-    public ResponseEntity<List<AttributeDTO>> getAllAttributes() {
-        List<AttributeDTO> attributes = attributeService.getAllAttributes();
+    public ResponseEntity<Page<AttributeDTO>> getAllAttributes(@RequestParam(value = "page", defaultValue = "0") int page,
+                                                               @RequestParam(value = "size", defaultValue = "10") int size) {
+        Page<AttributeDTO> attributes = attributeService.getAllAttributes(page, size);
         return new ResponseEntity<>(attributes, HttpStatus.OK);
     }
 

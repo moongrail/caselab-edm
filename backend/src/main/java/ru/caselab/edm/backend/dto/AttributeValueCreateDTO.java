@@ -4,9 +4,8 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data
-public class AttributeValueDTO {
+public class AttributeValueCreateDTO {
 
-    private Long id;
     @NotNull
     private Long attributeId;
     @NotNull
