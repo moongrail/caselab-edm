@@ -27,6 +27,8 @@ import java.util.Optional;
 
 @ExtendWith(MockitoExtension.class)
 class DocumentTypeImplTest {
+    public static final LocalDateTime NOW = LocalDateTime
+            .of(2024, Month.FEBRUARY, 22, 9, 49, 19, 275039200);
     @Mock
     private DocumentTypeMapper mapper;
     @Mock
@@ -96,9 +98,6 @@ class DocumentTypeImplTest {
 
     @Test
     void createDocumentType() {
-        LocalDateTime now = LocalDateTime
-                .of(2024, Month.FEBRUARY, 22, 9, 49, 19);
-
         //Входные данные
         List<Long> attributesDocumentTypeId = new ArrayList<Long>(List.of(0L));
 
@@ -193,8 +192,6 @@ class DocumentTypeImplTest {
     }
 
     private static DocumentType getDocumentType() {
-        LocalDateTime now = LocalDateTime
-                .of(2024, Month.FEBRUARY, 22, 9, 49, 19, 275039200);
 
         Attribute attribute = new Attribute();
         attribute.setName("подписант");
@@ -207,7 +204,7 @@ class DocumentTypeImplTest {
         documentType.setId(1L);
         documentType.setName("договор");
         documentType.setDescription("какоей-то описание");
-        documentType.setCreatedAt(now);
+        documentType.setCreatedAt(NOW);
         documentType.setAttributes(documentAttributeList);
         return documentType;
     }
@@ -224,14 +221,12 @@ class DocumentTypeImplTest {
                                                       Long documentTypeId,
                                                       String nameDocumentType,
                                                       String descriptionDocumentType) {
-        LocalDateTime now = LocalDateTime
-                .of(2024, Month.FEBRUARY, 22, 9, 49, 19);
 
         DocumentTypeDTO testDocumentTypeDTO = new DocumentTypeDTO();
         testDocumentTypeDTO.setId(documentTypeId);
         testDocumentTypeDTO.setName(nameDocumentType);
         testDocumentTypeDTO.setDescription(descriptionDocumentType);
-        testDocumentTypeDTO.setCreatedAt(now);
+        testDocumentTypeDTO.setCreatedAt(NOW);
         testDocumentTypeDTO.setAttributes(documentsAttributesDTOList);
         return testDocumentTypeDTO;
     }
