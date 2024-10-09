@@ -14,8 +14,6 @@ import ru.caselab.edm.backend.repository.AttributesRepository;
 import ru.caselab.edm.backend.repository.DocumentTypeRepository;
 import ru.caselab.edm.backend.service.DocumentTypeService;
 
-import java.util.Collections;
-
 @Service
 @RequiredArgsConstructor
 public class DocumentTypeImpl implements DocumentTypeService {

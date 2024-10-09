@@ -43,13 +43,13 @@ class DocumentTypeMapperTest {
         testDocumenttype.setId(1L);
         testDocumenttype.setName("договор");
         testDocumenttype.setDescription("какоей-то описание");
-        testDocumenttype.setCreateAt(now);
+        testDocumenttype.setCreatedAt(now);
         testDocumenttype.setAttributes(documentAttributeList);
 
         testDocumentTypeDTO.setId(1L);
         testDocumentTypeDTO.setName("договор");
         testDocumentTypeDTO.setDescription("какоей-то описание");
-        testDocumentTypeDTO.setCreateAt(now);
+        testDocumentTypeDTO.setCreatedAt(now);
         testDocumentTypeDTO.setAttributes(documentsAttributesDTOList);
 
         Assertions.assertThat(mapper.map(testDocumenttype)).isEqualTo(testDocumentTypeDTO);

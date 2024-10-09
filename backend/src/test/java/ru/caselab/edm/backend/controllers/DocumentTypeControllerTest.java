@@ -5,10 +5,13 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.caselab.edm.backend.dto.DocumentTypeCreateDTO;
 import ru.caselab.edm.backend.dto.DocumentTypeDTO;
@@ -16,7 +19,11 @@ import ru.caselab.edm.backend.dto.DocumentTypeUpdateDTO;
 import ru.caselab.edm.backend.dto.DocumentsAttributesDTO;
 import ru.caselab.edm.backend.entity.DocumentAttribute;
 import ru.caselab.edm.backend.entity.DocumentType;
+import ru.caselab.edm.backend.repository.RoleRepository;
+import ru.caselab.edm.backend.repository.UserRepository;
 import ru.caselab.edm.backend.service.DocumentTypeService;
+import ru.caselab.edm.backend.service.impl.JwtServiceImpl;
+import ru.caselab.edm.backend.service.impl.UserDetailsServiceImpl;
 
 import java.time.LocalDateTime;
 import java.time.Month;
@@ -30,14 +37,20 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@Import({JwtServiceImpl.class, UserDetailsServiceImpl.class})
 @WebMvcTest(controllers = DocumentTypeController.class)
 class DocumentTypeControllerTest {
     @MockBean
     private DocumentTypeService documentTypeService;
     @Autowired
     private MockMvc mockMvc;
+    @MockBean
+    UserRepository userRepository;
+    @MockBean
+    RoleRepository roleRepository;
 
     @Test
+    @WithMockUser
     void createDocumentType() throws Exception {
         //Входные данные
         List<Long> attributesDocumentTypeId = new ArrayList<>(List.of(0L));
@@ -61,6 +74,7 @@ class DocumentTypeControllerTest {
         Mockito.when(documentTypeService.createDocumentType(testDto)).thenReturn(testDocumentTypeDTO);
 
         mockMvc.perform(post("/document_type")
+                        .with(SecurityMockMvcRequestPostProcessors.csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""                            
                                 {
@@ -77,7 +91,7 @@ class DocumentTypeControllerTest {
                                     "id": 1,
                                     "name": "договор",
                                     "description": "какое-то описание",
-                                    "createAt": "2024-02-22T09:49:19",
+                                    "createdAt": "2024-02-22T09:49:19",
                                     "attributes": [
                                                     {
                                                         "id": 0,
@@ -90,6 +104,7 @@ class DocumentTypeControllerTest {
     }
 
     @Test
+    @WithMockUser
     void showAllDocumentTypes() throws Exception {
         //генерация данных
         DocumentsAttributesDTO testDocumentsAttributesDTO1 = getDocumentsAttributesDTO(0L, "подписант");
@@ -123,6 +138,7 @@ class DocumentTypeControllerTest {
                 .thenReturn(expected);
 
         mockMvc.perform(get("/document_type?page=0&size=2")
+                        .with(SecurityMockMvcRequestPostProcessors.csrf())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().json("""
@@ -132,7 +148,7 @@ class DocumentTypeControllerTest {
                                     "id":0,
                                     "name":"договор",
                                     "description":"какое-то описание",
-                                    "createAt":"2024-02-22T09:49:19",
+                                    "createdAt":"2024-02-22T09:49:19",
                                     "attributes":
                                         [
                                             {
@@ -145,7 +161,7 @@ class DocumentTypeControllerTest {
                                     "id":1,
                                     "name":"котировка",
                                     "description":"какое-то описание котировки",
-                                    "createAt":"2024-02-22T09:49:19",
+                                    "createdAt":"2024-02-22T09:49:19",
                                     "attributes":
                                         [
                                             {
@@ -193,6 +209,7 @@ class DocumentTypeControllerTest {
     }
 
     @Test
+    @WithMockUser
     void showDocumentType() throws Exception {
         //генерация данных
         LocalDateTime now = LocalDateTime
@@ -226,7 +243,7 @@ class DocumentTypeControllerTest {
                             "id":1,
                                     "name":"котировка",
                                     "description":"какое-то описание котировки",
-                                    "createAt":"2024-02-22T09:49:19",
+                                    "createdAt":"2024-02-22T09:49:19",
                                     "attributes":
                                         [
                                             {
@@ -243,6 +260,7 @@ class DocumentTypeControllerTest {
     }
 
     @Test
+    @WithMockUser
     void updateDocumentType() throws Exception {
         DocumentTypeUpdateDTO documentTypeUpdateDTO = new DocumentTypeUpdateDTO();
         documentTypeUpdateDTO.setAttributesDocumentTypeId(List.of(1L));
@@ -264,7 +282,7 @@ class DocumentTypeControllerTest {
         testDocumenttype.setId(1L);
         testDocumenttype.setName("договор");
         testDocumenttype.setDescription("какоей-то описание");
-        testDocumenttype.setCreateAt(now);
+        testDocumenttype.setCreatedAt(now);
         testDocumenttype.setAttributes(documentAttributeList);
 
         Long id = 1L;
@@ -282,6 +300,7 @@ class DocumentTypeControllerTest {
                 .thenReturn(expected);
 
         mockMvc.perform(patch("/document_type/{id}", 1)
+                        .with(SecurityMockMvcRequestPostProcessors.csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""                            
                                 {
@@ -298,7 +317,7 @@ class DocumentTypeControllerTest {
                                     "id": 0,
                                     "name": "Новый документ",
                                     "description": "Такого вы еще не видели",
-                                    "createAt": "2024-02-22T09:49:19",
+                                    "createdAt": "2024-02-22T09:49:19",
                                     "attributes": [
                                                     {
                                                         "id": 0,
@@ -311,8 +330,10 @@ class DocumentTypeControllerTest {
     }
 
     @Test
+    @WithMockUser
     void deleteDocumentType() throws Exception {
         mockMvc.perform(delete("/document_type/{id}", 1L)
+                        .with(SecurityMockMvcRequestPostProcessors.csrf())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNoContent());
 
@@ -338,7 +359,7 @@ class DocumentTypeControllerTest {
         testDocumentTypeDTO.setId(documentTypeId);
         testDocumentTypeDTO.setName(nameDocumentType);
         testDocumentTypeDTO.setDescription(descriptionDocumentType);
-        testDocumentTypeDTO.setCreateAt(now);
+        testDocumentTypeDTO.setCreatedAt(now);
         testDocumentTypeDTO.setAttributes(documentsAttributesDTOList);
         return testDocumentTypeDTO;
     }

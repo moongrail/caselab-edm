@@ -9,8 +9,6 @@ import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -25,10 +23,13 @@ public class DocumentType {
     @Id
     @GeneratedValue(strategy = IDENTITY)
     private Long id;
-    @Column(unique = true)
+    @Column(name = "name", unique = true)
     private String name;
+    @Column(name = "descriptions")
     private String description;
-    private LocalDateTime createAt;
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+    @Column(name = "updated_at")
     private LocalDateTime updatedAt;
     @ManyToMany
     @JoinTable(

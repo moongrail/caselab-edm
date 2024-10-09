@@ -11,12 +11,12 @@ import java.util.List;
 
 public class UserInfoDetails implements UserDetails {
 
-    private String login;
-    private String password;
+    private final String login;
+    private final String password;
     Collection<? extends GrantedAuthority> authorities;
 
 
-    public UserInfoDetails (User user) {
+    public UserInfoDetails(User user) {
         this.login = user.getLogin();
         this.password = user.getPassword();
 

@@ -1,6 +1,9 @@
 package ru.caselab.edm.backend.service.impl;
 
-import io.jsonwebtoken.*;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtParser;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
@@ -36,7 +39,7 @@ public class JwtServiceImpl implements JwtService {
 
     @Override
     public Date getExpiration(String token) {
-        return  getClaims(token, Claims::getExpiration);
+        return getClaims(token, Claims::getExpiration);
     }
 
     @Override
@@ -80,7 +83,6 @@ public class JwtServiceImpl implements JwtService {
                 .setExpiration(new Date(System.currentTimeMillis() + (JWT_TOKEN_LIFETIME)))
                 .signWith(getSignKey(), SignatureAlgorithm.HS256).compact();
     }
-
 
 
 }

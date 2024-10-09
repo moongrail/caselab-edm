@@ -4,16 +4,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.caselab.edm.backend.dto.JwtDto;
 import ru.caselab.edm.backend.dto.LoginUserDto;
-import ru.caselab.edm.backend.entity.Role;
 import ru.caselab.edm.backend.entity.User;
 import ru.caselab.edm.backend.entity.UserInfoDetails;
-import ru.caselab.edm.backend.repository.RoleRepository;
 import ru.caselab.edm.backend.repository.UserRepository;
 import ru.caselab.edm.backend.service.JwtService;
 import ru.caselab.edm.backend.service.RefreshTokenService;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Service
 public class TestService {
@@ -25,7 +20,7 @@ public class TestService {
 
     @Autowired
     public TestService(JwtService jwtService, UserRepository userRepository,
-                        RefreshTokenService refreshTokenService) {
+                       RefreshTokenService refreshTokenService) {
         this.jwtService = jwtService;
         this.userRepository = userRepository;
         this.refreshTokenService = refreshTokenService;

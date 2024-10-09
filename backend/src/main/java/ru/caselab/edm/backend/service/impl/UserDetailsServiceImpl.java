@@ -8,14 +8,11 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import ru.caselab.edm.backend.entity.Role;
 import ru.caselab.edm.backend.entity.User;
 import ru.caselab.edm.backend.entity.UserInfoDetails;
 import ru.caselab.edm.backend.repository.RoleRepository;
 import ru.caselab.edm.backend.repository.UserRepository;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 @Component
@@ -38,7 +35,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
         User existingUser = user.get();
 
-        if(user.isEmpty()){
+        if (user.isEmpty()) {
             LOGGER.error("Username not found: " + username);
             throw new UsernameNotFoundException("username not found");
         }

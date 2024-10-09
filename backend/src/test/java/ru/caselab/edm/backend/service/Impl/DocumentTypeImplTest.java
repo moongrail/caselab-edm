@@ -208,7 +208,7 @@ class DocumentTypeImplTest {
         documentType.setId(1L);
         documentType.setName("договор");
         documentType.setDescription("какоей-то описание");
-        documentType.setCreateAt(now);
+        documentType.setCreatedAt(now);
         documentType.setAttributes(documentAttributeList);
         return documentType;
     }
@@ -232,7 +232,7 @@ class DocumentTypeImplTest {
         testDocumentTypeDTO.setId(documentTypeId);
         testDocumentTypeDTO.setName(nameDocumentType);
         testDocumentTypeDTO.setDescription(descriptionDocumentType);
-        testDocumentTypeDTO.setCreateAt(now);
+        testDocumentTypeDTO.setCreatedAt(now);
         testDocumentTypeDTO.setAttributes(documentsAttributesDTOList);
         return testDocumentTypeDTO;
     }
