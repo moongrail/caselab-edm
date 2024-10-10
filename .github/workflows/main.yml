@@ -37,5 +37,5 @@ jobs:
           cache: ${{ env.CACHE_BUILD_TOOL }}
 
       - name: Run Tests
-        run: mvn -f backend/pom.xml clean verify
+        run: mvn -f backend/pom.xml -ntp clean verify
 
