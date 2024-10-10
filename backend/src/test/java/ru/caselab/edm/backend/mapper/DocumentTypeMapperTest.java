@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 import ru.caselab.edm.backend.dto.DocumentTypeDTO;
 import ru.caselab.edm.backend.dto.DocumentsAttributesDTO;
+import ru.caselab.edm.backend.entity.Attribute;
 import ru.caselab.edm.backend.entity.DocumentType;
 
 import java.time.LocalDateTime;

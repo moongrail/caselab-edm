@@ -14,8 +14,10 @@ import ru.caselab.edm.backend.dto.DocumentTypeCreateDTO;
 import ru.caselab.edm.backend.dto.DocumentTypeDTO;
 import ru.caselab.edm.backend.dto.DocumentTypeUpdateDTO;
 import ru.caselab.edm.backend.dto.DocumentsAttributesDTO;
+import ru.caselab.edm.backend.entity.Attribute;
 import ru.caselab.edm.backend.entity.DocumentType;
 import ru.caselab.edm.backend.mapper.DocumentTypeMapper;
+import ru.caselab.edm.backend.repository.AttributeRepository;
 import ru.caselab.edm.backend.repository.DocumentTypeRepository;
 import ru.caselab.edm.backend.service.impl.DocumentTypeImpl;
 
