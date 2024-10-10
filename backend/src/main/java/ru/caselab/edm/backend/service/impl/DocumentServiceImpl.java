@@ -9,7 +9,6 @@ import ru.caselab.edm.backend.dto.DocumentCreateDTO;
 import ru.caselab.edm.backend.dto.DocumentUpdateDTO;
 import ru.caselab.edm.backend.entity.Document;
 import ru.caselab.edm.backend.exceptions.WrongDateException;
-import ru.caselab.edm.backend.repository.AttributesRepository;
 import ru.caselab.edm.backend.repository.DocumentRepository;
 import ru.caselab.edm.backend.repository.DocumentTypeRepository;
 import ru.caselab.edm.backend.repository.UserRepository;
