@@ -5,8 +5,8 @@ import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import ru.caselab.edm.backend.dto.JwtDto;
-import ru.caselab.edm.backend.dto.LoginUserDto;
+import ru.caselab.edm.backend.dto.JwtDTO;
+import ru.caselab.edm.backend.dto.LoginUserDTO;
 import ru.caselab.edm.backend.service.impl.TestService;
 
 @RestController
@@ -26,7 +26,7 @@ public class TestController {
 
     @PostMapping("/jwtTest")
     @Operation(summary = "JWT TEST")
-    public ResponseEntity<JwtDto> jwtTest(@RequestBody LoginUserDto dto) {
+    public ResponseEntity<JwtDTO> jwtTest(@RequestBody LoginUserDTO dto) {
         return ResponseEntity.ok(testService.testJwt(dto));
     }
 }
