@@ -5,9 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 
 
 @Entity
@@ -41,6 +39,6 @@ public class Document {
     private byte[] data;
 
     @OneToMany(mappedBy = "document")
-    private List<DocumentAttributeValue> documentAttributeValues;
+    private List<AttributeValue> documentAttributeValues;
 
 }

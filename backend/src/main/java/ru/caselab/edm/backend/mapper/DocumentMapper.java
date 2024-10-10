@@ -8,8 +8,6 @@ import ru.caselab.edm.backend.dto.DocumentUpdateDTO;
 import ru.caselab.edm.backend.entity.Document;
 
 public interface DocumentMapper {
-    Document toEntity(DocumentCreateDTO request);
-    Document toEntity(DocumentUpdateDTO request);
 
     DocumentDTO toDto(Document entity);
 

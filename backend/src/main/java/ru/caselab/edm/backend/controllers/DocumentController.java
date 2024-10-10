@@ -23,40 +23,27 @@ public class DocumentController {
     @PostMapping()
     @ResponseStatus(HttpStatus.CREATED)
     public DocumentDTO createDocumentType(@Valid @RequestBody DocumentCreateDTO documentTypeCreateDTO) {
-        return documentMapper.toDto(
-                documentService.saveDocument(
-                        documentMapper.toEntity(documentTypeCreateDTO)
-                )
-        );
+        return documentMapper.toDto(documentService.saveDocument(documentTypeCreateDTO));
     }
 
     @GetMapping()
     @ResponseStatus(HttpStatus.OK)
     public DocumentPageDTO getAllDocuments(@RequestParam(name = "page", defaultValue = "0") @Min(value = 0) int page,
                                            @RequestParam(name = "size", defaultValue = "10") @Min(value = 1) @Max(value = 100) int size) {
-        return documentMapper.toDtoPage(
-                documentService.getAllDocuments(page, size)
-        );
+        return documentMapper.toDtoPage(documentService.getAllDocuments(page, size));
     }
 
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     public DocumentDTO getDocumentById(@PathVariable Long id) {
-        return documentMapper.toDto(
-                documentService.getDocument(id)
-        );
+        return documentMapper.toDto(documentService.getDocument(id));
     }
 
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     public DocumentDTO updateDocumentType(@PathVariable Long id,
                                           @RequestBody @Valid DocumentUpdateDTO updateDocumentType) {
-        return documentMapper.toDto(
-                documentService.updateDocument(
-                        id,
-                        documentMapper.toEntity(updateDocumentType)
-                )
-        );
+        return documentMapper.toDto(documentService.updateDocument(id, updateDocumentType));
     }
 
     @DeleteMapping("/{id}")

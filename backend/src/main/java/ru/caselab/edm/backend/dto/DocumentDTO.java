@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -35,4 +36,7 @@ public class DocumentDTO {
 
     @JsonProperty("data")
     private byte[] data;
+
+    @JsonProperty("attributes")
+    private List<AttributeValueDTO> documentAttributeValues;
 }

@@ -15,11 +15,11 @@ import java.util.UUID;
 public class DocumentCreateDTO {
 
     @JsonProperty("documentTypeId")
-    @NotBlank
+    @NotNull
     private Long documentTypeId;
 
     @JsonProperty("userId")
-    @NotBlank
+    @NotNull
     private UUID userId;
 
     @JsonProperty("name")
@@ -33,6 +33,6 @@ public class DocumentCreateDTO {
     private LocalDateTime updateDate;
 
     @JsonProperty("data")
-    @NotBlank
+    @NotNull
     private byte[] data;
 }
