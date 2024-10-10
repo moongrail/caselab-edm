@@ -10,7 +10,7 @@
             DROP TABLE IF EXISTS document_attribute_values;
             DROP TABLE IF EXISTS attributes;
 
-            CREATE TABLE attributes
+            CREATE TABLE IF NOT EXISTS attributes
             (
                 id           BigSerial      PRIMARY KEY,
                 name         VARCHAR (255)  not null unique ,
@@ -18,7 +18,7 @@
 
             );
 
-            CREATE TABLE if EXISTS document_attribute_values
+            CREATE TABLE IF NOT EXISTS document_attribute_values
             (
                 id              BigSerial   PRIMARY KEY,
                 document_id     bigint      not null,
