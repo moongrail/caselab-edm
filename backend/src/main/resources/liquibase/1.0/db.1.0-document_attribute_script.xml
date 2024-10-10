@@ -23,7 +23,7 @@
                 id              BigSerial   PRIMARY KEY,
                 document_id     bigint      not null,
                 attribute_id    bigint      not null,
-                value           TEXT,
+                "value"           TEXT,
                 CONSTRAINT document_id_foreign_key FOREIGN KEY (document_id) REFERENCES documents (id),
                 CONSTRAINT attribute_id_foreign_key FOREIGN KEY (attribute_id) REFERENCES attributes(id)
                 );
