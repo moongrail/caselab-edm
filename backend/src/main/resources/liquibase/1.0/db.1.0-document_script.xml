@@ -8,10 +8,10 @@
     <changeSet id="Document table creation" author="A192747" runOnChange="true">
         <sql>
 
-            CREATE TABLE document (
+            CREATE TABLE IF NOT EXISTS documents (
                 id                   BIGSERIAL       PRIMARY KEY,
                 name                 VARCHAR(255)    NOT NULL,
-                document_type_id     BIGINT          REFERENCES      document_type(id),
+                document_type_id     BIGINT          REFERENCES      document_types(id),
                 user_id              UUID            REFERENCES      users(id)        ON DELETE CASCADE,
                 created_at           TIMESTAMP,
                 updated_at           TIMESTAMP,

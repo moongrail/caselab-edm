@@ -8,22 +8,14 @@
     <changeSet id="db.1.0-create_document_attribute_script" author="Larentina" runOnChange="true">
         <sql>
             DROP TABLE IF EXISTS document_attribute_values;
-            DROP TABLE IF EXISTS attributes;
 
-            CREATE TABLE IF NOT EXISTS attributes
-            (
-                id           BigSerial      PRIMARY KEY,
-                name         VARCHAR (255)  not null unique ,
-                data_type    VARCHAR (255)  not null
-
-            );
 
             CREATE TABLE IF NOT EXISTS document_attribute_values
             (
                 id              BigSerial   PRIMARY KEY,
                 document_id     bigint      not null,
                 attribute_id    bigint      not null,
-                value           TEXT,
+                "value"           TEXT,
                 CONSTRAINT document_id_foreign_key FOREIGN KEY (document_id) REFERENCES documents (id),
                 CONSTRAINT attribute_id_foreign_key FOREIGN KEY (attribute_id) REFERENCES attributes(id)
                 );
