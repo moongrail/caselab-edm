@@ -18,7 +18,7 @@
             updated_at   TIMESTAMP
             );
 
-            CREATE TABLE if EXISTS document_type_attributes
+            CREATE TABLE IF NOT EXISTS document_type_attributes
             (
             doc_type_id     bigint,
             attribute_id    bigint,

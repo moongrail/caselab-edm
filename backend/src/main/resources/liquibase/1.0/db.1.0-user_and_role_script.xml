@@ -18,13 +18,13 @@
             );
 
             CREATE TABLE IF NOT EXISTS roles (
-            id BIGINT PRIMARY KEY,
+            id BIGSERIAL PRIMARY KEY,
             name VARCHAR(100) UNIQUE NOT NULL
             );
 
             CREATE TABLE IF NOT EXISTS user_roles (
             user_id UUID REFERENCES users(id) ON DELETE CASCADE NOT NULL,
-            role_id BIGINT REFERENCES roles(id) ON DELETE CASCADE NOT NULL
+            role_id BIGSERIAL REFERENCES roles(id) ON DELETE CASCADE NOT NULL
             );
 
         </sql>
