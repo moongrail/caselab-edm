@@ -1,0 +1,41 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+      - '.github/workflows/**'
+  pull_request:
+    branches:
+      - main
+      - dev
+    paths:
+      - 'backend/**'
+      - '.github/workflows/**'
+
+
+env:
+  JAVA_VERSION: '17'
+  JAVA_DISTRIBUTION: 'corretto'
+  CACHE_BUILD_TOOL: 'maven'
+  CACHE_PATH: 'backend/pom.xml'
+
+jobs:
+  run_tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION  }}
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+          cache: ${{ env.CACHE_BUILD_TOOL }}
+
+      - name: Run Tests
+        run: mvn -f backend/pom.xml clean verify
+
