@@ -6,6 +6,7 @@
 
     <include file="liquibase/1.0/db.1.0-user_and_role_script.xml"/>
     <include file="liquibase/1.0/db.1.0-document_types_script.xml"/>
+    <include file="liquibase/1.0/db.1.0-document_script.xml"/>
     <include file="liquibase/1.0/db.1.0-document_attribute_script.xml"/>
 
 </databaseChangeLog>

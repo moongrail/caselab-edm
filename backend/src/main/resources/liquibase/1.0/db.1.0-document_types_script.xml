@@ -18,12 +18,20 @@
             updated_at   TIMESTAMP
             );
 
+            CREATE TABLE IF NOT EXISTS attributes
+            (
+                id           BigSerial      PRIMARY KEY,
+                name         VARCHAR (255)  not null unique ,
+                data_type    VARCHAR (255)  not null
+
+                );
+
             CREATE TABLE IF NOT EXISTS document_type_attributes
             (
             doc_type_id     bigint,
             attribute_id    bigint,
             CONSTRAINT doc_type_id_foreign_key FOREIGN KEY (doc_type_id) REFERENCES document_types (id),
-            CONSTRAINT attribute_id_foreign_key FOREIGN KEY (attribute_id) REFERENCES attributes(id)
+            CONSTRAINT attr_id_foreign_key FOREIGN KEY (attribute_id) REFERENCES attributes(id)
             );
         </sql>
     </changeSet>

@@ -17,6 +17,7 @@ import ru.caselab.edm.backend.dto.DocumentTypeCreateDTO;
 import ru.caselab.edm.backend.dto.DocumentTypeDTO;
 import ru.caselab.edm.backend.dto.DocumentTypeUpdateDTO;
 import ru.caselab.edm.backend.dto.DocumentsAttributesDTO;
+import ru.caselab.edm.backend.entity.Attribute;
 import ru.caselab.edm.backend.entity.DocumentType;
 import ru.caselab.edm.backend.repository.RoleRepository;
 import ru.caselab.edm.backend.repository.UserRepository;
@@ -202,7 +203,6 @@ class DocumentTypeControllerTest {
                                             },
                                         "numberOfElements":2,
                                         "empty":false
-                                            }
                         }
                         """));
     }

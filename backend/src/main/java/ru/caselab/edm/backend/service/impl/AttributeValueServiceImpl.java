@@ -10,7 +10,7 @@ import ru.caselab.edm.backend.entity.AttributeValue;
 import ru.caselab.edm.backend.exceptions.ResourceNotFoundException;
 import ru.caselab.edm.backend.mapper.AttributeValueMapper;
 import ru.caselab.edm.backend.repository.AttributeValueRepository;
-import ru.caselab.edm.backend.repository.DocumentService;
+import ru.caselab.edm.backend.service.DocumentService;
 import ru.caselab.edm.backend.service.AttributeService;
 import ru.caselab.edm.backend.service.AttributeValueService;
 
