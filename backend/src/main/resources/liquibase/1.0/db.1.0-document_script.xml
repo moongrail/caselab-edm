@@ -18,7 +18,7 @@
                 data                 BYTEA           NOT NULL
             );
 
-            CREATE SEQUENCE document_sequence START WITH 1 INCREMENT BY 1;
+            CREATE SEQUENCE IF NOT EXISTS document_sequence START WITH 1 INCREMENT BY 1;
         </sql>
     </changeSet>
 </databaseChangeLog>
