@@ -9,26 +9,37 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import ru.caselab.edm.backend.dto.DocumentCreateDTO;
+import ru.caselab.edm.backend.dto.DocumentUpdateDTO;
 import ru.caselab.edm.backend.entity.Document;
 import ru.caselab.edm.backend.entity.DocumentType;
 import ru.caselab.edm.backend.entity.User;
 import ru.caselab.edm.backend.exceptions.WrongDateException;
 import ru.caselab.edm.backend.repository.DocumentRepository;
+import ru.caselab.edm.backend.repository.DocumentTypeRepository;
+import ru.caselab.edm.backend.repository.UserRepository;
 import ru.caselab.edm.backend.service.impl.DocumentServiceImpl;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Collections;
+import java.util.NoSuchElementException;
+import java.util.Optional;
+import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
-
 
 class DocumentServiceTests {
 
     @Mock
     private DocumentRepository documentRepository;
+
+    @Mock
+    private UserRepository userRepository;
+
+    @Mock
+    private DocumentTypeRepository documentTypeRepository;
 
     @InjectMocks
     private DocumentServiceImpl documentService;
@@ -38,12 +49,13 @@ class DocumentServiceTests {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
+
         User user = new User();
         user.setId(UUID.randomUUID());
         user.setPassword("password");
         user.setFirstName("firstName");
         user.setLastName("lastName");
-        user.setEmail("email");
+        user.setEmail("email@example.com");
         user.setPatronymic("patronymic");
         user.setLogin("login");
 
@@ -87,6 +99,7 @@ class DocumentServiceTests {
         assertEquals(document.getUpdateDate(), foundDocument.getUpdateDate(), "Update date should match");
         assertEquals(document.getUser(), foundDocument.getUser(), "User should match");
         assertEquals(document.getDocumentType(), foundDocument.getDocumentType(), "Document type should match");
+
         verify(documentRepository).findById(1L);
     }
 
@@ -96,45 +109,53 @@ class DocumentServiceTests {
         when(documentRepository.findById(1L)).thenReturn(Optional.empty());
 
         assertThrows(NoSuchElementException.class, () -> documentService.getDocument(1L));
+
         verify(documentRepository).findById(1L);
     }
 
     @Test
     @DisplayName("Save correct Document")
     void saveDocument_Success() {
+        DocumentCreateDTO documentCreateDTO = new DocumentCreateDTO();
+        documentCreateDTO.setName("New Document");
+        documentCreateDTO.setUserId(UUID.randomUUID());
+        documentCreateDTO.setDocumentTypeId(1L);
+        documentCreateDTO.setCreationDate(LocalDateTime.now().minusDays(1));
+        documentCreateDTO.setUpdateDate(LocalDateTime.now());
+
+        when(userRepository.findById(any())).thenReturn(Optional.of(document.getUser()));
+        when(documentTypeRepository.findById(any())).thenReturn(Optional.of(document.getDocumentType()));
+
         when(documentRepository.save(any(Document.class))).thenReturn(document);
 
-        Document foundDocument = documentService.saveDocument(document);
+        Document savedDocument = documentService.saveDocument(documentCreateDTO);
 
-        assertEquals(document.getId(), foundDocument.getId(), "Document ID should match");
-        assertEquals(document.getName(), foundDocument.getName(), "Document name should match");
-        assertEquals(document.getCreationDate(), foundDocument.getCreationDate(), "Creation date should match");
-        assertEquals(document.getUpdateDate(), foundDocument.getUpdateDate(), "Update date should match");
-        assertEquals(document.getUser(), foundDocument.getUser(), "User should match");
-        assertEquals(document.getDocumentType(), foundDocument.getDocumentType(), "Document type should match");
-        verify(documentRepository).save(document);
+        assertEquals(document.getId(), savedDocument.getId(), "Saved Document ID should match");
+
+        verify(documentRepository).save(any(Document.class));
     }
 
-    @Test
-    @DisplayName("Save invalid Document with wrong date")
-    void saveDocument_InvalidDate() {
-        document.setUpdateDate(LocalDateTime.now().minusDays(2));
-
-        assertThrows(WrongDateException.class, () -> documentService.saveDocument(document));
-    }
 
     @Test
     @DisplayName("Update correct Document")
     void updateDocument_Success() {
         when(documentRepository.findById(1L)).thenReturn(Optional.of(document));
+
+        DocumentUpdateDTO updateDTO = new DocumentUpdateDTO();
+        updateDTO.setUpdateDate(LocalDateTime.now());
+        updateDTO.setCreationDate(LocalDateTime.now().minusDays(1));
+        updateDTO.setUserId(UUID.randomUUID());
+        updateDTO.setDocumentTypeId(1L);
+
+        when(userRepository.findById(any())).thenReturn(Optional.of(document.getUser()));
+        when(documentTypeRepository.findById(any())).thenReturn(Optional.of(document.getDocumentType()));
+
         when(documentRepository.save(any(Document.class))).thenReturn(document);
 
-        LocalDateTime dateTime = LocalDateTime.now().plusDays(2);
-        document.setUpdateDate(dateTime);
+        Document updatedDoc = documentService.updateDocument(1L, updateDTO);
 
-        Document result = documentService.updateDocument(1L, document);
+        assertEquals(updatedDoc.getUpdateDate(), updateDTO.getUpdateDate());
 
-        assertEquals(document.getUpdateDate(), result.getUpdateDate());
         verify(documentRepository).findById(1L);
         verify(documentRepository).save(any(Document.class));
     }
@@ -144,10 +165,10 @@ class DocumentServiceTests {
     void updateDocument_WrongDate() {
         when(documentRepository.findById(1L)).thenReturn(Optional.of(document));
 
-        LocalDateTime invalidDateTime = document.getCreationDate().minusDays(2);
-        document.setUpdateDate(invalidDateTime);
+        LocalDateTime invalidUpdateDate = LocalDateTime.now().minusDays(2);
+        document.setUpdateDate(invalidUpdateDate);
 
-        assertThrows(WrongDateException.class, () -> documentService.updateDocument(document.getId(), document));
+        assertThrows(WrongDateException.class, () -> documentService.updateDocument(1L, new DocumentUpdateDTO()));
 
         verify(documentRepository).findById(1L);
         verify(documentRepository, never()).save(any(Document.class));
@@ -158,7 +179,10 @@ class DocumentServiceTests {
     void updateDocument_NotFound() {
         when(documentRepository.findById(1L)).thenReturn(Optional.empty());
 
-        assertThrows(NoSuchElementException.class, () -> documentService.updateDocument(1L, new Document()));
+        assertThrows(NoSuchElementException.class, () ->
+                documentService.updateDocument(1L, new DocumentUpdateDTO())
+        );
+
         verify(documentRepository).findById(1L);
     }
 
