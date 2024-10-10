@@ -9,6 +9,7 @@ import ru.caselab.edm.backend.dto.AttributeCreateDTO;
 import ru.caselab.edm.backend.dto.AttributeDTO;
 import ru.caselab.edm.backend.dto.AttributeUpdateDTO;
 import ru.caselab.edm.backend.entity.Attribute;
+import ru.caselab.edm.backend.exceptions.ResourceNotFoundException;
 import ru.caselab.edm.backend.mapper.AttributeMapper;
 import ru.caselab.edm.backend.repository.AttributeRepository;
 import ru.caselab.edm.backend.repository.DocumentTypeRepository;
@@ -46,7 +47,7 @@ public class AttributeServiceImpl implements AttributeService {
     @Override
     public AttributeDTO getAttributeById(Long id) {
         Attribute attribute = attributeRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFound("Attribute not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Attribute not found"));
         return attributeMapper.toDTO(attribute);
     }
 
