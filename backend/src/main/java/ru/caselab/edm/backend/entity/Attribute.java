@@ -5,8 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.w3c.dom.DocumentType;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,6 +24,6 @@ public class Attribute {
     private String name;
     @Column(nullable = false)
     private String dataType;
-    @ManyToMany(mappedBy = "doc_type_id")
+    @ManyToMany(mappedBy = "attributes")
     private List<DocumentType> documentTypes = new ArrayList<>();
 }

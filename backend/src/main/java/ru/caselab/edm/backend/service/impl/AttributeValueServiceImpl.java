@@ -7,6 +7,7 @@ import ru.caselab.edm.backend.dto.AttributeValueCreateDTO;
 import ru.caselab.edm.backend.dto.AttributeValueDTO;
 import ru.caselab.edm.backend.dto.AttributeValueUpdateDTO;
 import ru.caselab.edm.backend.entity.AttributeValue;
+import ru.caselab.edm.backend.exceptions.ResourceNotFoundException;
 import ru.caselab.edm.backend.mapper.AttributeValueMapper;
 import ru.caselab.edm.backend.repository.AttributeValueRepository;
 import ru.caselab.edm.backend.repository.DocumentService;
@@ -35,7 +36,7 @@ public class AttributeValueServiceImpl implements AttributeValueService {
     @Transactional
     public AttributeValueDTO getAttributeValueByDocumentAndAttribute(Long documentId, Long attributeId) {
         AttributeValue attributeValue = attributeValueRepository.findByDocumentIdAndAttributeId(documentId, attributeId)
-                .orElseThrow(new ResourceNotFoundException("Value doesn't exist"));
+                .orElseThrow(()->new ResourceNotFoundException("Value doesn't exist"));
 
         return attributeValueMapper.toDTO(attributeValue);
     }
@@ -44,7 +45,7 @@ public class AttributeValueServiceImpl implements AttributeValueService {
     @Transactional
     public AttributeValueDTO getAttributeValueById(Long id) {
         AttributeValue attributeValue = attributeValueRepository.findById(id)
-                .orElseThrow(new ResourceNotFoundException("Value doesn't exist"));
+                .orElseThrow(()->new ResourceNotFoundException("Value doesn't exist"));
 
         return attributeValueMapper.toDTO(attributeValue);
     }
