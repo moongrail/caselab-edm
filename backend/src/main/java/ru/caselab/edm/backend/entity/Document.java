@@ -14,7 +14,8 @@ import java.util.List;
 @Table(name = "document")
 public class Document {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "document_seq")
+    @SequenceGenerator(name = "document_seq", sequenceName = "document_sequence", allocationSize = 1)
     @Column(name = "id")
     private Long id;
 
