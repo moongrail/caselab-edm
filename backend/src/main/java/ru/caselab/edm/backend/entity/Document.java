@@ -42,4 +42,9 @@ public class Document {
     @OneToMany(mappedBy = "document")
     private List<AttributeValue> documentAttributeValues;
 
+    public Document() {
+        this.creationDate = LocalDateTime.now();
+        this.updateDate = null;
+    }
+
 }

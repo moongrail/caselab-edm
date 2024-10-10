@@ -38,7 +38,7 @@ public class DocumentType {
     @ManyToMany
     @JoinTable(
             name = "document_type_attributes",
-            joinColumns = @JoinColumn(name = "doc_type_id "),
+            joinColumns = @JoinColumn(name = "doc_type_id"),
             inverseJoinColumns = @JoinColumn(name = "attribute_id")
     )
     private List<Attribute> attributes = new ArrayList<>();
