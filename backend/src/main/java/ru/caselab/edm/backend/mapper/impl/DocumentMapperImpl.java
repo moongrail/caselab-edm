@@ -16,17 +16,14 @@ import java.util.List;
 public class DocumentMapperImpl implements DocumentMapper {
 
     private final AttributeValueMapper documentAttributeValueMapper;
+
     @Override
     public DocumentDTO toDto(Document entity) {
         DocumentDTO dto = new DocumentDTO();
         dto.setId(entity.getId());
-        dto.setName(entity.getName());
+        dto.setName(entity.getDocumentVersion().getDocumentName());
         dto.setUserId(entity.getUser().getId());
         dto.setDocumentTypeId(entity.getDocumentType().getId());
-        dto.setUpdateDate(entity.getUpdateDate());
-        dto.setCreationDate(entity.getCreationDate());
-        dto.setData(entity.getData());
-        dto.setDocumentAttributeValues(documentAttributeValueMapper.toDto(entity.getDocumentAttributeValues()));
         return dto;
     }
 

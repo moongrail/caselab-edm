@@ -20,6 +20,7 @@ public class DocumentController {
 
     private final DocumentService documentService;
     private final DocumentMapper documentMapper;
+
     @PostMapping()
     @ResponseStatus(HttpStatus.CREATED)
     public DocumentDTO createDocumentType(@Valid @RequestBody DocumentCreateDTO documentTypeCreateDTO) {

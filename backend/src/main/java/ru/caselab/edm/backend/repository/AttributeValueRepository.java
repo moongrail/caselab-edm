@@ -9,6 +9,8 @@ import java.util.Optional;
 public interface AttributeValueRepository extends JpaRepository<AttributeValue, Long> {
 
     List<AttributeValue> findByDocumentId(Long documentId);
+
     List<AttributeValue> findByAttributeId(Long attributeId);
+
     Optional<AttributeValue> findByDocumentIdAndAttributeId(Long documentId, Long attributeId);
 }

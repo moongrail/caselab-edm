@@ -5,33 +5,33 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
 
-    <changeSet id="Refresh Token table creation" author="A192747" runOnChange="true">
+    <changeSet id="db.1.0-document_version_script" author="moongrail" runOnChange="true">
         <sql>
-            CREATE TABLE IF NOT EXISTS refresh_token
+            DROP TABLE IF EXISTS document_version;
+
+            CREATE TABLE IF NOT EXISTS document_version
             (
                 id
                 BIGSERIAL
                 PRIMARY
                 KEY,
-                expiration_date
-                TIMESTAMP
-                WITH
-                TIME
-                ZONE
-                NOT
-                NULL,
-                token
+                document_name
                 VARCHAR
             (
                 255
             ) NOT NULL,
-                user_id UUID REFERENCES users
+                created_at TIMESTAMP DEFAULT NOW
+            (
+            ) NOT NULL,
+                updated_at TIMESTAMP,
+                content_url TEXT,
+                signature_id BIGINT REFERENCES signatures
             (
                 id
-            ) ON DELETE CASCADE
+            )
                 );
 
-            CREATE SEQUENCE refresh_token_sequence START WITH 1 INCREMENT BY 1;
+            CREATE SEQUENCE IF NOT EXISTS document_version_sequence START WITH 1 INCREMENT BY 1;
         </sql>
     </changeSet>
 </databaseChangeLog>

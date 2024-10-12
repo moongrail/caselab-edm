@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <databaseChangeLog
-        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
 
     <include file="liquibase/1.0/db.1.0-user_and_role_script.xml"/>
+    <include file="liquibase/1.0/db.1.0-create_signature_script.xml"/>
+    <include file="liquibase/1.0/db.1.0-document_version_script.xml"/>
     <include file="liquibase/1.0/db.1.0-document_types_script.xml"/>
     <include file="liquibase/1.0/db.1.0-document_script.xml"/>
     <include file="liquibase/1.0/db.1.0-document_attribute_script.xml"/>

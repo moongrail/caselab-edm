@@ -4,7 +4,9 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import ru.caselab.edm.backend.dto.*;
+import ru.caselab.edm.backend.dto.AttributeValueCreateDTO;
+import ru.caselab.edm.backend.dto.AttributeValueDTO;
+import ru.caselab.edm.backend.dto.AttributeValueUpdateDTO;
 import ru.caselab.edm.backend.service.AttributeValueService;
 
 @RestController
@@ -17,16 +19,17 @@ public class AttributeValueController {
     public AttributeValueController(AttributeValueService attributeValueService) {
         this.attributeValueService = attributeValueService;
     }
+
     @PostMapping
     public ResponseEntity<AttributeValueDTO> createAttribute(@Valid @RequestBody AttributeValueCreateDTO valueDTO) {
 
-        AttributeValueDTO createValue=attributeValueService.createAttributeValue(valueDTO);
+        AttributeValueDTO createValue = attributeValueService.createAttributeValue(valueDTO);
         return new ResponseEntity<>(createValue, HttpStatus.CREATED);
     }
 
     @GetMapping("/{documentId}/{attributeId}")
-    public ResponseEntity<AttributeValueDTO> getAttributeValueById(@PathVariable Long documentId,@PathVariable Long attributeId ) {
-        AttributeValueDTO value = attributeValueService.getAttributeValueByDocumentAndAttribute(documentId,attributeId);
+    public ResponseEntity<AttributeValueDTO> getAttributeValueById(@PathVariable Long documentId, @PathVariable Long attributeId) {
+        AttributeValueDTO value = attributeValueService.getAttributeValueByDocumentAndAttribute(documentId, attributeId);
         return new ResponseEntity<>(value, HttpStatus.OK);
     }
 
@@ -40,7 +43,7 @@ public class AttributeValueController {
     public ResponseEntity<AttributeValueDTO> updateAttribute(
             @PathVariable Long id,
             @RequestBody AttributeValueUpdateDTO updateValue) {
-        AttributeValueDTO value = attributeValueService.updateAttributeValue(id,updateValue);
+        AttributeValueDTO value = attributeValueService.updateAttributeValue(id, updateValue);
         return new ResponseEntity<>(value, HttpStatus.OK);
     }
 

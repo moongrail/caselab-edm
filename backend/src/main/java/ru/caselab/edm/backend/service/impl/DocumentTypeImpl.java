@@ -39,7 +39,6 @@ public class DocumentTypeImpl implements DocumentTypeService {
 
         documentType.setName(createdDocumentType.getName());
         documentType.setDescription(createdDocumentType.getDescription());
-        documentType.setAttributes(attributesRepository.findAllById(createdDocumentType.getAttributesDocumentTypeId()));
 
         documentTypeRepository.save(documentType);
 
@@ -51,7 +50,6 @@ public class DocumentTypeImpl implements DocumentTypeService {
                 .orElseThrow(() -> new ResourceNotFoundException("Not Found: " + id));
         documentType.setName(updateDocumentType.getName());
         documentType.setDescription(updateDocumentType.getDescription());
-        documentType.setAttributes(attributesRepository.findAllById(updateDocumentType.getAttributesDocumentTypeId()));
 
         documentTypeRepository.save(documentType);
 

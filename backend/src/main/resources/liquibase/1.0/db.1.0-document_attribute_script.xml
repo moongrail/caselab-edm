@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <databaseChangeLog
-        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
 
@@ -9,15 +9,28 @@
         <sql>
             DROP TABLE IF EXISTS document_attribute_values;
 
-
             CREATE TABLE IF NOT EXISTS document_attribute_values
             (
-                id              BigSerial   PRIMARY KEY,
-                document_id     bigint      not null,
-                attribute_id    bigint      not null,
-                "value"           TEXT,
-                CONSTRAINT document_id_foreign_key FOREIGN KEY (document_id) REFERENCES documents (id),
-                CONSTRAINT attribute_id_foreign_key FOREIGN KEY (attribute_id) REFERENCES attributes(id)
+                id
+                BIGSERIAL
+                PRIMARY
+                KEY,
+                document_id
+                BIGINT
+                REFERENCES
+                documents
+            (
+                id
+            ) ON DELETE CASCADE,
+                attribute_id BIGINT REFERENCES attributes
+            (
+                id
+            )
+              ON DELETE CASCADE,
+                "value" VARCHAR
+            (
+                255
+            ) NOT NULL
                 );
         </sql>
     </changeSet>

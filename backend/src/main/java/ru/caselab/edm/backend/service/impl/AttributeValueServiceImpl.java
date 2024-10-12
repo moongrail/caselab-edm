@@ -10,9 +10,9 @@ import ru.caselab.edm.backend.entity.AttributeValue;
 import ru.caselab.edm.backend.exceptions.ResourceNotFoundException;
 import ru.caselab.edm.backend.mapper.AttributeValueMapper;
 import ru.caselab.edm.backend.repository.AttributeValueRepository;
-import ru.caselab.edm.backend.service.DocumentService;
 import ru.caselab.edm.backend.service.AttributeService;
 import ru.caselab.edm.backend.service.AttributeValueService;
+import ru.caselab.edm.backend.service.DocumentService;
 
 @Service
 public class AttributeValueServiceImpl implements AttributeValueService {
@@ -36,7 +36,7 @@ public class AttributeValueServiceImpl implements AttributeValueService {
     @Transactional
     public AttributeValueDTO getAttributeValueByDocumentAndAttribute(Long documentId, Long attributeId) {
         AttributeValue attributeValue = attributeValueRepository.findByDocumentIdAndAttributeId(documentId, attributeId)
-                .orElseThrow(()->new ResourceNotFoundException("Value doesn't exist"));
+                .orElseThrow(() -> new ResourceNotFoundException("Value doesn't exist"));
 
         return attributeValueMapper.toDTO(attributeValue);
     }
@@ -45,7 +45,7 @@ public class AttributeValueServiceImpl implements AttributeValueService {
     @Transactional
     public AttributeValueDTO getAttributeValueById(Long id) {
         AttributeValue attributeValue = attributeValueRepository.findById(id)
-                .orElseThrow(()->new ResourceNotFoundException("Value doesn't exist"));
+                .orElseThrow(() -> new ResourceNotFoundException("Value doesn't exist"));
 
         return attributeValueMapper.toDTO(attributeValue);
     }
@@ -67,10 +67,10 @@ public class AttributeValueServiceImpl implements AttributeValueService {
     @Override
     public AttributeValueDTO createAttributeValue(AttributeValueCreateDTO value) {
         AttributeValue createValue = AttributeValue.builder()
-                        .document(documentService.getDocument(value.getDocumentId()))
-                                .attribute(attributeService.getAttributeMapper().toEntity(attributeService.getAttributeById(value.getAttributeId())))
-                                        .value(value.getValue())
-                                                .build();
+                .document(documentService.getDocument(value.getDocumentId()))
+                .attribute(attributeService.getAttributeMapper().toEntity(attributeService.getAttributeById(value.getAttributeId())))
+                .value(value.getValue())
+                .build();
         return attributeValueMapper.toDTO(attributeValueRepository.save(createValue));
     }
 

@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 import ru.caselab.edm.backend.dto.DocumentTypeDTO;
 import ru.caselab.edm.backend.dto.DocumentsAttributesDTO;
-import ru.caselab.edm.backend.entity.Attribute;
 import ru.caselab.edm.backend.entity.DocumentType;
 
 import java.time.LocalDateTime;
@@ -33,25 +32,15 @@ class DocumentTypeMapperTest {
 
         DocumentType testDocumenttype = new DocumentType();
 
-        Attribute attribute = new Attribute();
-        attribute.setName("подписант");
-        attribute.setDataType("текст");
-
-        List<Attribute> documentAttributeList = new ArrayList<>();
-        documentAttributeList.add(attribute);
-
         testDocumenttype.setId(1L);
         testDocumenttype.setName("договор");
         testDocumenttype.setDescription("какоей-то описание");
-        testDocumenttype.setCreatedAt(now);
-        testDocumenttype.setAttributes(documentAttributeList);
 
         testDocumentTypeDTO.setId(1L);
         testDocumentTypeDTO.setName("договор");
         testDocumentTypeDTO.setDescription("какоей-то описание");
-        testDocumentTypeDTO.setCreatedAt(now);
-        testDocumentTypeDTO.setAttributes(documentsAttributesDTOList);
-
+        DocumentTypeDTO map = mapper.map(testDocumenttype);
+        System.out.println(map);
         Assertions.assertThat(mapper.map(testDocumenttype)).isEqualTo(testDocumentTypeDTO);
 
     }

@@ -1,18 +1,18 @@
 package ru.caselab.edm.backend.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.Instant;
 
-@Entity
-@Table(name = "\"refresh_token\"")
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-@Getter
-@Setter
-public class RefreshToken {
+@Entity
+@Table(name = "signature")
+public class Signature {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -21,9 +21,9 @@ public class RefreshToken {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(nullable = false, unique = true)
-    private String token;
+    @Column(name = "create_at", nullable = false)
+    private Instant createAt;
 
-    @Column(name = "expiration_date", nullable = false)
-    private Instant expirationDate;
+    @Column(nullable = false, columnDefinition = "TEXT")
+    private String hash;
 }
