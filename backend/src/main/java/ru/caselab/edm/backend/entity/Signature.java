@@ -11,7 +11,7 @@ import java.time.Instant;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "signature")
+@Table(name = "signatures")
 public class Signature {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,9 +21,9 @@ public class Signature {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(name = "create_at", nullable = false)
-    private Instant createAt;
+    @Column(name = "created_at", nullable = false)
+    private Instant createdAt;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Column(name = "hash", nullable = false, columnDefinition = "TEXT")
     private String hash;
 }

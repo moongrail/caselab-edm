@@ -7,24 +7,15 @@
 
     <changeSet id="db.1.0-create_signature_script" author="moongrail" runOnChange="true">
         <sql>
-            DROP TABLE IF EXISTS signatures;
 
             CREATE TABLE IF NOT EXISTS signatures
             (
-                id
-                BIGSERIAL
-                PRIMARY
-                KEY,
-                signature_data
-                BYTEA
-                NOT
-                NULL,
-                created_at
-                TIMESTAMP
-                DEFAULT
-                NOW
-            (
-            ) NOT NULL
+                id BIGSERIAL PRIMARY KEY,
+                hash TEXT NOT NULL,
+                user_id UUID NOT NULL,
+                created_at TIMESTAMP DEFAULT NOW() NOT NULL,
+                CONSTRAINT fk_signatures_user
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
                 );
         </sql>
     </changeSet>

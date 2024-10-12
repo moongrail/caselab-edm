@@ -7,33 +7,34 @@
 
     <changeSet id="db.1.0-create_document_attribute_script" author="Larentina" runOnChange="true">
         <sql>
-            DROP TABLE IF EXISTS document_attribute_values;
 
-            CREATE TABLE IF NOT EXISTS document_attribute_values
+            CREATE TABLE IF NOT EXISTS attributes
             (
                 id
                 BIGSERIAL
                 PRIMARY
                 KEY,
-                document_id
-                BIGINT
-                REFERENCES
-                documents
+                name
+                VARCHAR
             (
-                id
-            ) ON DELETE CASCADE,
-                attribute_id BIGINT REFERENCES attributes
-            (
-                id
-            )
-              ON DELETE CASCADE,
-                "value" VARCHAR
+                255
+            ) NOT NULL,
+                data_type VARCHAR
             (
                 255
             ) NOT NULL
                 );
         </sql>
-    </changeSet>
+        <sql>
 
+            CREATE TABLE IF NOT EXISTS document_attribute_values
+            (
+                id BIGSERIAL PRIMARY KEY,
+                document_id BIGINT REFERENCES documents(id) ON DELETE CASCADE,
+                attribute_id BIGINT REFERENCES attributes(id) ON DELETE CASCADE,
+                "value" VARCHAR(255) NOT NULL
+                );
+        </sql>
+    </changeSet>
 
 </databaseChangeLog>

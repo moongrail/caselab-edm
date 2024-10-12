@@ -7,6 +7,8 @@
 
     <changeSet id="Refresh Token table creation" author="A192747" runOnChange="true">
         <sql>
+
+
             CREATE TABLE IF NOT EXISTS refresh_token
             (
                 id
@@ -31,7 +33,8 @@
             ) ON DELETE CASCADE
                 );
 
-            CREATE SEQUENCE refresh_token_sequence START WITH 1 INCREMENT BY 1;
+            CREATE SEQUENCE IF NOT EXISTS refresh_token_sequence START WITH 1 INCREMENT BY 1;
+
         </sql>
     </changeSet>
 </databaseChangeLog>

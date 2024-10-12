@@ -12,7 +12,7 @@ import java.time.Instant;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "document_version")
+@Table(name = "document_versions")
 @Builder
 public class DocumentVersion {
     @Id

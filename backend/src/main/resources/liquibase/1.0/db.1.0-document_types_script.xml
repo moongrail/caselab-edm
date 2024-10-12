@@ -7,74 +7,19 @@
 
     <changeSet id="db.1.0-create_document_types_script" author="Maevgal" runOnChange="true">
         <sql>
-            DROP TABLE IF EXISTS attributes;
-
-            CREATE TABLE IF NOT EXISTS attributes
-            (
-                id
-                BIGSERIAL
-                PRIMARY
-                KEY,
-                name
-                VARCHAR
-            (
-                255
-            ) NOT NULL,
-                data_type VARCHAR
-            (
-                255
-            ) NOT NULL
-                );
-        </sql>
-        <sql>
-            DROP TABLE IF EXISTS document_types;
-
 
 
             CREATE TABLE IF NOT EXISTS document_types
             (
-                id
-                BIGSERIAL
-                PRIMARY
-                KEY,
-                name
-                VARCHAR
-            (
-                255
-            ) NOT NULL UNIQUE,
+                id BIGSERIAL PRIMARY KEY,
+                name VARCHAR(255) NOT NULL UNIQUE,
                 description TEXT,
-                created_at TIMESTAMP DEFAULT NOW
-            (
-            ),
+                created_at TIMESTAMP DEFAULT NOW(),
                 updated_at TIMESTAMP
-                );
-
-            CREATE TABLE IF NOT EXISTS document_type_attributes
-            (
-                doc_type_id
-                bigint,
-                attribute_id
-                bigint,
-                CONSTRAINT
-                doc_type_id_foreign_key
-                FOREIGN
-                KEY
-            (
-                doc_type_id
-            ) REFERENCES document_types
-            (
-                id
-            ),
-                CONSTRAINT attr_id_foreign_key FOREIGN KEY
-            (
-                attribute_id
-            ) REFERENCES attributes
-            (
-                id
-            )
                 );
         </sql>
     </changeSet>
+
 
 
 </databaseChangeLog>

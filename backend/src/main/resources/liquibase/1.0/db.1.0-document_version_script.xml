@@ -7,9 +7,9 @@
 
     <changeSet id="db.1.0-document_version_script" author="moongrail" runOnChange="true">
         <sql>
-            DROP TABLE IF EXISTS document_version;
 
-            CREATE TABLE IF NOT EXISTS document_version
+
+            CREATE TABLE IF NOT EXISTS document_versions
             (
                 id
                 BIGSERIAL
@@ -25,10 +25,7 @@
             ) NOT NULL,
                 updated_at TIMESTAMP,
                 content_url TEXT,
-                signature_id BIGINT REFERENCES signatures
-            (
-                id
-            )
+                signature_id BIGINT REFERENCES signatures(id)
                 );
 
             CREATE SEQUENCE IF NOT EXISTS document_version_sequence START WITH 1 INCREMENT BY 1;
