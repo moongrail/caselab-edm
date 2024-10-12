@@ -31,7 +31,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
                 .token(UUID.randomUUID().toString())
                 .expirationDate(Instant.now().plusMillis(REFRESH_TOKEN_LIFETIME))
                 .user(userRepository.findUserByLogin(login)
-                        .orElseThrow(() -> new ResourceNotFoundException("User not found"))).build();
+                        .orElseThrow(() -> new ResourceNotFoundException("User not found with this login = %s".formatted(login)))).build();
 
         refreshTokenRepository.save(refreshToken);
 
@@ -51,7 +51,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     @Override
     public User getUserByToken(String token) {
         RefreshToken refreshToken = refreshTokenRepository.findRefreshTokenByToken(token)
-                .orElseThrow(() -> new ResourceNotFoundException("Token not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Token not found with this token = %s".formatted(token)));
 
         return refreshToken.getUser();
     }

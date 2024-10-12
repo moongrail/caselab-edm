@@ -11,7 +11,7 @@ import java.util.List;
 @Entity
 @Getter
 @Setter
-@Table(name = "document")
+@Table(name = "documents")
 public class Document {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "document_seq")
@@ -41,5 +41,10 @@ public class Document {
 
     @OneToMany(mappedBy = "document")
     private List<AttributeValue> documentAttributeValues;
+
+    public Document() {
+        this.creationDate = LocalDateTime.now();
+        this.updateDate = null;
+    }
 
 }
