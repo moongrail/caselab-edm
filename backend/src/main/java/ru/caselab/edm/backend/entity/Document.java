@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 
 @Entity
 @Getter
@@ -22,8 +24,6 @@ public class Document {
     @JoinColumn(name = "document_type_id", nullable = false)
     private DocumentType documentType;
 
-    @ManyToOne
-    @JoinColumn(name = "document_version_id")
-    private DocumentVersion documentVersion;
-
+    @OneToMany(mappedBy = "document")
+    private List<DocumentVersion> documentVersion;
 }

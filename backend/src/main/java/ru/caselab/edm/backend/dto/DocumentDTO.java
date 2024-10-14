@@ -22,7 +22,4 @@ public class DocumentDTO {
 
     @JsonProperty("userId")
     private UUID userId;
-
-    @JsonProperty("name")
-    private String name;
 }

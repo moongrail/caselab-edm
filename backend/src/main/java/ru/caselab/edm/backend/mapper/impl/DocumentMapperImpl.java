@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 import ru.caselab.edm.backend.dto.DocumentDTO;
 import ru.caselab.edm.backend.dto.DocumentPageDTO;
 import ru.caselab.edm.backend.entity.Document;
-import ru.caselab.edm.backend.mapper.AttributeValueMapper;
+import ru.caselab.edm.backend.mapper.DocumentAttributeValueMapper;
 import ru.caselab.edm.backend.mapper.DocumentMapper;
 
 import java.util.List;
@@ -15,13 +15,12 @@ import java.util.List;
 @RequiredArgsConstructor
 public class DocumentMapperImpl implements DocumentMapper {
 
-    private final AttributeValueMapper documentAttributeValueMapper;
+    private final DocumentAttributeValueMapper documentAttributeValueMapper;
 
     @Override
     public DocumentDTO toDto(Document entity) {
         DocumentDTO dto = new DocumentDTO();
         dto.setId(entity.getId());
-        dto.setName(entity.getDocumentVersion().getDocumentName());
         dto.setUserId(entity.getUser().getId());
         dto.setDocumentTypeId(entity.getDocumentType().getId());
         return dto;

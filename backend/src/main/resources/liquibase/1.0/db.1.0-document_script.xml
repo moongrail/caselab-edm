@@ -9,7 +9,6 @@
         <sql>
             CREATE TABLE IF NOT EXISTS documents (
                 id BIGSERIAL PRIMARY KEY,
-                document_version_id BIGINT REFERENCES document_versions(id),
                 document_type_id BIGINT REFERENCES document_types(id),
                 user_id UUID REFERENCES users(id) ON DELETE CASCADE
                 );

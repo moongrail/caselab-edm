@@ -15,7 +15,8 @@
                 user_id UUID NOT NULL,
                 created_at TIMESTAMP DEFAULT NOW() NOT NULL,
                 CONSTRAINT fk_signatures_user
-                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+                document_version_id BIGINT REFERENCES document_versions(id)
                 );
         </sql>
     </changeSet>

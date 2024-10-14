@@ -25,6 +25,8 @@ public class DocumentCreateDTO {
     @NotNull
     private UUID userId;
 
+    private long attributeId;
+
     @JsonProperty("name")
     @NotBlank
     private String name;

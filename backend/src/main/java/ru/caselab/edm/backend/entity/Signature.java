@@ -26,4 +26,8 @@ public class Signature {
 
     @Column(name = "hash", nullable = false, columnDefinition = "TEXT")
     private String hash;
+
+    @ManyToOne
+    @JoinColumn(name = "document_version_id")
+    private DocumentVersion documentVersion;
 }

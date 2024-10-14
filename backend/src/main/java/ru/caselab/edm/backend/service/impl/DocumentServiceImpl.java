@@ -57,11 +57,11 @@ public class DocumentServiceImpl implements DocumentService {
         DocumentVersion documentVersion = new DocumentVersion();
         documentVersion.setDocumentName(document.getName());
         documentVersion.setCreatedAt(Instant.now());
+        //TODO: cюда ссылку когда minio подключат
         documentVersion.setContentUrl("ContentUrl");
 
-        documentVersion = documentVersionRepository.save(documentVersion);
+        documentVersionRepository.save(documentVersion);
 
-        newDocument.setDocumentVersion(documentVersion);
 
         return documentRepository.save(newDocument);
     }
@@ -72,34 +72,48 @@ public class DocumentServiceImpl implements DocumentService {
         Document existingDocument = documentRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Document not found"));
 
-        if (document.getDocumentTypeId() != null) {
+        if (document.getDocumentTypeId() != null &&
+                document.getDocumentTypeId().equals(existingDocument.getDocumentType().getId())) {
             existingDocument.setDocumentType(
                     documentTypeRepository.findById(document.getDocumentTypeId())
                             .orElseThrow(() -> new NoSuchElementException("Document type not found"))
             );
         }
 
-        if (document.getUserId() != null) {
+        if (document.getUserId() != null &&
+                document.getUserId() != existingDocument.getUser().getId()) {
             existingDocument.setUser(
                     userRepository.findById(document.getUserId())
                             .orElseThrow(() -> new NoSuchElementException("User not found"))
             );
         }
 
-        DocumentVersion documentVersion = existingDocument.getDocumentVersion();
-        if (document.getName() != null) {
-            documentVersion.setDocumentName(document.getName());
-        }
+        DocumentVersion documentVersion = new DocumentVersion();
 
-        if (document.getContentUrl() != null && !document.getContentUrl().isEmpty()) {
-            documentVersion.setContentUrl(document.getContentUrl());
-        }
-//TODO: ЛОГИКУ НАПИСАТЬ ПО  ДОКУМЕНТ ВЕРСИЯМ
+        if (existingDocument.getDocumentVersion() != null)
+            documentVersion = getUpdatedDocumentVersion(document, existingDocument);
+//TODO: ЛОГИКУ НАПИСАТЬ ПО ДОКУМЕНТ ВЕРСИЯМ
 //        documentVersion.setUpdatedAt(Instant.now());
 
         documentVersionRepository.save(documentVersion);
 
         return documentRepository.save(existingDocument);
+    }
+
+    private static DocumentVersion getUpdatedDocumentVersion(DocumentUpdateDTO document, Document existingDocument) {
+
+        // изменения только в последнюю версию документа
+        DocumentVersion documentVersion = existingDocument.getDocumentVersion()
+                                            .get(existingDocument.getDocumentVersion().size() - 1);
+        if (document.getName() != null) {
+            documentVersion.setDocumentName(document.getName());
+        }
+
+        // TODO: спросить может ли быть contentUrl пустым
+        if (document.getContentUrl() != null && !document.getContentUrl().isEmpty()) {
+            documentVersion.setContentUrl(document.getContentUrl());
+        }
+        return documentVersion;
     }
 
     private void validateDate(DocumentVersion documentVersion) {

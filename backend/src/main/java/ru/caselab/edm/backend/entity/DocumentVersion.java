@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.Instant;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -32,6 +33,13 @@ public class DocumentVersion {
     private String contentUrl;
 
     @ManyToOne
-    @JoinColumn(name = "signature_id")
-    private Signature signature;
+    @JoinColumn(name = "documents_id")
+    private Document document;
+
+    @OneToMany(mappedBy = "documentVersion")
+    private List<DocumentAttributeValue> documentAttributeValue;
+
+    @OneToMany(mappedBy = "documentVersion")
+    private List<Signature> signature;
+
 }
