@@ -5,11 +5,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
-@Table(name="attributes")
+@Table(name = "attributes")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -20,10 +18,9 @@ public class Attribute {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true, nullable = false)
+    @Column(nullable = false, unique = true)
     private String name;
-    @Column(nullable = false)
+
+    @Column(name = "data_type", nullable = false)
     private String dataType;
-    @ManyToMany(mappedBy = "attributes")
-    private List<DocumentType> documentTypes = new ArrayList<>();
 }

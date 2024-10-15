@@ -7,8 +7,8 @@ import ru.caselab.edm.backend.dto.LoginUserDTO;
 import ru.caselab.edm.backend.entity.User;
 import ru.caselab.edm.backend.entity.UserInfoDetails;
 import ru.caselab.edm.backend.repository.UserRepository;
-import ru.caselab.edm.backend.service.JwtService;
-import ru.caselab.edm.backend.service.RefreshTokenService;
+import ru.caselab.edm.backend.security.service.JwtService;
+import ru.caselab.edm.backend.security.service.RefreshTokenService;
 
 @Service
 public class TestService {
@@ -20,7 +20,7 @@ public class TestService {
 
     @Autowired
     public TestService(JwtService jwtService, UserRepository userRepository,
-                        RefreshTokenService refreshTokenService) {
+                       RefreshTokenService refreshTokenService) {
         this.jwtService = jwtService;
         this.userRepository = userRepository;
         this.refreshTokenService = refreshTokenService;

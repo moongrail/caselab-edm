@@ -1,4 +1,4 @@
-package ru.caselab.edm.backend.service.impl;
+package ru.caselab.edm.backend.security.details;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,20 +14,17 @@ import ru.caselab.edm.backend.entity.UserInfoDetails;
 import ru.caselab.edm.backend.repository.RoleRepository;
 import ru.caselab.edm.backend.repository.UserRepository;
 
-
 import java.util.Optional;
 
 @Service
 @Primary
 public class UserDetailsServiceImpl implements UserDetailsService {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(UserDetailsServiceImpl.class);
     @Autowired
     private UserRepository userRepository;
-
     @Autowired
     private RoleRepository roleRepository;
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(UserDetailsServiceImpl.class);
 
     @Override
     @Transactional(readOnly = true)
@@ -38,7 +35,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
         User existingUser = user.get();
 
-        if(user.isEmpty()){
+        if (user.isEmpty()) {
             LOGGER.error("Username not found: " + username);
             throw new UsernameNotFoundException("username not found");
         }

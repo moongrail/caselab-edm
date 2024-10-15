@@ -18,7 +18,6 @@ public class DocumentController {
 
     private final DocumentService documentService;
     private final DocumentMapper documentMapper;
-
     private final SignatureService signatureService;
 
     @PostMapping("/{id}/sign")

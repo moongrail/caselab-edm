@@ -5,6 +5,7 @@ services:
     container_name: edm-db
     ports:
       - "5435:5432"
+    user: postgres
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     environment:

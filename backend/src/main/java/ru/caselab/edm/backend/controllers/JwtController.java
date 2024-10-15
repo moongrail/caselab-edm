@@ -20,18 +20,18 @@ import ru.caselab.edm.backend.dto.RefreshTokenDTO;
 import ru.caselab.edm.backend.entity.User;
 import ru.caselab.edm.backend.entity.UserInfoDetails;
 import ru.caselab.edm.backend.exceptions.ResourceNotFoundException;
-import ru.caselab.edm.backend.service.JwtService;
-import ru.caselab.edm.backend.service.RefreshTokenService;
-import ru.caselab.edm.backend.service.impl.UserDetailsServiceImpl;
+import ru.caselab.edm.backend.security.details.UserDetailsServiceImpl;
+import ru.caselab.edm.backend.security.service.JwtService;
+import ru.caselab.edm.backend.security.service.RefreshTokenService;
 
 @RestController
 @RequestMapping("/jwt")
 @Tag(name = "JWT", description = "JWT management operation")
 public class JwtController {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(UserDetailsServiceImpl.class);
     private final RefreshTokenService refreshTokenService;
     private final JwtService jwtService;
-    private static final Logger LOGGER = LoggerFactory.getLogger(UserDetailsServiceImpl.class);
 
 
     @Autowired
@@ -46,9 +46,9 @@ public class JwtController {
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "JWT was successfully updated",
-            content = @Content(mediaType = "application/json", schema = @Schema(implementation = JwtDTO.class))),
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = JwtDTO.class))),
             @ApiResponse(responseCode = "404", description = "Refresh token was not found",
-            content = @Content)
+                    content = @Content)
     })
     @PostMapping("/update")
     public ResponseEntity<JwtDTO> updateJwtToken(

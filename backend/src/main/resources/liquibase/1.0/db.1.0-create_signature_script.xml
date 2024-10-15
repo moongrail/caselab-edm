@@ -5,20 +5,19 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
 
-    <changeSet id="db.1.0-document_version_script" author="moongrail" runOnChange="true">
+    <changeSet id="db.1.0-create_signature_script" author="moongrail" runOnChange="true">
         <sql>
 
-            CREATE TABLE IF NOT EXISTS document_versions
+            CREATE TABLE IF NOT EXISTS signatures
             (
                 id BIGSERIAL PRIMARY KEY,
-                documents_id BIGINT REFERENCES documents(id),
-                document_name VARCHAR(255) NOT NULL,
+                hash TEXT NOT NULL,
+                user_id UUID NOT NULL,
                 created_at TIMESTAMP DEFAULT NOW() NOT NULL,
-                updated_at TIMESTAMP,
-                content_url TEXT
-            );
-
-            CREATE SEQUENCE IF NOT EXISTS document_version_sequence START WITH 1 INCREMENT BY 1;
+                CONSTRAINT fk_signatures_user
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+                document_version_id BIGINT REFERENCES document_versions(id)
+                );
         </sql>
     </changeSet>
 </databaseChangeLog>

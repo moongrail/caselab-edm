@@ -32,6 +32,13 @@ public class DocumentVersion {
     @Column(name = "content_url", columnDefinition = "TEXT")
     private String contentUrl;
 
+    @ManyToOne
+    @JoinColumn(name = "documents_id")
+    private Document document;
+
+    @OneToMany(mappedBy = "documentVersion")
+    private List<DocumentAttributeValue> documentAttributeValue;
+
     @OneToMany(mappedBy = "documentVersion")
     private List<Signature> signature;
 }

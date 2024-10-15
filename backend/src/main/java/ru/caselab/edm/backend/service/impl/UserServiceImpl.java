@@ -18,7 +18,6 @@ import ru.caselab.edm.backend.mapper.UserMapper;
 import ru.caselab.edm.backend.repository.UserRepository;
 import ru.caselab.edm.backend.service.UserService;
 
-
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;

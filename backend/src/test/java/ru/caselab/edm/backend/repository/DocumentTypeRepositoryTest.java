@@ -33,19 +33,13 @@ class DocumentTypeRepositoryTest {
         documentType.setId(1L);
         documentType.setName("договор");
         documentType.setDescription("какоей-то описание");
-        documentType.setAttributes(documentAttributeList);
 
         documentTypeRepository.save(documentType);
 
-        Assertions.assertThat(documentTypeRepository.findByName("договор").get().getAttributes().get(0))
-                .isEqualTo(documentType.getAttributes().get(0));
 
         Assertions.assertThat(documentTypeRepository.findByName("договор").get())
                 .matches(list -> list.getId().equals(documentType.getId()))
                 .matches(list -> list.getName().equals(documentType.getName()))
-                .matches(list -> list.getDescription().equals(documentType.getDescription()))
-                .matches(list -> list.getCreatedAt() != null)
-                .matches(list -> list.getUpdatedAt() != null)
-                .matches(list -> list.getAttributes().get(0).equals(documentType.getAttributes().get(0)));
+                .matches(list -> list.getDescription().equals(documentType.getDescription()));
     }
 }

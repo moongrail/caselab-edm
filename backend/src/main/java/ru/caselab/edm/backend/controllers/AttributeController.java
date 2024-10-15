@@ -10,8 +10,6 @@ import ru.caselab.edm.backend.dto.AttributeDTO;
 import ru.caselab.edm.backend.dto.AttributeUpdateDTO;
 import ru.caselab.edm.backend.service.AttributeService;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("/attributes")
 public class AttributeController {
@@ -25,7 +23,7 @@ public class AttributeController {
     @PostMapping
     public ResponseEntity<AttributeDTO> createAttribute(@Valid @RequestBody AttributeCreateDTO attributeDTO) {
 
-        AttributeDTO attribute=attributeService.createAttribute(attributeDTO);
+        AttributeDTO attribute = attributeService.createAttribute(attributeDTO);
         return new ResponseEntity<>(attribute, HttpStatus.CREATED);
     }
 
