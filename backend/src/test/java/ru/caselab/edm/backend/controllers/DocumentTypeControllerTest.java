@@ -21,19 +21,16 @@ import ru.caselab.edm.backend.entity.Attribute;
 import ru.caselab.edm.backend.entity.DocumentType;
 import ru.caselab.edm.backend.repository.RoleRepository;
 import ru.caselab.edm.backend.repository.UserRepository;
+import ru.caselab.edm.backend.security.details.UserDetailsServiceImpl;
+import ru.caselab.edm.backend.security.service.JwtServiceImpl;
 import ru.caselab.edm.backend.service.DocumentTypeService;
-import ru.caselab.edm.backend.service.impl.JwtServiceImpl;
-import ru.caselab.edm.backend.service.impl.UserDetailsServiceImpl;
 
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -41,13 +38,36 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(controllers = DocumentTypeController.class)
 class DocumentTypeControllerTest {
     @MockBean
-    private DocumentTypeService documentTypeService;
-    @Autowired
-    private MockMvc mockMvc;
-    @MockBean
     UserRepository userRepository;
     @MockBean
     RoleRepository roleRepository;
+    @MockBean
+    private DocumentTypeService documentTypeService;
+    @Autowired
+    private MockMvc mockMvc;
+
+    private static DocumentsAttributesDTO getDocumentsAttributesDTO(Long attributesId,
+                                                                    String attributesName) {
+        DocumentsAttributesDTO testDocumentsAttributesDTO = new DocumentsAttributesDTO();
+        testDocumentsAttributesDTO.setId(attributesId);
+        testDocumentsAttributesDTO.setName(attributesName);
+        return testDocumentsAttributesDTO;
+    }
+
+    private static DocumentTypeDTO getDocumentTypeDTO(List<DocumentsAttributesDTO> documentsAttributesDTOList,
+                                                      Long documentTypeId,
+                                                      String nameDocumentType,
+                                                      String descriptionDocumentType) {
+        LocalDateTime now = LocalDateTime
+                .of(2024, Month.FEBRUARY, 22, 9, 49, 19);
+
+        DocumentTypeDTO testDocumentTypeDTO = new DocumentTypeDTO();
+        testDocumentTypeDTO.setId(documentTypeId);
+        testDocumentTypeDTO.setName(nameDocumentType);
+        testDocumentTypeDTO.setDescription(descriptionDocumentType);
+        testDocumentTypeDTO.setAttributes(documentsAttributesDTOList);
+        return testDocumentTypeDTO;
+    }
 
     @Test
     @WithMockUser
@@ -91,7 +111,6 @@ class DocumentTypeControllerTest {
                                     "id": 1,
                                     "name": "договор",
                                     "description": "какое-то описание",
-                                    "createdAt": "2024-02-22T09:49:19",
                                     "attributes": [
                                                     {
                                                         "id": 0,
@@ -148,7 +167,6 @@ class DocumentTypeControllerTest {
                                     "id":0,
                                     "name":"договор",
                                     "description":"какое-то описание",
-                                    "createdAt":"2024-02-22T09:49:19",
                                     "attributes":
                                         [
                                             {
@@ -161,7 +179,6 @@ class DocumentTypeControllerTest {
                                     "id":1,
                                     "name":"котировка",
                                     "description":"какое-то описание котировки",
-                                    "createdAt":"2024-02-22T09:49:19",
                                     "attributes":
                                         [
                                             {
@@ -242,7 +259,6 @@ class DocumentTypeControllerTest {
                             "id":1,
                                     "name":"котировка",
                                     "description":"какое-то описание котировки",
-                                    "createdAt":"2024-02-22T09:49:19",
                                     "attributes":
                                         [
                                             {
@@ -281,8 +297,6 @@ class DocumentTypeControllerTest {
         testDocumenttype.setId(1L);
         testDocumenttype.setName("договор");
         testDocumenttype.setDescription("какоей-то описание");
-        testDocumenttype.setCreatedAt(now);
-        testDocumenttype.setAttributes(documentAttributeList);
 
         Long id = 1L;
 
@@ -316,7 +330,6 @@ class DocumentTypeControllerTest {
                                     "id": 0,
                                     "name": "Новый документ",
                                     "description": "Такого вы еще не видели",
-                                    "createdAt": "2024-02-22T09:49:19",
                                     "attributes": [
                                                     {
                                                         "id": 0,
@@ -337,29 +350,5 @@ class DocumentTypeControllerTest {
                 .andExpect(status().isNoContent());
 
         Mockito.verify(documentTypeService).deleteDocumentType(1L);
-    }
-
-    private static DocumentsAttributesDTO getDocumentsAttributesDTO(Long attributesId,
-                                                                    String attributesName) {
-        DocumentsAttributesDTO testDocumentsAttributesDTO = new DocumentsAttributesDTO();
-        testDocumentsAttributesDTO.setId(attributesId);
-        testDocumentsAttributesDTO.setName(attributesName);
-        return testDocumentsAttributesDTO;
-    }
-
-    private static DocumentTypeDTO getDocumentTypeDTO(List<DocumentsAttributesDTO> documentsAttributesDTOList,
-                                                      Long documentTypeId,
-                                                      String nameDocumentType,
-                                                      String descriptionDocumentType) {
-        LocalDateTime now = LocalDateTime
-                .of(2024, Month.FEBRUARY, 22, 9, 49, 19);
-
-        DocumentTypeDTO testDocumentTypeDTO = new DocumentTypeDTO();
-        testDocumentTypeDTO.setId(documentTypeId);
-        testDocumentTypeDTO.setName(nameDocumentType);
-        testDocumentTypeDTO.setDescription(descriptionDocumentType);
-        testDocumentTypeDTO.setCreatedAt(now);
-        testDocumentTypeDTO.setAttributes(documentsAttributesDTOList);
-        return testDocumentTypeDTO;
     }
 }

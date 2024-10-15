@@ -1,4 +1,4 @@
-package ru.caselab.edm.backend.service;
+package ru.caselab.edm.backend.security.service;
 
 import ru.caselab.edm.backend.entity.RefreshToken;
 import ru.caselab.edm.backend.entity.User;

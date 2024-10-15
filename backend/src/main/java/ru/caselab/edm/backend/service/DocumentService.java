@@ -7,8 +7,12 @@ import ru.caselab.edm.backend.entity.Document;
 
 public interface DocumentService {
     Page<Document> getAllDocuments(int page, int size);
+
     Document getDocument(long id);
+
     Document saveDocument(DocumentCreateDTO document);
+
     Document updateDocument(long id, DocumentUpdateDTO document);
+
     void deleteDocument(long id);
 }

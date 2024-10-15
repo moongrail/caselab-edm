@@ -1,24 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <databaseChangeLog
-        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
 
     <changeSet id="Document table creation" author="A192747" runOnChange="true">
         <sql>
-
             CREATE TABLE IF NOT EXISTS documents (
-                id                   BIGSERIAL       PRIMARY KEY,
-                name                 VARCHAR(255)    NOT NULL,
-                document_type_id     BIGINT          REFERENCES      document_types(id),
-                user_id              UUID            REFERENCES      users(id)        ON DELETE CASCADE,
-                created_at           TIMESTAMP,
-                updated_at           TIMESTAMP,
-                data                 BYTEA           NOT NULL
-            );
+                id BIGSERIAL PRIMARY KEY,
+                document_type_id BIGINT REFERENCES document_types(id),
+                user_id UUID REFERENCES users(id) ON DELETE CASCADE
+                );
 
-            CREATE SEQUENCE IF NOT EXISTS document_sequence START WITH 1 INCREMENT BY 1;
+            CREATE SEQUENCE IF NOT EXISTS document_sequence
+    START WITH 1
+    INCREMENT BY 1;
         </sql>
     </changeSet>
 </databaseChangeLog>

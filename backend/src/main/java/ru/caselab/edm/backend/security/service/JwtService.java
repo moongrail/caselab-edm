@@ -1,4 +1,4 @@
-package ru.caselab.edm.backend.service;
+package ru.caselab.edm.backend.security.service;
 
 
 import io.jsonwebtoken.Claims;

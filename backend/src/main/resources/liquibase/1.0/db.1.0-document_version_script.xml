@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="db.1.0-document_version_script" author="moongrail" runOnChange="true">
+        <sql>
+
+            CREATE TABLE IF NOT EXISTS document_versions
+            (
+                id BIGSERIAL PRIMARY KEY,
+                documents_id BIGINT REFERENCES documents(id),
+                document_name VARCHAR(255) NOT NULL,
+                created_at TIMESTAMP DEFAULT NOW() NOT NULL,
+                updated_at TIMESTAMP,
+                content_url TEXT
+            );
+
+            CREATE SEQUENCE IF NOT EXISTS document_version_sequence START WITH 1 INCREMENT BY 1;
+        </sql>
+    </changeSet>
+</databaseChangeLog>

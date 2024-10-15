@@ -14,16 +14,16 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-import ru.caselab.edm.backend.service.JwtService;
+import ru.caselab.edm.backend.security.service.JwtService;
 
 import java.io.IOException;
 
 @Component
 public class JwtFilter extends OncePerRequestFilter {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(JwtFilter.class);
     private final JwtService jwtService;
     private final UserDetailsService userService;
-    private static final Logger LOGGER = LoggerFactory.getLogger(JwtFilter.class);
 
     @Autowired
     public JwtFilter(UserDetailsService userService, JwtService jwtService) {
