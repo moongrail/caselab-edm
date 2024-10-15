@@ -5,24 +5,12 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
-import ru.caselab.edm.backend.dto.DocumentCreateDTO;
-import ru.caselab.edm.backend.dto.DocumentDTO;
-import ru.caselab.edm.backend.dto.DocumentPageDTO;
-import ru.caselab.edm.backend.dto.DocumentUpdateDTO;
-import ru.caselab.edm.backend.entity.User;
+import org.springframework.web.bind.annotation.*;
+import ru.caselab.edm.backend.dto.*;
 import ru.caselab.edm.backend.mapper.DocumentMapper;
 import ru.caselab.edm.backend.repository.UserRepository;
 import ru.caselab.edm.backend.service.DocumentService;
+import ru.caselab.edm.backend.service.SignatureService;
 
 import java.security.Principal;
 import java.util.UUID;
@@ -34,12 +22,19 @@ public class DocumentController {
 
     private final DocumentService documentService;
     private final DocumentMapper documentMapper;
+    private final SignatureService signatureService;
+
+    @PostMapping("/{id}/sign")
+    @ResponseStatus(HttpStatus.OK)
+    public void signDocument(@Valid @RequestBody SignatureCreateDTO signatureCreateDTO, @PathVariable Long id) {
+        signatureService.sign(signatureCreateDTO, id);
+    }
+
     private final UserRepository userRepository;
 
     @PostMapping()
     @ResponseStatus(HttpStatus.CREATED)
     public DocumentDTO createDocumentType(@Valid @RequestBody DocumentCreateDTO documentTypeCreateDTO) {
-
         return documentMapper.toDto(documentService.saveDocument(documentTypeCreateDTO));
     }
 

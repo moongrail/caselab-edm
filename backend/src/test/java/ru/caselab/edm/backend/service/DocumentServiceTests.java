@@ -13,10 +13,11 @@ import ru.caselab.edm.backend.dto.DocumentCreateDTO;
 import ru.caselab.edm.backend.dto.DocumentUpdateDTO;
 import ru.caselab.edm.backend.entity.Document;
 import ru.caselab.edm.backend.entity.DocumentType;
+import ru.caselab.edm.backend.entity.DocumentVersion;
 import ru.caselab.edm.backend.entity.User;
-import ru.caselab.edm.backend.exceptions.WrongDateException;
 import ru.caselab.edm.backend.repository.DocumentRepository;
 import ru.caselab.edm.backend.repository.DocumentTypeRepository;
+import ru.caselab.edm.backend.repository.DocumentVersionRepository;
 import ru.caselab.edm.backend.repository.UserRepository;
 import ru.caselab.edm.backend.service.impl.DocumentServiceImpl;
 
@@ -26,7 +27,8 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -40,11 +42,14 @@ class DocumentServiceTests {
 
     @Mock
     private DocumentTypeRepository documentTypeRepository;
+    @Mock
+    private DocumentVersionRepository documentVersionRepository;
 
     @InjectMocks
     private DocumentServiceImpl documentService;
 
     private Document document;
+
 
     @BeforeEach
     void setUp() {
@@ -66,9 +71,6 @@ class DocumentServiceTests {
 
         document = new Document();
         document.setId(1L);
-        document.setCreationDate(LocalDateTime.now().minusDays(1));
-        document.setUpdateDate(LocalDateTime.now());
-        document.setName("Test Document");
         document.setUser(user);
         document.setDocumentType(documentType);
     }
@@ -95,13 +97,9 @@ class DocumentServiceTests {
     @DisplayName("Get Document success")
     void getDocument_Success() {
         when(documentRepository.findById(1L)).thenReturn(Optional.of(document));
-
         Document foundDocument = documentService.getDocument(1L);
 
         assertEquals(document.getId(), foundDocument.getId(), "Document ID should match");
-        assertEquals(document.getName(), foundDocument.getName(), "Document name should match");
-        assertEquals(document.getCreationDate(), foundDocument.getCreationDate(), "Creation date should match");
-        assertEquals(document.getUpdateDate(), foundDocument.getUpdateDate(), "Update date should match");
         assertEquals(document.getUser(), foundDocument.getUser(), "User should match");
         assertEquals(document.getDocumentType(), foundDocument.getDocumentType(), "Document type should match");
 
@@ -152,6 +150,10 @@ class DocumentServiceTests {
         updateDTO.setUserId(UUID.randomUUID());
         updateDTO.setDocumentTypeId(1L);
 
+        when(documentVersionRepository.findById(any())).thenReturn(Optional.of(DocumentVersion.builder()
+                .id(1L)
+                .documentName("name")
+                .build()));
         when(userRepository.findById(any())).thenReturn(Optional.of(document.getUser()));
         when(documentTypeRepository.findById(any())).thenReturn(Optional.of(document.getDocumentType()));
 
@@ -159,30 +161,16 @@ class DocumentServiceTests {
 
         Document updatedDoc = documentService.updateDocument(1L, updateDTO);
 
-        assertEquals(updatedDoc.getUpdateDate(), updateDTO.getUpdateDate());
 
         verify(documentRepository).findById(1L);
         verify(documentRepository).save(any(Document.class));
     }
 
     @Test
-    @DisplayName("Update Document with wrong date")
-    void updateDocument_WrongDate() {
-        when(documentRepository.findById(1L)).thenReturn(Optional.of(document));
-
-        LocalDateTime invalidUpdateDate = LocalDateTime.now().minusDays(2);
-        document.setUpdateDate(invalidUpdateDate);
-
-        assertThrows(WrongDateException.class, () -> documentService.updateDocument(1L, new DocumentUpdateDTO()));
-
-        verify(documentRepository).findById(1L);
-        verify(documentRepository, never()).save(any(Document.class));
-    }
-
-    @Test
     @DisplayName("Update Document not found")
     void updateDocument_NotFound() {
         when(documentRepository.findById(1L)).thenReturn(Optional.empty());
+
 
         assertThrows(NoSuchElementException.class, () ->
                 documentService.updateDocument(1L, new DocumentUpdateDTO())

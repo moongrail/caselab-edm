@@ -6,24 +6,25 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Entity
-@Table(name = "document_attribute_values")
 @Data
-@Builder
-@AllArgsConstructor
 @NoArgsConstructor
-public class AttributeValue {
+@AllArgsConstructor
+@Entity
+@Builder
+@Table(name = "document_attribute_values")
+public class DocumentAttributeValue {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "document_id",nullable = false)
-    private Document document;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "attribute_id",nullable = false)
+    @ManyToOne
+    @JoinColumn(name = "attribute_id", nullable = false)
     private Attribute attribute;
 
+    @Column(nullable = false)
     private String value;
+
+    @ManyToOne
+    @JoinColumn(name = "document_version_id")
+    private DocumentVersion documentVersion;
 }

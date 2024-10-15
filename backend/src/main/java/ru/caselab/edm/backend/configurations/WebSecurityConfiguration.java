@@ -17,14 +17,12 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import ru.caselab.edm.backend.filter.JwtFilter;
-import ru.caselab.edm.backend.service.impl.UserDetailsServiceImpl;
+import ru.caselab.edm.backend.security.details.UserDetailsServiceImpl;
 
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
 public class WebSecurityConfiguration {
-
-    final JwtFilter jwtFilter;
 
     public static final String[] WHITELIST = {
             "/swagger-ui/**",
@@ -40,6 +38,7 @@ public class WebSecurityConfiguration {
             "/users/**",
             "/jwt/**"
     };
+    final JwtFilter jwtFilter;
 
 
     public WebSecurityConfiguration(JwtFilter jwtFilter) {
