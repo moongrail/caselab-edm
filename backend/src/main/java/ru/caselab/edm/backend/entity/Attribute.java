@@ -23,4 +23,7 @@ public class Attribute {
 
     @Column(name = "data_type", nullable = false)
     private String dataType;
+
+    @Column(name = "is_required", nullable = false)
+    private boolean isRequired;
 }

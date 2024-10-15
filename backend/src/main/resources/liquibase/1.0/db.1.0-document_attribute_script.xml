@@ -10,19 +10,10 @@
 
             CREATE TABLE IF NOT EXISTS attributes
             (
-                id
-                BIGSERIAL
-                PRIMARY
-                KEY,
-                name
-                VARCHAR
-            (
-                255
-            ) NOT NULL,
-                data_type VARCHAR
-            (
-                255
-            ) NOT NULL
+                id BIGSERIAL PRIMARY KEY,
+                name VARCHAR(255) NOT NULL,
+                data_type VARCHAR(255) NOT NULL,
+                is_required BOOLEAN NOT NULL DEFAULT FALSE
                 );
         </sql>
         <sql>
