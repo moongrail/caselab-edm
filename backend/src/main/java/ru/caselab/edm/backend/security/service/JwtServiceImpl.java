@@ -1,4 +1,4 @@
-package ru.caselab.edm.backend.service.impl;
+package ru.caselab.edm.backend.security.service;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtParser;
@@ -10,7 +10,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
-import ru.caselab.edm.backend.service.JwtService;
 
 import java.security.Key;
 import java.util.Date;
@@ -22,9 +21,8 @@ import java.util.function.Function;
 @Service
 public class JwtServiceImpl implements JwtService {
 
-    private static String SECRET_KEY;
     private static final int JWT_TOKEN_LIFETIME = 60 * 60 * 1000; // 1 час
-
+    private static String SECRET_KEY;
     private final JwtParser jwtParser;
 
     public JwtServiceImpl(@Value("${secret.key}") String key) {

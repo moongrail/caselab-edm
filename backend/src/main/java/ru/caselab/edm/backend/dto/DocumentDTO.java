@@ -6,8 +6,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
-import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -24,19 +22,4 @@ public class DocumentDTO {
 
     @JsonProperty("userId")
     private UUID userId;
-
-    @JsonProperty("name")
-    private String name;
-
-    @JsonProperty("createdAt")
-    private LocalDateTime creationDate;
-
-    @JsonProperty("updatedAt")
-    private LocalDateTime updateDate;
-
-    @JsonProperty("data")
-    private byte[] data;
-
-    @JsonProperty("attributes")
-    private List<AttributeValueDTO> documentAttributeValues;
 }

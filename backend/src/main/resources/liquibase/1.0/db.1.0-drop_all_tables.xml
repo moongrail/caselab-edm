@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+<changeSet id="db.1.0-drop_all_tables" author="Larentina" runOnChange="true">
+    <sql>
+        DROP TABLE IF EXISTS user_roles CASCADE;
+        DROP TABLE IF EXISTS roles CASCADE;
+        DROP TABLE IF EXISTS users CASCADE;
+        DROP TABLE IF EXISTS signatures CASCADE;
+        DROP TABLE IF EXISTS document_versions cascade;
+        DROP TABLE IF EXISTS document_types CASCADE;
+        DROP TABLE IF EXISTS documents CASCADE;
+        DROP TABLE IF EXISTS document_attribute_values;
+        DROP TABLE IF EXISTS document_type_attributes;
+        DROP TABLE IF EXISTS attributes CASCADE;
+        DROP TABLE IF EXISTS refresh_token cascade;
+
+    </sql>
+</changeSet>
+</databaseChangeLog>

@@ -2,6 +2,7 @@ package ru.caselab.edm.backend.service.impl;
 
 import jakarta.transaction.Transactional;
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -15,22 +16,15 @@ import ru.caselab.edm.backend.repository.AttributeRepository;
 import ru.caselab.edm.backend.repository.DocumentTypeRepository;
 import ru.caselab.edm.backend.service.AttributeService;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
 @Service
 @Data
+@RequiredArgsConstructor
 public class AttributeServiceImpl implements AttributeService {
 
     private final AttributeRepository attributeRepository;
     private final AttributeMapper attributeMapper;
     private final DocumentTypeRepository documentTypeRepository;
 
-    public AttributeServiceImpl(AttributeRepository attributeRepository, AttributeMapper attributeMapper, DocumentTypeRepository documentTypeRepository) {
-        this.attributeRepository = attributeRepository;
-        this.attributeMapper = attributeMapper;
-        this.documentTypeRepository = documentTypeRepository;
-    }
 
     @Transactional
     @Override
@@ -38,7 +32,8 @@ public class AttributeServiceImpl implements AttributeService {
         Attribute attribute = Attribute.builder()
                 .dataType(createAttribute.getDataType())
                 .name(createAttribute.getName())
-                .documentTypes(documentTypeRepository.findAllById(createAttribute.getDocumentTypeIds()))
+//                .dataType(documentTypeRepository
+//                        .findDocumentTypeNameByDocumentTypeAttributeId(createAttribute.getDocumentTypeIds()).toString())
                 .build();
         return attributeMapper.toDTO(attributeRepository.save(attribute));
     }
@@ -54,7 +49,7 @@ public class AttributeServiceImpl implements AttributeService {
     @Transactional
     @Override
     public Page<AttributeDTO> getAllAttributes(int page, int size) {
-        Page<Attribute> attributes = attributeRepository. findAll(
+        Page<Attribute> attributes = attributeRepository.findAll(
                 PageRequest.of(page, size)
         );
         return attributes.map(attributeMapper::toDTO);
@@ -67,7 +62,10 @@ public class AttributeServiceImpl implements AttributeService {
                 .orElseThrow(() -> new ResourceNotFoundException("Attribute not found"));
         attribute.setName(updateAttributeDTO.getName());
         attribute.setDataType(updateAttributeDTO.getDataType());
-        attribute.setDocumentTypes(documentTypeRepository.findAllById(updateAttributeDTO.getDocumentTypeIds()));
+        //TODO: логику получения имени? имён??
+
+//        attribute.setDataType(documentTypeRepository
+//                .findDocumentTypeNameByDocumentTypeAttributeId(updateAttributeDTO.getDocumentTypeIds()).toString());
         attributeRepository.save(attribute);
         return attributeMapper.toDTO(attribute);
     }
