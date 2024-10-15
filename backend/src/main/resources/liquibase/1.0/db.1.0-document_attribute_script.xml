@@ -26,6 +26,15 @@
                 "value" VARCHAR(255) NOT NULL
                 );
         </sql>
+        <sql>
+
+            CREATE TABLE IF NOT EXISTS document_type_attributes
+            (
+                id BIGSERIAL PRIMARY KEY,
+                doc_type_id BIGINT REFERENCES document_types(id) ON DELETE CASCADE,
+                attribute_id BIGINT REFERENCES attributes(id) ON DELETE CASCADE
+                );
+        </sql>
     </changeSet>
 
 </databaseChangeLog>

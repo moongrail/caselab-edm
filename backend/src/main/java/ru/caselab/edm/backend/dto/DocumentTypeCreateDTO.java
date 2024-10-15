@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.util.List;
+import java.util.Set;
 
 @Data
 public class DocumentTypeCreateDTO {
@@ -12,5 +13,5 @@ public class DocumentTypeCreateDTO {
     private String name;
     private String description;
     @NotNull
-    private List<Long> attributesDocumentTypeId;
+    private Set<Long> attributeIds;
 }

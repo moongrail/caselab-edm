@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Set;
+
 @Entity
 @Table(name = "attributes")
 @Data
@@ -26,4 +28,12 @@ public class Attribute {
 
     @Column(name = "is_required", nullable = false)
     private boolean isRequired;
+
+    @ManyToMany
+    @JoinTable(
+            name = "document_type_attributes",
+            joinColumns = @JoinColumn(name = "attribute_id"),
+            inverseJoinColumns = @JoinColumn(name = "doc_type_id")
+    )
+    private Set<DocumentType> documentTypes;
 }
