@@ -41,5 +41,4 @@ public class DocumentVersion {
 
     @OneToMany(mappedBy = "documentVersion")
     private List<Signature> signature;
-
 }

@@ -6,12 +6,10 @@ import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import ru.caselab.edm.backend.dto.DocumentCreateDTO;
-import ru.caselab.edm.backend.dto.DocumentDTO;
-import ru.caselab.edm.backend.dto.DocumentPageDTO;
-import ru.caselab.edm.backend.dto.DocumentUpdateDTO;
+import ru.caselab.edm.backend.dto.*;
 import ru.caselab.edm.backend.mapper.DocumentMapper;
 import ru.caselab.edm.backend.service.DocumentService;
+import ru.caselab.edm.backend.service.SignatureService;
 
 @RestController
 @RequestMapping("/document")
@@ -20,6 +18,13 @@ public class DocumentController {
 
     private final DocumentService documentService;
     private final DocumentMapper documentMapper;
+    private final SignatureService signatureService;
+
+    @PostMapping("/{id}/sign")
+    @ResponseStatus(HttpStatus.OK)
+    public void signDocument(@Valid @RequestBody SignatureCreateDTO signatureCreateDTO, @PathVariable Long id) {
+        signatureService.sign(signatureCreateDTO, id);
+    }
 
     @PostMapping()
     @ResponseStatus(HttpStatus.CREATED)
