@@ -1,8 +1,8 @@
 package ru.caselab.edm.backend.service.impl;
 
-import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.caselab.edm.backend.dto.DocumentAttributeValueCreateDTO;
 import ru.caselab.edm.backend.dto.DocumentAttributeValueUpdateDTO;
 import ru.caselab.edm.backend.dto.DocumentAttributeValueDTO;
@@ -35,7 +35,7 @@ public class DocumentAttributeValueServiceImpl implements DocumentAttributeValue
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public DocumentAttributeValueDTO getDocumentAttributeValueByDocumentAndAttribute(Long documentId, Long attributeId) {
         DocumentAttributeValue documentAttributeValue = documentAttributeValueRepository.findByDocumentVersionIdAndAttributeId(documentId, attributeId)
                 .orElseThrow(() -> new ResourceNotFoundException("Value doesn't exist"));
@@ -44,7 +44,7 @@ public class DocumentAttributeValueServiceImpl implements DocumentAttributeValue
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public DocumentAttributeValueDTO getDocumentAttributeValueById(Long id) {
         DocumentAttributeValue documentAttributeValue = documentAttributeValueRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Value doesn't exist"));

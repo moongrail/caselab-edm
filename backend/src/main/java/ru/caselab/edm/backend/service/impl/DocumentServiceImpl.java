@@ -80,8 +80,7 @@ public class DocumentServiceImpl implements DocumentService {
             );
         }
 
-        if (document.getUserId() != null &&
-                document.getUserId() != existingDocument.getUser().getId()) {
+        if (document.getUserId() != null) {
             existingDocument.setUser(
                     userRepository.findById(document.getUserId())
                             .orElseThrow(() -> new NoSuchElementException("User not found"))
