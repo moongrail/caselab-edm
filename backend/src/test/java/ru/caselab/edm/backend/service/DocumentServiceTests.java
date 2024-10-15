@@ -30,7 +30,9 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class DocumentServiceTests {
 
@@ -49,7 +51,6 @@ class DocumentServiceTests {
     private DocumentServiceImpl documentService;
 
     private Document document;
-
 
     @BeforeEach
     void setUp() {
@@ -73,11 +74,6 @@ class DocumentServiceTests {
         document.setId(1L);
         document.setUser(user);
         document.setDocumentType(documentType);
-    }
-
-    @Test
-    void getAllDocumentForUser(){
-
     }
 
     @Test

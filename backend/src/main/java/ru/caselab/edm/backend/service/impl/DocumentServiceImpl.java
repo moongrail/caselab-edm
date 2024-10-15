@@ -3,12 +3,14 @@ package ru.caselab.edm.backend.service.impl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.caselab.edm.backend.dto.DocumentCreateDTO;
 import ru.caselab.edm.backend.dto.DocumentUpdateDTO;
 import ru.caselab.edm.backend.entity.Document;
 import ru.caselab.edm.backend.entity.DocumentVersion;
+import ru.caselab.edm.backend.exceptions.DocumentForbiddenAccess;
 import ru.caselab.edm.backend.exceptions.WrongDateException;
 import ru.caselab.edm.backend.repository.DocumentRepository;
 import ru.caselab.edm.backend.repository.DocumentTypeRepository;
@@ -41,13 +43,15 @@ public class DocumentServiceImpl implements DocumentService {
 
     @Override
     public Page<Document> getAllDocumentForUser(int page, int size, UUID userId) {
-        int offset = page * size;
-        return documentRepository.getAllDocumentForUser(userId, size, offset);
+        Pageable pageable = PageRequest.of(page, size);
+        return documentRepository.getAllDocumentForUser(userId, pageable);
     }
 
     @Override
     public Document getDocumentForUser(long id, UUID userId) {
-        return documentRepository.getDocumentForUser(id, userId);
+        getDocument(id);
+        return documentRepository.getDocumentForUser(id, userId)
+                .orElseThrow(() -> new DocumentForbiddenAccess("Access to the document is forbidden"));
     }
 
     @Transactional
@@ -114,7 +118,7 @@ public class DocumentServiceImpl implements DocumentService {
 
         // изменения только в последнюю версию документа
         DocumentVersion documentVersion = existingDocument.getDocumentVersion()
-                                            .get(existingDocument.getDocumentVersion().size() - 1);
+                .get(existingDocument.getDocumentVersion().size() - 1);
         if (document.getName() != null) {
             documentVersion.setDocumentName(document.getName());
         }
