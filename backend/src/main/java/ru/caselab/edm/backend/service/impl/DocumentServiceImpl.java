@@ -17,6 +17,7 @@ import ru.caselab.edm.backend.service.DocumentService;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.NoSuchElementException;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -26,6 +27,7 @@ public class DocumentServiceImpl implements DocumentService {
     private final UserRepository userRepository;
     private final DocumentTypeRepository documentTypeRepository;
 
+
     @Override
     public Page<Document> getAllDocuments(int page, int size) {
         return documentRepository.findAll(PageRequest.of(page, size));
@@ -33,8 +35,18 @@ public class DocumentServiceImpl implements DocumentService {
 
     @Override
     public Document getDocument(long id) {
-        return documentRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("Document not found"));
+        return documentRepository.findById(id).orElseThrow(() -> new NoSuchElementException("Document not found"));
+    }
+
+    @Override
+    public Page<Document> getAllDocumentForUser(int page, int size, UUID userId) {
+        int offset = page * size;
+        return documentRepository.getAllDocumentForUser(userId, size, offset);
+    }
+
+    @Override
+    public Document getDocumentForUser(long id, UUID userId) {
+        return documentRepository.getDocumentForUser(id, userId);
     }
 
     @Transactional
@@ -45,7 +57,7 @@ public class DocumentServiceImpl implements DocumentService {
         newDocument.setDocumentType(
                 documentTypeRepository.findById(document.getDocumentTypeId())
                         .orElseThrow(() -> new NoSuchElementException("Document type not found"))
-                );
+        );
         newDocument.setUpdateDate(document.getUpdateDate());
         newDocument.setUser(
                 userRepository.findById(document.getUserId())
@@ -64,8 +76,8 @@ public class DocumentServiceImpl implements DocumentService {
         Document existingDocument = documentRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Document not found"));
 
-        if(document.getCreationDate() != null) {
-            if(document.getUpdateDate() != null) {
+        if (document.getCreationDate() != null) {
+            if (document.getUpdateDate() != null) {
                 existingDocument.setUpdateDate(document.getUpdateDate());
             } else {
                 existingDocument.setUpdateDate(LocalDateTime.now());
@@ -86,7 +98,7 @@ public class DocumentServiceImpl implements DocumentService {
             existingDocument.setUser(userRepository.findById(document.getUserId())
                     .orElseThrow(() -> new NoSuchElementException("User not found")));
         }
-        if(document.getName() != null) {
+        if (document.getName() != null) {
             existingDocument.setName(document.getName());
         }
 

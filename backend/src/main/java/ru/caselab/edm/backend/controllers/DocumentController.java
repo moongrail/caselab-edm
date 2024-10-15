@@ -5,13 +5,27 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 import ru.caselab.edm.backend.dto.DocumentCreateDTO;
 import ru.caselab.edm.backend.dto.DocumentDTO;
 import ru.caselab.edm.backend.dto.DocumentPageDTO;
 import ru.caselab.edm.backend.dto.DocumentUpdateDTO;
+import ru.caselab.edm.backend.entity.User;
 import ru.caselab.edm.backend.mapper.DocumentMapper;
+import ru.caselab.edm.backend.repository.UserRepository;
 import ru.caselab.edm.backend.service.DocumentService;
+
+import java.security.Principal;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/document")
@@ -20,23 +34,30 @@ public class DocumentController {
 
     private final DocumentService documentService;
     private final DocumentMapper documentMapper;
+    private final UserRepository userRepository;
+
     @PostMapping()
     @ResponseStatus(HttpStatus.CREATED)
     public DocumentDTO createDocumentType(@Valid @RequestBody DocumentCreateDTO documentTypeCreateDTO) {
+
         return documentMapper.toDto(documentService.saveDocument(documentTypeCreateDTO));
     }
 
     @GetMapping()
     @ResponseStatus(HttpStatus.OK)
     public DocumentPageDTO getAllDocuments(@RequestParam(name = "page", defaultValue = "0") @Min(value = 0) int page,
-                                           @RequestParam(name = "size", defaultValue = "10") @Min(value = 1) @Max(value = 100) int size) {
-        return documentMapper.toDtoPage(documentService.getAllDocuments(page, size));
+                                           @RequestParam(name = "size", defaultValue = "10") @Min(value = 1) @Max(value = 100) int size,
+                                           Principal principal) {
+        UUID userId = getUserByPrincipal(principal).getId();
+        return documentMapper.toDtoPage(documentService.getAllDocumentForUser(page, size, userId));
     }
 
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public DocumentDTO getDocumentById(@PathVariable Long id) {
-        return documentMapper.toDto(documentService.getDocument(id));
+    public DocumentDTO getDocumentById(@PathVariable Long id,
+                                       Principal principal) {
+        UUID userId = getUserByPrincipal(principal).getId();
+        return documentMapper.toDto(documentService.getDocumentForUser(id, userId));
     }
 
     @PutMapping("/{id}")
@@ -50,5 +71,11 @@ public class DocumentController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteDocumentType(@PathVariable Long id) {
         documentService.deleteDocument(id);
+    }
+
+    private final User getUserByPrincipal(Principal principal) {
+        return userRepository
+                .findUserByLogin(principal.getName())
+                .get();
     }
 }

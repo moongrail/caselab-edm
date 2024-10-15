@@ -74,6 +74,11 @@ class DocumentServiceTests {
     }
 
     @Test
+    void getAllDocumentForUser(){
+
+    }
+
+    @Test
     @DisplayName("Get All Documents")
     void getAllDocuments() {
         Page<Document> expectedPage = new PageImpl<>(Collections.singletonList(document));
