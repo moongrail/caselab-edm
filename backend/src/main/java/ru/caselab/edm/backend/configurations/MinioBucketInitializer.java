@@ -15,7 +15,7 @@ import java.security.NoSuchAlgorithmException;
 
 @RequiredArgsConstructor
 @Configuration
-public class MinioBucketInitalizer {
+public class MinioBucketInitializer {
 
     private final MinioClient minioClient;
     private final MinioConfigProperties minioConfigProperties;
