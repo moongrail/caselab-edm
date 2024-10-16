@@ -46,7 +46,7 @@ public class MinioServiceImpl implements MinioService {
             putObject(minioSaveDto.objectName(), contentType, inputStream);
             log.info("Object was uploaded successfully: {}", minioSaveDto.objectName());
         } catch (Exception ex) {
-            log.warn("Exception while uploading object: {}", minioSaveDto.objectName(), ex);
+            log.error("Exception while uploading object: {}", minioSaveDto.objectName(), ex);
             throw new MinioServiceException("Failed to upload object", ex);
         }
     }
@@ -56,7 +56,7 @@ public class MinioServiceImpl implements MinioService {
             removeObject(objectName);
             log.info("Object was deleted successfully: {}", objectName);
         } catch (Exception ex) {
-            log.warn("Exception while deleting object: {}", objectName, ex);
+            log.error("Exception while deleting object: {}", objectName, ex);
             throw new MinioServiceException("Failed to delete object", ex);
         }
     }
@@ -65,7 +65,7 @@ public class MinioServiceImpl implements MinioService {
         try {
             return getPresignedObjectUrlArgs(objectName);
         } catch (Exception ex) {
-            log.warn("Exception while generating temporary URL to object: {}", objectName, ex);
+            log.error("Exception while generating temporary URL to object: {}", objectName, ex);
             throw new MinioServiceException("Failed to generate temporary URL", ex);
         }
     }
