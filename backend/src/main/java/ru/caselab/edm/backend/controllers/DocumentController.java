@@ -5,6 +5,7 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -21,6 +22,7 @@ import ru.caselab.edm.backend.dto.DocumentPageDTO;
 import ru.caselab.edm.backend.dto.DocumentUpdateDTO;
 import ru.caselab.edm.backend.dto.SignatureCreateDTO;
 import ru.caselab.edm.backend.entity.User;
+import ru.caselab.edm.backend.entity.UserInfoDetails;
 import ru.caselab.edm.backend.mapper.DocumentMapper;
 import ru.caselab.edm.backend.repository.UserRepository;
 import ru.caselab.edm.backend.service.DocumentService;
@@ -56,17 +58,15 @@ public class DocumentController {
     @ResponseStatus(HttpStatus.OK)
     public DocumentPageDTO getAllDocuments(@RequestParam(name = "page", defaultValue = "0") @Min(value = 0) int page,
                                            @RequestParam(name = "size", defaultValue = "10") @Min(value = 1) @Max(value = 100) int size,
-                                           Principal principal) {
-        UUID userId = getUserByPrincipal(principal).getId();
-        return documentMapper.toDtoPage(documentService.getAllDocumentForUser(page, size, userId));
+                                           @AuthenticationPrincipal UserInfoDetails user) {
+        return documentMapper.toDtoPage(documentService.getAllDocumentForUser(page, size, user.getId()));
     }
 
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     public DocumentDTO getDocumentById(@PathVariable Long id,
-                                       Principal principal) {
-        UUID userId = getUserByPrincipal(principal).getId();
-        return documentMapper.toDto(documentService.getDocumentForUser(id, userId));
+                                       @AuthenticationPrincipal UserInfoDetails user) {
+        return documentMapper.toDto(documentService.getDocumentForUser(id, user.getId()));
     }
 
     @PutMapping("/{id}")
@@ -80,11 +80,5 @@ public class DocumentController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteDocumentType(@PathVariable Long id) {
         documentService.deleteDocument(id);
-    }
-
-    private final User getUserByPrincipal(Principal principal) {
-        return userRepository
-                .findUserByLogin(principal.getName())
-                .get();
     }
 }
