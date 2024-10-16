@@ -4,6 +4,7 @@ import org.springframework.data.domain.Page;
 import ru.caselab.edm.backend.dto.DocumentTypeCreateDTO;
 import ru.caselab.edm.backend.dto.DocumentTypeDTO;
 import ru.caselab.edm.backend.dto.DocumentTypeUpdateDTO;
+import ru.caselab.edm.backend.mapper.DocumentTypeMapper;
 
 public interface DocumentTypeService {
 
@@ -16,4 +17,5 @@ public interface DocumentTypeService {
     DocumentTypeDTO updateDocumentType(Long id, DocumentTypeUpdateDTO updateDocumentType);
 
     void deleteDocumentType(Long id);
+    DocumentTypeMapper getDocumentTypeMapper();
 }
