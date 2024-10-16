@@ -1,47 +1,50 @@
 package ru.caselab.edm.backend.mapper;
 
+import io.jsonwebtoken.lang.Collections;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 import ru.caselab.edm.backend.dto.DocumentTypeDTO;
-import ru.caselab.edm.backend.dto.DocumentsAttributesDTO;
+import ru.caselab.edm.backend.entity.Attribute;
 import ru.caselab.edm.backend.entity.DocumentType;
 
-import java.time.LocalDateTime;
-import java.time.Month;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 class DocumentTypeMapperTest {
     DocumentTypeMapper mapper = Mappers.getMapper(DocumentTypeMapper.class);
 
     @Test
     void mapDocumentTypeToDocumentTypeDTO() {
-        LocalDateTime now = LocalDateTime
-                .of(2024, Month.FEBRUARY, 22, 9, 49, 19, 275039200);
 
 
         DocumentTypeDTO testDocumentTypeDTO = new DocumentTypeDTO();
-
-
-        DocumentsAttributesDTO testDocumentsAttributesDTO = new DocumentsAttributesDTO();
-        testDocumentsAttributesDTO.setName("подписант");
-
-        List<DocumentsAttributesDTO> documentsAttributesDTOList = new ArrayList<>();
-        documentsAttributesDTOList.add(testDocumentsAttributesDTO);
-
-        DocumentType testDocumenttype = new DocumentType();
-
-        testDocumenttype.setId(1L);
-        testDocumenttype.setName("договор");
-        testDocumenttype.setDescription("какоей-то описание");
-
         testDocumentTypeDTO.setId(1L);
         testDocumentTypeDTO.setName("договор");
         testDocumentTypeDTO.setDescription("какоей-то описание");
-        DocumentTypeDTO map = mapper.map(testDocumenttype);
+
+        Attribute testAttribute = new Attribute();
+        testAttribute.setId(1L);
+        testAttribute.setName("подпись");
+
+
+        Set<Long> documentsAttributesId = new HashSet<>();
+        documentsAttributesId.add(testDocumentTypeDTO.getId());
+        testDocumentTypeDTO.setAttributeIds(documentsAttributesId);
+
+        DocumentType testDocumentType = new DocumentType();
+
+        testDocumentType.setId(1L);
+        testDocumentType.setName("договор");
+        testDocumentType.setDescription("какоей-то описание");
+        testDocumentType.setAttributes(new HashSet<>(Collections.of(testAttribute)));
+
+
+
+
+        DocumentTypeDTO map = mapper.toDto(testDocumentType);
         System.out.println(map);
-        Assertions.assertThat(mapper.map(testDocumenttype)).isEqualTo(testDocumentTypeDTO);
+        Assertions.assertThat(mapper.toDto(testDocumentType)).isEqualTo(testDocumentTypeDTO);
 
     }
 }
