@@ -13,7 +13,6 @@ public class DocumentTypeUpdateDTO {
     private String name;
     @NotBlank
     private String description;
-    @NotNull
     private Set<Long> attributeIds;
 
 }

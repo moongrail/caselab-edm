@@ -12,6 +12,5 @@ public class DocumentTypeCreateDTO {
     @NotBlank
     private String name;
     private String description;
-    @NotNull
     private Set<Long> attributeIds;
 }

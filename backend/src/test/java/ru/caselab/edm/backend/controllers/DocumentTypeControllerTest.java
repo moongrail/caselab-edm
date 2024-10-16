@@ -13,10 +13,10 @@ import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.web.servlet.MockMvc;
+import ru.caselab.edm.backend.dto.AttributeDTO;
 import ru.caselab.edm.backend.dto.DocumentTypeCreateDTO;
 import ru.caselab.edm.backend.dto.DocumentTypeDTO;
 import ru.caselab.edm.backend.dto.DocumentTypeUpdateDTO;
-import ru.caselab.edm.backend.dto.DocumentsAttributesDTO;
 import ru.caselab.edm.backend.entity.Attribute;
 import ru.caselab.edm.backend.entity.DocumentType;
 import ru.caselab.edm.backend.repository.RoleRepository;
@@ -27,8 +27,7 @@ import ru.caselab.edm.backend.service.DocumentTypeService;
 
 import java.time.LocalDateTime;
 import java.time.Month;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -46,26 +45,24 @@ class DocumentTypeControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    private static DocumentsAttributesDTO getDocumentsAttributesDTO(Long attributesId,
-                                                                    String attributesName) {
-        DocumentsAttributesDTO testDocumentsAttributesDTO = new DocumentsAttributesDTO();
-        testDocumentsAttributesDTO.setId(attributesId);
-        testDocumentsAttributesDTO.setName(attributesName);
-        return testDocumentsAttributesDTO;
+    private static AttributeDTO getDocumentsAttributesDTO(Long attributesId,
+                                                          String attributesName) {
+        AttributeDTO testAttributeDTO = new AttributeDTO();
+        testAttributeDTO.setId(attributesId);
+        testAttributeDTO.setName(attributesName);
+        return testAttributeDTO;
     }
 
-    private static DocumentTypeDTO getDocumentTypeDTO(List<DocumentsAttributesDTO> documentsAttributesDTOList,
+    private static DocumentTypeDTO getDocumentTypeDTO(Set<Long> documentsAttributesIdsSet,
                                                       Long documentTypeId,
                                                       String nameDocumentType,
                                                       String descriptionDocumentType) {
-        LocalDateTime now = LocalDateTime
-                .of(2024, Month.FEBRUARY, 22, 9, 49, 19);
 
         DocumentTypeDTO testDocumentTypeDTO = new DocumentTypeDTO();
         testDocumentTypeDTO.setId(documentTypeId);
         testDocumentTypeDTO.setName(nameDocumentType);
         testDocumentTypeDTO.setDescription(descriptionDocumentType);
-        testDocumentTypeDTO.setAttributes(documentsAttributesDTOList);
+        testDocumentTypeDTO.setAttributeIds(documentsAttributesIdsSet);
         return testDocumentTypeDTO;
     }
 
@@ -73,19 +70,19 @@ class DocumentTypeControllerTest {
     @WithMockUser
     void createDocumentType() throws Exception {
         //Входные данные
-        List<Long> attributesDocumentTypeId = new ArrayList<>(List.of(0L));
+        Set<Long> attributesDocumentTypeId = new HashSet<>(List.of(0L));
 
         DocumentTypeCreateDTO testDto = new DocumentTypeCreateDTO();
         testDto.setName("договор");
         testDto.setDescription("какое-то описание");
-        testDto.setAttributesDocumentTypeId(attributesDocumentTypeId);
+        testDto.setAttributeIds(attributesDocumentTypeId);
 
         //выходные данные
-        DocumentsAttributesDTO testDocumentsAttributesDTO = getDocumentsAttributesDTO(0L,
+        AttributeDTO testAttributeDto = getDocumentsAttributesDTO(0L,
                 "подписант");
 
-        List<DocumentsAttributesDTO> documentsAttributesDTOList = new ArrayList<>();
-        documentsAttributesDTOList.add(testDocumentsAttributesDTO);
+        Set<Long> documentsAttributesDTOList = new HashSet<>();
+        documentsAttributesDTOList.add(testAttributeDto.getId());
 
         DocumentTypeDTO testDocumentTypeDTO = getDocumentTypeDTO(documentsAttributesDTOList,
                 1L, "договор",
@@ -96,11 +93,11 @@ class DocumentTypeControllerTest {
         mockMvc.perform(post("/document_type")
                         .with(SecurityMockMvcRequestPostProcessors.csrf())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("""                            
+                        .content("""
                                 {
                                     "name": "договор",
                                     "description": "какое-то описание",
-                                    "attributesDocumentTypeId": [
+                                    "attributeIds": [
                                                      0
                                                   ]
                                 }
@@ -111,11 +108,8 @@ class DocumentTypeControllerTest {
                                     "id": 1,
                                     "name": "договор",
                                     "description": "какое-то описание",
-                                    "attributes": [
-                                                    {
-                                                        "id": 0,
-                                                        "name": "подписант"
-                                                     }
+                                    "attributeIds": [
+                                                   0
                                                   ]
                                 }
                         """))
@@ -126,22 +120,24 @@ class DocumentTypeControllerTest {
     @WithMockUser
     void showAllDocumentTypes() throws Exception {
         //генерация данных
-        DocumentsAttributesDTO testDocumentsAttributesDTO1 = getDocumentsAttributesDTO(0L, "подписант");
-        DocumentsAttributesDTO testDocumentsAttributesDTO2 = getDocumentsAttributesDTO(1L, "Ответственный исполнитель");
+        AttributeDTO testAttributeDto1 = getDocumentsAttributesDTO(0L, "подписант");
+        AttributeDTO testAttributeDto2 = getDocumentsAttributesDTO(1L, "Ответственный исполнитель");
 
 
-        List<DocumentsAttributesDTO> documentsAttributesDTOList1 = new ArrayList<>();
-        documentsAttributesDTOList1.add(testDocumentsAttributesDTO1);
 
-        List<DocumentsAttributesDTO> documentsAttributesDTOList2 = new ArrayList<>();
-        documentsAttributesDTOList2.add(testDocumentsAttributesDTO1);
-        documentsAttributesDTOList2.add(testDocumentsAttributesDTO2);
 
-        DocumentTypeDTO testDocumentTypeDTO1 = getDocumentTypeDTO(documentsAttributesDTOList1,
+        Set<Long> documentsAttributesDTOSet1 = new HashSet<>();
+        documentsAttributesDTOSet1.add(testAttributeDto1.getId());
+
+        Set<Long> documentsAttributesDTOSet2 = new HashSet<>();
+        documentsAttributesDTOSet2.add(testAttributeDto1.getId());
+        documentsAttributesDTOSet2.add(testAttributeDto2.getId());
+
+        DocumentTypeDTO testDocumentTypeDTO1 = getDocumentTypeDTO(documentsAttributesDTOSet1,
                 0L, "договор",
                 "какое-то описание");
 
-        DocumentTypeDTO testDocumentTypeDTO2 = getDocumentTypeDTO(documentsAttributesDTOList2,
+        DocumentTypeDTO testDocumentTypeDTO2 = getDocumentTypeDTO(documentsAttributesDTOSet2,
                 1L, "котировка",
                 "какое-то описание котировки");
 
@@ -167,29 +163,17 @@ class DocumentTypeControllerTest {
                                     "id":0,
                                     "name":"договор",
                                     "description":"какое-то описание",
-                                    "attributes":
-                                        [
-                                            {
-                                                "id":0,
-                                                "name":"подписант"
-                                            }
+                                    "attributeIds":
+                                        [0
                                         ]
                                 },
                                 {
                                     "id":1,
                                     "name":"котировка",
                                     "description":"какое-то описание котировки",
-                                    "attributes":
-                                        [
-                                            {
-                                                "id":0,
-                                                "name":"подписант"
-                                            },
-                                            {
-                                                "id":1,
-                                                "name":"Ответственный исполнитель"
-                                            }
-                                        ]
+                               "attributeIds":
+                                        [0,1]
+                                       
                                 }
                                         ],
                                         "pageable":
@@ -230,21 +214,21 @@ class DocumentTypeControllerTest {
         //генерация данных
         LocalDateTime now = LocalDateTime
                 .of(2024, Month.FEBRUARY, 22, 9, 49, 19);
-        DocumentsAttributesDTO testDocumentsAttributesDTO1 = getDocumentsAttributesDTO(0L, "подписант");
-        DocumentsAttributesDTO testDocumentsAttributesDTO2 = getDocumentsAttributesDTO(1L, "Ответственный исполнитель");
+        AttributeDTO testAttributeDto1 = getDocumentsAttributesDTO(0L, "подписант");
+        AttributeDTO testAttributeDto2 = getDocumentsAttributesDTO(1L, "Ответственный исполнитель");
 
-        List<DocumentsAttributesDTO> documentsAttributesDTOList1 = new ArrayList<>();
-        documentsAttributesDTOList1.add(testDocumentsAttributesDTO1);
+        Set<Long> documentsAttributesDTOSet1 = new HashSet<>();
+        documentsAttributesDTOSet1.add(testAttributeDto1.getId());
 
-        List<DocumentsAttributesDTO> documentsAttributesDTOList2 = new ArrayList<>();
-        documentsAttributesDTOList2.add(testDocumentsAttributesDTO1);
-        documentsAttributesDTOList2.add(testDocumentsAttributesDTO2);
+        Set<Long> documentsAttributesDTOSet2 = new HashSet<>();
+        documentsAttributesDTOSet2.add(testAttributeDto1.getId());
+        documentsAttributesDTOSet2.add(testAttributeDto2.getId());
 
-        DocumentTypeDTO testDocumentTypeDTO1 = getDocumentTypeDTO(documentsAttributesDTOList1,
+        DocumentTypeDTO testDocumentTypeDTO1 = getDocumentTypeDTO(documentsAttributesDTOSet1,
                 0L, "договор",
                 "какое-то описание");
 
-        DocumentTypeDTO testDocumentTypeDTO2 = getDocumentTypeDTO(documentsAttributesDTOList2,
+        DocumentTypeDTO testDocumentTypeDTO2 = getDocumentTypeDTO(documentsAttributesDTOSet2,
                 1L, "котировка",
                 "какое-то описание котировки");
 
@@ -259,16 +243,9 @@ class DocumentTypeControllerTest {
                             "id":1,
                                     "name":"котировка",
                                     "description":"какое-то описание котировки",
-                                    "attributes":
+                                    "attributeIds":
                                         [
-                                            {
-                                                "id":0,
-                                                "name":"подписант"
-                                            },
-                                            {
-                                                "id":1,
-                                                "name":"Ответственный исполнитель"
-                                            }
+                                            0,1
                                         ]
                         }
                         """));
@@ -278,12 +255,10 @@ class DocumentTypeControllerTest {
     @WithMockUser
     void updateDocumentType() throws Exception {
         DocumentTypeUpdateDTO documentTypeUpdateDTO = new DocumentTypeUpdateDTO();
-        documentTypeUpdateDTO.setAttributesDocumentTypeId(List.of(1L));
+        documentTypeUpdateDTO.setAttributeIds( new HashSet<>(List.of(0L)));
         documentTypeUpdateDTO.setName("Новый документ");
         documentTypeUpdateDTO.setDescription("Такого вы еще не видели");
 
-        LocalDateTime now = LocalDateTime
-                .of(2024, Month.FEBRUARY, 22, 9, 49, 19, 275039200);
 
         DocumentType testDocumenttype = new DocumentType();
 
@@ -291,7 +266,7 @@ class DocumentTypeControllerTest {
         attribute.setName("подписант");
         attribute.setDataType("текст");
 
-        List<Attribute> documentAttributeList = new ArrayList<>();
+        Set<Attribute> documentAttributeList = new HashSet<>();
         documentAttributeList.add(attribute);
 
         testDocumenttype.setId(1L);
@@ -300,13 +275,13 @@ class DocumentTypeControllerTest {
 
         Long id = 1L;
 
-        DocumentsAttributesDTO testDocumentsAttributesDTO1 = getDocumentsAttributesDTO(0L, "подписант");
+        AttributeDTO testAttributeDto1 = getDocumentsAttributesDTO(0L, "подписант");
 
-        List<DocumentsAttributesDTO> documentsAttributesDTOList1 = new ArrayList<>();
-        documentsAttributesDTOList1.add(testDocumentsAttributesDTO1);
+        Set<Long> documentsAttributesDTOSet1 = new HashSet<>();
+        documentsAttributesDTOSet1.add(testAttributeDto1.getId());
 
-        DocumentTypeDTO expected = getDocumentTypeDTO(documentsAttributesDTOList1,
-                0L, "Новый документ",
+        DocumentTypeDTO expected = getDocumentTypeDTO(documentsAttributesDTOSet1,
+                1L, "Новый документ",
                 "Такого вы еще не видели");
 
         Mockito.when(documentTypeService.updateDocumentType(id, documentTypeUpdateDTO))
@@ -315,26 +290,23 @@ class DocumentTypeControllerTest {
         mockMvc.perform(patch("/document_type/{id}", 1)
                         .with(SecurityMockMvcRequestPostProcessors.csrf())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("""                            
+                        .content("""
                                 {
                                     "name":"Новый документ",
                                     "description":"Такого вы еще не видели",
-                                    "attributesDocumentTypeId": [
-                                                     1
+                                    "attributeIds": [
+                                                     0
                                                   ]
                                 }
                                 """
                         ))
                 .andExpect(content().json("""
                         {
-                                    "id": 0,
+                                    "id": 1,
                                     "name": "Новый документ",
                                     "description": "Такого вы еще не видели",
-                                    "attributes": [
-                                                    {
-                                                        "id": 0,
-                                                        "name": "подписант"
-                                                     }
+                                    "attributeIds": [
+                                                  0
                                                   ]
                                 }
                         """))

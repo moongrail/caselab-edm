@@ -10,10 +10,15 @@ import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring")
 public interface DocumentTypeMapper {
+    @Mapping(target = "attributeIds", source = "attributes")
     DocumentTypeDTO toDto(DocumentType entity);
 
 
     DocumentType toEntity(DocumentTypeDTO documentTypeDTO);
+
+    default Long mapAttributeToId(Attribute attribute) {
+        return attribute != null ? attribute.getId() : null;
+    }
 
 
 }
