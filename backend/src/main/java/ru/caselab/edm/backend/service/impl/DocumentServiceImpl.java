@@ -1,6 +1,7 @@
 package ru.caselab.edm.backend.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -10,16 +11,23 @@ import ru.caselab.edm.backend.dto.DocumentCreateDTO;
 import ru.caselab.edm.backend.dto.DocumentUpdateDTO;
 import ru.caselab.edm.backend.entity.Document;
 import ru.caselab.edm.backend.entity.DocumentVersion;
+import ru.caselab.edm.backend.entity.Signature;
+import ru.caselab.edm.backend.entity.User;
+import ru.caselab.edm.backend.event.DocumentSignRequestEvent;
+import ru.caselab.edm.backend.exceptions.ResourceNotFoundException;
 import ru.caselab.edm.backend.exceptions.DocumentForbiddenAccess;
 import ru.caselab.edm.backend.exceptions.WrongDateException;
 import ru.caselab.edm.backend.repository.DocumentRepository;
 import ru.caselab.edm.backend.repository.DocumentTypeRepository;
 import ru.caselab.edm.backend.repository.DocumentVersionRepository;
+import ru.caselab.edm.backend.repository.SignatureRepository;
 import ru.caselab.edm.backend.repository.UserRepository;
 import ru.caselab.edm.backend.service.DocumentService;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -30,6 +38,8 @@ public class DocumentServiceImpl implements DocumentService {
     private final UserRepository userRepository;
     private final DocumentTypeRepository documentTypeRepository;
     private final DocumentVersionRepository documentVersionRepository;
+    private final SignatureRepository signatureRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     public Page<Document> getAllDocuments(int page, int size) {
@@ -140,5 +150,24 @@ public class DocumentServiceImpl implements DocumentService {
     @Override
     public void deleteDocument(long id) {
         documentRepository.deleteById(id);
+    }
+
+    @Transactional
+    @Override
+    public void sendForSign(List<UUID> userIds, Long documentVersionId) {
+        Optional<DocumentVersion> documentVersionOptional = documentVersionRepository.findById(documentVersionId);
+        if (documentVersionOptional.isEmpty()) {
+            throw new ResourceNotFoundException("Document version not found with id = %d".formatted(documentVersionId));
+        }
+        DocumentVersion documentVersion = documentVersionOptional.get();
+        List<User> users = userRepository.findAllById(userIds);
+        for (User user : users) {
+            Signature signature = new Signature();
+            signature.setUser(user);
+            signature.setDocumentVersion(documentVersion);
+            signatureRepository.save(signature);
+            eventPublisher.publishEvent(new DocumentSignRequestEvent(this, signature));
+        }
+
     }
 }

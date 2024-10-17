@@ -22,4 +22,6 @@ public interface DocumentService {
     Document updateDocument(long id, DocumentUpdateDTO document);
 
     void deleteDocument(long id);
+
+    void sendForSign(List<UUID> userIds, Long documentVersionId);
 }
