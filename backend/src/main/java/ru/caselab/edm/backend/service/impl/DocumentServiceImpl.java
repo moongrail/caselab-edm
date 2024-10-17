@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.caselab.edm.backend.dto.DocumentCreateDTO;
@@ -14,6 +15,7 @@ import ru.caselab.edm.backend.entity.Signature;
 import ru.caselab.edm.backend.entity.User;
 import ru.caselab.edm.backend.event.DocumentSignRequestEvent;
 import ru.caselab.edm.backend.exceptions.ResourceNotFoundException;
+import ru.caselab.edm.backend.exceptions.DocumentForbiddenAccess;
 import ru.caselab.edm.backend.exceptions.WrongDateException;
 import ru.caselab.edm.backend.repository.DocumentRepository;
 import ru.caselab.edm.backend.repository.DocumentTypeRepository;
@@ -46,8 +48,20 @@ public class DocumentServiceImpl implements DocumentService {
 
     @Override
     public Document getDocument(long id) {
-        return documentRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("Document not found"));
+        return documentRepository.findById(id).orElseThrow(() -> new NoSuchElementException("Document not found"));
+    }
+
+    @Override
+    public Page<Document> getAllDocumentForUser(int page, int size, UUID userId) {
+        Pageable pageable = PageRequest.of(page, size);
+        return documentRepository.getAllDocumentForUser(userId, pageable);
+    }
+
+    @Override
+    public Document getDocumentForUser(long id, UUID userId) {
+        getDocument(id);
+        return documentRepository.getDocumentForUser(id, userId)
+                .orElseThrow(() -> new DocumentForbiddenAccess("Access to the document is forbidden"));
     }
 
     @Transactional
@@ -114,7 +128,7 @@ public class DocumentServiceImpl implements DocumentService {
 
         // изменения только в последнюю версию документа
         DocumentVersion documentVersion = existingDocument.getDocumentVersion()
-                                            .get(existingDocument.getDocumentVersion().size() - 1);
+                .get(existingDocument.getDocumentVersion().size() - 1);
         if (document.getName() != null) {
             documentVersion.setDocumentName(document.getName());
         }

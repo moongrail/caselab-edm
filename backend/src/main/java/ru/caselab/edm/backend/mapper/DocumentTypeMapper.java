@@ -1,17 +1,24 @@
 package ru.caselab.edm.backend.mapper;
 
-import org.mapstruct.Mapper;
-import org.mapstruct.MappingConstants;
-import org.mapstruct.NullValuePropertyMappingStrategy;
-import org.mapstruct.ReportingPolicy;
+import org.mapstruct.*;
 import ru.caselab.edm.backend.dto.DocumentTypeDTO;
+import ru.caselab.edm.backend.entity.Attribute;
 import ru.caselab.edm.backend.entity.DocumentType;
 
-@Mapper(
-        nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
-        componentModel = MappingConstants.ComponentModel.SPRING,
-        unmappedTargetPolicy = ReportingPolicy.IGNORE
-)
-public abstract class DocumentTypeMapper {
-    public abstract DocumentTypeDTO map(DocumentType model);
+import java.util.Set;
+import java.util.stream.Collectors;
+
+@Mapper(componentModel = "spring")
+public interface DocumentTypeMapper {
+    @Mapping(target = "attributeIds", source = "attributes")
+    DocumentTypeDTO toDto(DocumentType entity);
+
+
+    DocumentType toEntity(DocumentTypeDTO documentTypeDTO);
+
+    default Long mapAttributeToId(Attribute attribute) {
+        return attribute != null ? attribute.getId() : null;
+    }
+
+
 }

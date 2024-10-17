@@ -35,6 +35,7 @@ jobs:
           java-version: ${{ env.JAVA_VERSION  }}
           distribution: ${{ env.JAVA_DISTRIBUTION }}
           cache: ${{ env.CACHE_BUILD_TOOL }}
+          cache-dependency-path: ${{ env.CACHE_PATH }}
 
       - name: Run Tests
         run: mvn -f backend/pom.xml -ntp clean verify
