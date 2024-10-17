@@ -27,4 +27,7 @@ public class DocumentType {
 
     @OneToMany(mappedBy = "documentType")
     private Set<Document> documents;
+
+    @ManyToMany(mappedBy = "documentTypes")
+    private Set<Attribute> attributes;
 }
