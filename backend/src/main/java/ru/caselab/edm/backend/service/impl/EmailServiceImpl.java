@@ -2,6 +2,8 @@ package ru.caselab.edm.backend.service.impl;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -11,10 +13,13 @@ import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 import ru.caselab.edm.backend.entity.Signature;
 import ru.caselab.edm.backend.entity.User;
+import ru.caselab.edm.backend.filter.JwtFilter;
 import ru.caselab.edm.backend.service.EmailService;
 
 @Service
 public class EmailServiceImpl implements EmailService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(EmailServiceImpl.class);
 
     private final JavaMailSender mailSender;
     private final TemplateEngine templateEngine;
@@ -52,7 +57,8 @@ public class EmailServiceImpl implements EmailService {
 
             mailSender.send(message);
         } catch (MessagingException e) {
-
+            LOGGER.error("Error while sending email to %s".formatted(signature.getUser().getEmail()));
+            LOGGER.debug(e.getMessage());
         }
 
     }
