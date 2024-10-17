@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Подписание документа</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background-color: #4CAF50;
+            color: #ffffff;
+            text-align: center;
+            padding: 10px;
+            border-radius: 5px 5px 0 0;
+        }
+        .content {
+            margin: 20px 0;
+            line-height: 1.6;
+        }
+        .footer {
+            text-align: center;
+            font-size: 12px;
+            color: #666666;
+            margin-top: 20px;
+        }
+        .button {
+            display: inline-block;
+            background-color: #4CAF50;
+            color: #ffffff;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>Подписание документа</h1>
+    </div>
+    <div class="content">
+        <p>Уважаемый(ая) <strong th:text="${firstName + ' ' + lastName}"></strong>,</p>
+        <p>Документ <strong th:text="${documentName}"></strong> ждет вашей подписи.</p>
+<!--        <p>Вы можете просмотреть документ, перейдя по ссылке ниже:</p>-->
+<!--        <p>-->
+<!--            <a th:href="${documentUrl}" class="button">Просмотреть документ</a>-->
+<!--        </p>-->
+        <p>Спасибо за использование нашего сервиса!</p>
+    </div>
+    <div class="footer">
+        <p>&copy; 2024 CaseLab EDM</p>
+    </div>
+</div>
+</body>
+</html>
