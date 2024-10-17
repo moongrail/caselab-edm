@@ -12,13 +12,32 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.*;
-import ru.caselab.edm.backend.dto.*;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
+import ru.caselab.edm.backend.dto.DocumentCreateDTO;
+import ru.caselab.edm.backend.dto.DocumentDTO;
+import ru.caselab.edm.backend.dto.DocumentPageDTO;
+import ru.caselab.edm.backend.dto.DocumentUpdateDTO;
+import ru.caselab.edm.backend.dto.SignatureCreateDTO;
+import ru.caselab.edm.backend.entity.User;
+import ru.caselab.edm.backend.entity.UserInfoDetails;
 import ru.caselab.edm.backend.mapper.DocumentMapper;
+import ru.caselab.edm.backend.repository.UserRepository;
 import ru.caselab.edm.backend.service.DocumentService;
 import ru.caselab.edm.backend.service.SignatureService;
 
+
 import java.util.List;
+import java.security.Principal;
 import java.util.UUID;
 
 @RestController
@@ -30,6 +49,7 @@ public class DocumentController {
     private final DocumentService documentService;
     private final DocumentMapper documentMapper;
     private final SignatureService signatureService;
+    private final UserRepository userRepository;
 
     @PostMapping("/{id}/sign")
     @ResponseStatus(HttpStatus.OK)
@@ -55,6 +75,7 @@ public class DocumentController {
             @NotEmpty @RequestParam List<UUID> userIds) {
         documentService.sendForSign(userIds, id);
     }
+  
 
     @PostMapping()
     @ResponseStatus(HttpStatus.CREATED)
@@ -65,14 +86,16 @@ public class DocumentController {
     @GetMapping()
     @ResponseStatus(HttpStatus.OK)
     public DocumentPageDTO getAllDocuments(@RequestParam(name = "page", defaultValue = "0") @Min(value = 0) int page,
-                                           @RequestParam(name = "size", defaultValue = "10") @Min(value = 1) @Max(value = 100) int size) {
-        return documentMapper.toDtoPage(documentService.getAllDocuments(page, size));
+                                           @RequestParam(name = "size", defaultValue = "10") @Min(value = 1) @Max(value = 100) int size,
+                                           @AuthenticationPrincipal UserInfoDetails user) {
+        return documentMapper.toDtoPage(documentService.getAllDocumentForUser(page, size, user.getId()));
     }
 
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public DocumentDTO getDocumentById(@PathVariable Long id) {
-        return documentMapper.toDto(documentService.getDocument(id));
+    public DocumentDTO getDocumentById(@PathVariable Long id,
+                                       @AuthenticationPrincipal UserInfoDetails user) {
+        return documentMapper.toDto(documentService.getDocumentForUser(id, user.getId()));
     }
 
     @PutMapping("/{id}")
