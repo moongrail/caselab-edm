@@ -21,6 +21,7 @@ env:
   JAVA_DISTRIBUTION: 'corretto'
   CACHE_BUILD_TOOL: 'maven'
   CACHE_PATH: 'backend/pom.xml'
+  TEST_REPORT_PATH: '**/target/surefire-reports/TEST-*.xml'
 
 jobs:
   run_tests:
@@ -40,3 +41,9 @@ jobs:
       - name: Run Tests
         run: mvn -f backend/pom.xml -ntp clean verify
 
+      - name: Publish Test Report
+        uses: mikepenz/action-junit-report@v4
+        if: success() || failure()
+        with:
+          report_paths: ${{ env.TEST_REPORT_PATH}}
+          detailed_summary: true
