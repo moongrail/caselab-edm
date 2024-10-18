@@ -1,6 +1,5 @@
 package ru.caselab.edm.backend.service.impl;
 
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -10,6 +9,7 @@ import ru.caselab.edm.backend.dto.DocumentTypeDTO;
 import ru.caselab.edm.backend.dto.DocumentTypeUpdateDTO;
 import ru.caselab.edm.backend.entity.Attribute;
 import ru.caselab.edm.backend.entity.DocumentType;
+import ru.caselab.edm.backend.exceptions.DocumentTypeAlreadyExistsException;
 import ru.caselab.edm.backend.exceptions.ResourceNotFoundException;
 import ru.caselab.edm.backend.mapper.DocumentTypeMapper;
 import ru.caselab.edm.backend.repository.AttributeRepository;
@@ -40,17 +40,17 @@ public class DocumentTypeImpl implements DocumentTypeService {
     }
 
     public DocumentTypeDTO createDocumentType(DocumentTypeCreateDTO createdDocumentType) {
-        DocumentType documentType = new DocumentType();
+        if (documentTypeRepository.findByName(createdDocumentType.getName()).isEmpty()) {
+            DocumentType documentType = new DocumentType();
+            documentType.setName(createdDocumentType.getName());
+            documentType.setDescription(createdDocumentType.getDescription());
+            documentType.setAttributes(mapAttributeIdsToEntities(createdDocumentType.getAttributeIds()));
 
-        documentType.setName(createdDocumentType.getName());
-        documentType.setDescription(createdDocumentType.getDescription());
-        documentType.setAttributes(mapAttributeIdsToEntities(createdDocumentType.getAttributeIds()));
+            documentTypeRepository.save(documentType);
 
-
-
-        documentTypeRepository.save(documentType);
-
-        return mapper.toDto(documentType);
+            return mapper.toDto(documentType);
+        }
+        throw new DocumentTypeAlreadyExistsException("This document type already exists");
     }
 
     public DocumentTypeDTO updateDocumentType(Long id, DocumentTypeUpdateDTO updateDocumentType) {
