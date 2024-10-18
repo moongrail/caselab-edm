@@ -59,6 +59,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
             }
 
+            LOGGER.info(response.getStatus() + " - Response status");
             filterChain.doFilter(request, response);
         } catch (Exception ex) {
             LOGGER.debug(ex.getMessage());

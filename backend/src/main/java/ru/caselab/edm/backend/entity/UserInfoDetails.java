@@ -27,12 +27,11 @@ public class UserInfoDetails implements UserDetails {
         this.authorities = getUserAuthorities(user);
     }
 
-    @Transactional
     public List<SimpleGrantedAuthority> getUserAuthorities(User user) {
         List<SimpleGrantedAuthority> auths = new ArrayList<>();
 
         for (Role role : user.getRoles()) {
-            auths.add(new SimpleGrantedAuthority("ROLE_" + role.getName()));
+            auths.add(new SimpleGrantedAuthority("ROLE_" + role.getName().toUpperCase()));
         }
 
         return auths;
