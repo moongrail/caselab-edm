@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-public class UserInfoDetails extends User implements UserDetails {
+public class UserInfoDetails implements UserDetails {
 
     private final String login;
     private final String password;
