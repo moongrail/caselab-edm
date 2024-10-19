@@ -1,5 +1,6 @@
 package ru.caselab.edm.backend.entity;
 
+import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -8,15 +9,18 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 
 public class UserInfoDetails implements UserDetails {
-
+    @Getter
+    private final UUID id;
     private final String login;
     private final String password;
     Collection<? extends GrantedAuthority> authorities;
 
 
     public UserInfoDetails(User user) {
+        this.id = user.getId();
         this.login = user.getLogin();
         this.password = user.getPassword();
 
