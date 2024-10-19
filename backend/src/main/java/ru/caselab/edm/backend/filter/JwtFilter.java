@@ -14,6 +14,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import ru.caselab.edm.backend.exceptions.ExpiredJwtTokenException;
+import ru.caselab.edm.backend.exceptions.JwtUsernameException;
 import ru.caselab.edm.backend.security.service.JwtService;
 
 import java.io.IOException;
@@ -32,7 +34,7 @@ public class JwtFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws JwtUsernameException, ExpiredJwtTokenException, ServletException, IOException {
         try {
             String authHeader = request.getHeader("Authorization");
             String token = null;
@@ -55,7 +57,8 @@ public class JwtFilter extends OncePerRequestFilter {
                     UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
                     authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authenticationToken);
-                }
+                } else
+                    throw new JwtUsernameException("Username doesn't matches");
 
             }
 
