@@ -1,7 +1,7 @@
 ### Temp описание, потом распишу лучше.
 
 ### Запуск
-- cd docker, docker compose -f docker-compose-db.yaml up -d для поднятия базы  минио. в общем пакете лежит сборщик бекэнд+бд.
+- cd docker, docker compose -f docker-compose-db.yaml up -d для поднятия базы, минио. в общем пакете лежит сборщик бекэнд+бд.
 
 ### API
 - ко всем эндпоинтам приписывается api/v1
