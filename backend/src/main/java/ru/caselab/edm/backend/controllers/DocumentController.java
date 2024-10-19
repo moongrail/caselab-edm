@@ -24,19 +24,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import ru.caselab.edm.backend.dto.*;
-import ru.caselab.edm.backend.entity.User;
 import ru.caselab.edm.backend.entity.UserInfoDetails;
 import ru.caselab.edm.backend.mapper.DocumentMapper;
-import ru.caselab.edm.backend.mapper.DocumentVersionMapper;
 import ru.caselab.edm.backend.mapper.DocumentVersionMapper;
 import ru.caselab.edm.backend.repository.UserRepository;
 import ru.caselab.edm.backend.service.DocumentService;
 import ru.caselab.edm.backend.service.SignatureService;
 
 import java.util.List;
-import java.util.UUID;
-
-import java.security.Principal;
 import java.util.UUID;
 
 @RestController
