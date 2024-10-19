@@ -20,6 +20,7 @@ import ru.caselab.edm.backend.service.AttributeService;
 
 
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 
@@ -51,7 +52,7 @@ public class AttributeServiceImpl implements AttributeService {
     @Override
     public AttributeDTO getAttributeById(Long id) {
         Attribute attribute = attributeRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Attribute not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Attribute not found with id = %s".formatted(id)));
         return attributeMapper.toDTO(attribute);
     }
 
@@ -79,11 +80,22 @@ public class AttributeServiceImpl implements AttributeService {
     @Transactional
     @Override
     public void deleteAttribute(Long id) {
-        attributeRepository.deleteById(id);
+        Optional<Attribute> attribute = attributeRepository.findById(id);
+        if(attribute.isPresent()) {
+            attributeRepository.delete(attribute.get());
+        }else {
+            throw new ResourceNotFoundException("Attribute not found with this id = %s".formatted(id));
+        }
     }
 
     private Set<DocumentType> mapDocumentTypeIdsToEntities(Set<Long> documentTypeIds) {
-        return new HashSet<>(documentTypeRepository.findAllById(documentTypeIds));
+        Set<DocumentType> documentTypes = new HashSet<>();
+        for (Long id : documentTypeIds) {
+            DocumentType documentType = documentTypeRepository.findById(id)
+                    .orElseThrow(() -> new ResourceNotFoundException("DocumentType not found for ID: " + id));
+            documentTypes.add(documentType);
+        }
+        return documentTypes;
     }
 
 }
