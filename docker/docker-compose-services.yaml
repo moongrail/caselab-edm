@@ -1,0 +1,17 @@
+version: '3.8'
+services:
+  backend:
+    build: ../backend
+    image: backend-image
+    container_name: backend-container
+    ports:
+      - "8080:8080"
+    environment:
+      - DATABASE_URL=jdbc:postgresql://edm-db-test:5432/edm
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - MINIO_ROOT_USER=minio-user
+      - MINIO_ROOT_PASSWORD=minio-password
+      - MINIO_ENDPOINT=http://minio:9000
+    restart: always
