@@ -1,5 +1,6 @@
 package ru.caselab.edm.backend.controllers;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -8,17 +9,20 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.caselab.edm.backend.dto.*;
 import ru.caselab.edm.backend.mapper.DocumentMapper;
+import ru.caselab.edm.backend.mapper.DocumentVersionMapper;
 import ru.caselab.edm.backend.service.DocumentService;
 import ru.caselab.edm.backend.service.SignatureService;
 
 @RestController
 @RequestMapping("/document")
 @RequiredArgsConstructor
+@Tag(name = "Document", description = "Document management operations")
 public class DocumentController {
 
     private final DocumentService documentService;
     private final DocumentMapper documentMapper;
     private final SignatureService signatureService;
+    private final DocumentVersionMapper documentVersionMapper;
 
     @PostMapping("/{id}/sign")
     @ResponseStatus(HttpStatus.OK)
@@ -28,8 +32,8 @@ public class DocumentController {
 
     @PostMapping()
     @ResponseStatus(HttpStatus.CREATED)
-    public DocumentDTO createDocumentType(@Valid @RequestBody DocumentCreateDTO documentTypeCreateDTO) {
-        return documentMapper.toDto(documentService.saveDocument(documentTypeCreateDTO));
+    public DocumentVersionDTO createDocumentType(@Valid @RequestBody DocumentCreateDTO documentTypeCreateDTO) {
+        return documentVersionMapper.toDto(documentService.saveDocument(documentTypeCreateDTO));
     }
 
     @GetMapping()
@@ -41,15 +45,15 @@ public class DocumentController {
 
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public DocumentDTO getDocumentById(@PathVariable Long id) {
-        return documentMapper.toDto(documentService.getDocument(id));
+    public DocumentVersionDTO getDocumentById(@PathVariable Long id) {
+        return documentVersionMapper.toDto(documentService.getDocumentVersion(id));
     }
 
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public DocumentDTO updateDocumentType(@PathVariable Long id,
+    public DocumentVersionDTO updateDocumentType(@PathVariable Long id,
                                           @RequestBody @Valid DocumentUpdateDTO updateDocumentType) {
-        return documentMapper.toDto(documentService.updateDocument(id, updateDocumentType));
+        return documentVersionMapper.toDto(documentService.updateDocument(id, updateDocumentType));
     }
 
     @DeleteMapping("/{id}")
