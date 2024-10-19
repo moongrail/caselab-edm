@@ -16,11 +16,7 @@ public interface DocumentService {
 
     Page<Document> getAllDocuments(int page, int size);
 
-    Page<DocumentVersion> getAllDocumentVersions(int page, int size);
-
     Document getDocument(long id);
-
-    DocumentVersion getDocumentVersion(long id);
 
     DocumentVersion saveDocument(DocumentCreateDTO document);
 

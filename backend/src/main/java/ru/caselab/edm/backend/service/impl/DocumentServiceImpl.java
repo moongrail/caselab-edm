@@ -46,25 +46,9 @@ public class DocumentServiceImpl implements DocumentService {
     }
 
     @Override
-    public Page<DocumentVersion> getAllDocumentVersions(int page, int size) {
-        return documentVersionRepository.findAll(PageRequest.of(page, size));
-    }
-
-    @Override
     public Document getDocument(long id) {
         return documentRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Document not found"));
-    }
-
-
-    @Override
-    public DocumentVersion getDocumentVersion(long id) {
-        Document document = documentRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Document not found"));
-
-        System.out.println(document.getDocumentVersion().get(document.getDocumentVersion().size() - 1).getId());
-
-        return document.getDocumentVersion().get(document.getDocumentVersion().size() - 1);
     }
 
     @Override
@@ -106,8 +90,6 @@ public class DocumentServiceImpl implements DocumentService {
 
         documentVersion.setDocument(newDocument);
         documentVersion = documentVersionRepository.save(documentVersion);
-
-        System.out.println(documentVersion);
 
         return documentVersion;
     }
