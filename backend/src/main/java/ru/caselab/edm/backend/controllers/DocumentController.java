@@ -23,11 +23,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import ru.caselab.edm.backend.dto.DocumentCreateDTO;
-import ru.caselab.edm.backend.dto.DocumentDTO;
-import ru.caselab.edm.backend.dto.DocumentPageDTO;
-import ru.caselab.edm.backend.dto.DocumentUpdateDTO;
-import ru.caselab.edm.backend.dto.SignatureCreateDTO;
+import ru.caselab.edm.backend.dto.*;
 import ru.caselab.edm.backend.entity.User;
 import ru.caselab.edm.backend.entity.UserInfoDetails;
 import ru.caselab.edm.backend.mapper.DocumentMapper;
@@ -108,7 +104,6 @@ public class DocumentController {
     public DocumentVersionDTO updateDocumentType(@PathVariable Long id,
                                           @RequestBody @Valid DocumentUpdateDTO updateDocumentType) {
         return documentVersionMapper.toDto(documentService.updateDocument(id, updateDocumentType));
->>>>>>> dev
     }
 
     @DeleteMapping("/{id}")
