@@ -1,12 +1,13 @@
+version: '3.8'
 services:
-  edm-db-test:
+  edm-db:
     image: postgres:14-alpine
-    container_name: edm-db-test
+    container_name: edm-db
     ports:
       - "5435:5432"
+    user: postgres
     volumes:
       - postgres_data:/var/lib/postgresql/data/
-    user: postgres
     environment:
       - POSTGRES_DB=edm
       - POSTGRES_USER=postgres
@@ -18,7 +19,7 @@ services:
       retries: 5
     restart: always
 
-  minio-test:
+  minio:
     image: minio/minio:RELEASE.2024-02-17T01-15-57Z.fips
     container_name: test_minio
     environment:
@@ -35,6 +36,23 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
+
+  backend:
+    build: ../backend
+    image: backend-image
+    container_name: backend-container
+    depends_on:
+      edm-db:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    environment:
+      - DATABASE_URL=jdbc:postgresql://edm-db:5432/edm
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    restart: always
 
 volumes:
   postgres_data:
