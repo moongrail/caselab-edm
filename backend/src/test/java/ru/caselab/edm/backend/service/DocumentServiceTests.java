@@ -21,6 +21,7 @@ import ru.caselab.edm.backend.repository.DocumentVersionRepository;
 import ru.caselab.edm.backend.repository.UserRepository;
 import ru.caselab.edm.backend.service.impl.DocumentServiceImpl;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.NoSuchElementException;
@@ -70,9 +71,22 @@ class DocumentServiceTests {
         documentType.setDescription("description");
 
         document = new Document();
-        document.setId(1L);
+        document.setId(100L);
         document.setUser(user);
         document.setDocumentType(documentType);
+
+        DocumentVersion documentVersion = new DocumentVersion();
+        documentVersion.setId(1L);
+        documentVersion.setDocumentName("New Document");
+        documentVersion.setDocument(document);
+        documentVersion.setCreatedAt(Instant.now());
+        documentVersion.setUpdatedAt(Instant.now());
+        documentVersion.setContentUrl("ContentUrl");
+
+        when(documentVersionRepository.save(any(DocumentVersion.class))).thenReturn(documentVersion);
+        when(userRepository.findById(any(UUID.class))).thenReturn(Optional.of(user));
+        when(documentTypeRepository.findById(anyLong())).thenReturn(Optional.of(documentType));
+
     }
 
     @Test
@@ -118,15 +132,13 @@ class DocumentServiceTests {
         documentCreateDTO.setName("New Document");
         documentCreateDTO.setUserId(UUID.randomUUID());
         documentCreateDTO.setDocumentTypeId(1L);
-        documentCreateDTO.setCreationDate(LocalDateTime.now().minusDays(1));
-        documentCreateDTO.setUpdateDate(LocalDateTime.now());
 
         when(userRepository.findById(any())).thenReturn(Optional.of(document.getUser()));
         when(documentTypeRepository.findById(any())).thenReturn(Optional.of(document.getDocumentType()));
 
         when(documentRepository.save(any(Document.class))).thenReturn(document);
 
-        Document savedDocument = documentService.saveDocument(documentCreateDTO);
+        Document savedDocument = documentService.saveDocument(documentCreateDTO).getDocument();
 
         assertEquals(document.getId(), savedDocument.getId(), "Saved Document ID should match");
 
@@ -140,7 +152,6 @@ class DocumentServiceTests {
         when(documentRepository.findById(1L)).thenReturn(Optional.of(document));
 
         DocumentUpdateDTO updateDTO = new DocumentUpdateDTO();
-        updateDTO.setUpdateDate(LocalDateTime.now());
         updateDTO.setCreationDate(LocalDateTime.now().minusDays(1));
         updateDTO.setUserId(UUID.randomUUID());
         updateDTO.setDocumentTypeId(1L);
@@ -154,7 +165,7 @@ class DocumentServiceTests {
 
         when(documentRepository.save(any(Document.class))).thenReturn(document);
 
-        Document updatedDoc = documentService.updateDocument(1L, updateDTO);
+        Document updatedDoc = documentService.updateDocument(1L, updateDTO).getDocument();
 
 
         verify(documentRepository).findById(1L);
