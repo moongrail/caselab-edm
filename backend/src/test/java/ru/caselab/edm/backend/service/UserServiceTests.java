@@ -15,6 +15,7 @@ import ru.caselab.edm.backend.dto.RoleDTO;
 import ru.caselab.edm.backend.dto.UpdatePasswordDTO;
 import ru.caselab.edm.backend.dto.UpdateUserDTO;
 import ru.caselab.edm.backend.dto.UserDTO;
+import ru.caselab.edm.backend.dto.UserPageDTO;
 import ru.caselab.edm.backend.entity.Role;
 import ru.caselab.edm.backend.entity.User;
 import ru.caselab.edm.backend.enums.RoleName;
@@ -82,16 +83,19 @@ public class UserServiceTests {
     void getAllUsers_ShouldReturnUserDTOList() {
         Page<User> users = new PageImpl<>(Collections.singletonList(user));
         UserDTO userDTO = new UserDTO(userId, "test", "test@test.ru", "test", "test", "test", roleDTOS);
+        UserPageDTO userPageDTO = new UserPageDTO(0, 10, 1, 1,Collections.singletonList(userDTO));
 
         when(userRepository.findAll(PageRequest.of(0, 10))).thenReturn(users);
-        when(userMapper.toDTO(any(User.class))).thenReturn(userDTO);
+        //when(userMapper.toDTO(any(User.class))).thenReturn(userDTO);
+        when(userMapper.toPageDTO(any(Page.class))).thenReturn(userPageDTO);
 
-        Page<UserDTO> result = userService.getAllUsers(0, 10);
+        UserPageDTO result = userService.getAllUsers(0, 10);
 
         verify(userRepository, times(1)).findAll(PageRequest.of(0, 10));
-        verify(userMapper, times(1)).toDTO(any(User.class));
-        assertEquals(1, result.getTotalElements());
-        assertEquals(userDTO, result.get().findAny().get());
+        //verify(userMapper, times(1)).toDTO(any(User.class));
+        verify(userMapper, times(1)).toPageDTO(any(Page.class));
+        assertEquals(1, result.totalElements());
+        assertEquals(userDTO, result.content().get(0));
 
     }
 
