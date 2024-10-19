@@ -27,9 +27,6 @@ public class DocumentUpdateDTO {
     @JsonProperty("name")
     private String name;
 
-    @JsonProperty("updatedAt")
-    private LocalDateTime updateDate;
-
     @JsonProperty("content_url")
     private String contentUrl;
 }
