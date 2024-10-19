@@ -4,6 +4,7 @@ import org.springframework.data.domain.Page;
 import ru.caselab.edm.backend.dto.DocumentCreateDTO;
 import ru.caselab.edm.backend.dto.DocumentUpdateDTO;
 import ru.caselab.edm.backend.entity.Document;
+import ru.caselab.edm.backend.entity.DocumentVersion;
 
 import java.util.List;
 import java.util.UUID;
@@ -17,9 +18,9 @@ public interface DocumentService {
 
     Document getDocument(long id);
 
-    Document saveDocument(DocumentCreateDTO document);
+    DocumentVersion saveDocument(DocumentCreateDTO document);
 
-    Document updateDocument(long id, DocumentUpdateDTO document);
+    DocumentVersion updateDocument(long id, DocumentUpdateDTO document);
 
     void deleteDocument(long id);
 
