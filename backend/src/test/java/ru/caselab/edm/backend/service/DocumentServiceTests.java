@@ -15,6 +15,7 @@ import ru.caselab.edm.backend.entity.Document;
 import ru.caselab.edm.backend.entity.DocumentType;
 import ru.caselab.edm.backend.entity.DocumentVersion;
 import ru.caselab.edm.backend.entity.User;
+import ru.caselab.edm.backend.exceptions.ResourceNotFoundException;
 import ru.caselab.edm.backend.repository.DocumentRepository;
 import ru.caselab.edm.backend.repository.DocumentTypeRepository;
 import ru.caselab.edm.backend.repository.DocumentVersionRepository;
@@ -24,7 +25,6 @@ import ru.caselab.edm.backend.service.impl.DocumentServiceImpl;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Collections;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -122,7 +122,7 @@ class DocumentServiceTests {
     void getDocument_NotFound() {
         when(documentRepository.findById(1L)).thenReturn(Optional.empty());
 
-        assertThrows(NoSuchElementException.class, () -> documentService.getDocument(1L));
+        assertThrows(ResourceNotFoundException.class, () -> documentService.getDocument(1L));
 
         verify(documentRepository).findById(1L);
     }
@@ -180,7 +180,7 @@ class DocumentServiceTests {
         when(documentRepository.findById(1L)).thenReturn(Optional.empty());
 
 
-        assertThrows(NoSuchElementException.class, () ->
+        assertThrows(ResourceNotFoundException.class, () ->
                 documentService.updateDocument(1L, new DocumentUpdateDTO())
         );
 
