@@ -11,5 +11,4 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
-      - MINIO_ROOT_ENDPOINT=http://localhost:9000
     restart: always

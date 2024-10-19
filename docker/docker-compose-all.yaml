@@ -53,7 +53,7 @@ services:
       - DATABASE_URL=jdbc:postgresql://edm-db:5432/edm
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
-      - MINIO_ROOT_ENDPOINT=http://minio:9000
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
     restart: always
 
 volumes:
