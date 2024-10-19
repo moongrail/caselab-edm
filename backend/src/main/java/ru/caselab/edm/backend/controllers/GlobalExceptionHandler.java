@@ -63,4 +63,14 @@ public class GlobalExceptionHandler {
     ResponseEntity<String> handleJwtUsernameException(JwtUsernameException ex) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
+
+    @ExceptionHandler(DocumentForbiddenAccess.class)
+    ResponseEntity<String> handleDocumentForbiddenAccessException(DocumentForbiddenAccess ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.FORBIDDEN);
+    }
+
+    @ExceptionHandler(SignatureAlreadyExistsException.class)
+    ResponseEntity<String> handleSignatureAlreadyExistsException(SignatureAlreadyExistsException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    }
 }
