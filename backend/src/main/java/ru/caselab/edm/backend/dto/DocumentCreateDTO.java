@@ -8,7 +8,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Data
@@ -31,13 +30,7 @@ public class DocumentCreateDTO {
     @NotBlank
     private String name;
 
-    @JsonProperty("createdAt")
-    private LocalDateTime creationDate;
-
-    @JsonProperty("updatedAt")
-    private LocalDateTime updateDate;
-
     @JsonProperty("data")
     @NotNull
-    private byte[] data;
+    private String data;
 }
