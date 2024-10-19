@@ -1,5 +1,6 @@
 package ru.caselab.edm.backend.controllers;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -31,6 +32,7 @@ import ru.caselab.edm.backend.service.DocumentTypeService;
 @Data
 @RestController
 @RequestMapping("/document_type")
+@SecurityRequirement(name = "bearer-jwt")
 @Tag(name = "Document type", description = "Document type management operations")
 public class DocumentTypeController {
 
