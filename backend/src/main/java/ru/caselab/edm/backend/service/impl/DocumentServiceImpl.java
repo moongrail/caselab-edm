@@ -15,7 +15,6 @@ import ru.caselab.edm.backend.exceptions.ResourceNotFoundException;
 import ru.caselab.edm.backend.entity.Signature;
 import ru.caselab.edm.backend.entity.User;
 import ru.caselab.edm.backend.event.DocumentSignRequestEvent;
-import ru.caselab.edm.backend.exceptions.ResourceNotFoundException;
 import ru.caselab.edm.backend.exceptions.DocumentForbiddenAccess;
 import ru.caselab.edm.backend.exceptions.WrongDateException;
 import ru.caselab.edm.backend.repository.DocumentRepository;
@@ -27,7 +26,6 @@ import ru.caselab.edm.backend.service.DocumentService;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -67,7 +65,6 @@ public class DocumentServiceImpl implements DocumentService {
         System.out.println(document.getDocumentVersion().get(document.getDocumentVersion().size() - 1).getId());
 
         return document.getDocumentVersion().get(document.getDocumentVersion().size() - 1);
-        return documentRepository.findById(id).orElseThrow(() -> new NoSuchElementException("Document not found"));
     }
 
     @Override
