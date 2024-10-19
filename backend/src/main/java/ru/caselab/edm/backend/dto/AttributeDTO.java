@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.util.List;
+import java.util.Set;
 
 @Data
 public class AttributeDTO {
@@ -16,6 +17,7 @@ public class AttributeDTO {
     @NotBlank
     private String dataType;
 
-    private List<Long> documentTypeIds;
+    private boolean isRequired;
 
+    private Set<Long> documentTypeIds;
 }

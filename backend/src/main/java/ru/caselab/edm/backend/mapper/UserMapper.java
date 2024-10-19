@@ -5,7 +5,7 @@ import ru.caselab.edm.backend.dto.UserDTO;
 import ru.caselab.edm.backend.entity.User;
 
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = {RoleMapper.class})
 public interface UserMapper {
 
     UserDTO toDTO(User user);

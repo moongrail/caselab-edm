@@ -2,6 +2,8 @@ package ru.caselab.edm.backend.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.Instant;
 import java.util.Set;
@@ -20,11 +22,16 @@ public class DocumentType {
     private String description;
 
     @Column(name = "created_at")
+    @CreationTimestamp
     private Instant createdAt;
 
     @Column(name = "updated_at", nullable = false)
+    @UpdateTimestamp
     private Instant updatedAt;
 
     @OneToMany(mappedBy = "documentType")
     private Set<Document> documents;
+
+    @ManyToMany(mappedBy = "documentTypes")
+    private Set<Attribute> attributes;
 }

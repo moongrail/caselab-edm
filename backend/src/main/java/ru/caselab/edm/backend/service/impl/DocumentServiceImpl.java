@@ -1,23 +1,34 @@
 package ru.caselab.edm.backend.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.caselab.edm.backend.dto.DocumentCreateDTO;
 import ru.caselab.edm.backend.dto.DocumentUpdateDTO;
 import ru.caselab.edm.backend.entity.Document;
 import ru.caselab.edm.backend.entity.DocumentVersion;
+import ru.caselab.edm.backend.entity.Signature;
+import ru.caselab.edm.backend.entity.User;
+import ru.caselab.edm.backend.event.DocumentSignRequestEvent;
+import ru.caselab.edm.backend.exceptions.ResourceNotFoundException;
+import ru.caselab.edm.backend.exceptions.DocumentForbiddenAccess;
 import ru.caselab.edm.backend.exceptions.WrongDateException;
 import ru.caselab.edm.backend.repository.DocumentRepository;
 import ru.caselab.edm.backend.repository.DocumentTypeRepository;
 import ru.caselab.edm.backend.repository.DocumentVersionRepository;
+import ru.caselab.edm.backend.repository.SignatureRepository;
 import ru.caselab.edm.backend.repository.UserRepository;
 import ru.caselab.edm.backend.service.DocumentService;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +38,8 @@ public class DocumentServiceImpl implements DocumentService {
     private final UserRepository userRepository;
     private final DocumentTypeRepository documentTypeRepository;
     private final DocumentVersionRepository documentVersionRepository;
+    private final SignatureRepository signatureRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     public Page<Document> getAllDocuments(int page, int size) {
@@ -35,8 +48,20 @@ public class DocumentServiceImpl implements DocumentService {
 
     @Override
     public Document getDocument(long id) {
-        return documentRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("Document not found"));
+        return documentRepository.findById(id).orElseThrow(() -> new NoSuchElementException("Document not found"));
+    }
+
+    @Override
+    public Page<Document> getAllDocumentForUser(int page, int size, UUID userId) {
+        Pageable pageable = PageRequest.of(page, size);
+        return documentRepository.getAllDocumentForUser(userId, pageable);
+    }
+
+    @Override
+    public Document getDocumentForUser(long id, UUID userId) {
+        getDocument(id);
+        return documentRepository.getDocumentForUser(id, userId)
+                .orElseThrow(() -> new DocumentForbiddenAccess("Access to the document is forbidden"));
     }
 
     @Transactional
@@ -103,7 +128,7 @@ public class DocumentServiceImpl implements DocumentService {
 
         // изменения только в последнюю версию документа
         DocumentVersion documentVersion = existingDocument.getDocumentVersion()
-                                            .get(existingDocument.getDocumentVersion().size() - 1);
+                .get(existingDocument.getDocumentVersion().size() - 1);
         if (document.getName() != null) {
             documentVersion.setDocumentName(document.getName());
         }
@@ -125,5 +150,24 @@ public class DocumentServiceImpl implements DocumentService {
     @Override
     public void deleteDocument(long id) {
         documentRepository.deleteById(id);
+    }
+
+    @Transactional
+    @Override
+    public void sendForSign(List<UUID> userIds, Long documentVersionId) {
+        Optional<DocumentVersion> documentVersionOptional = documentVersionRepository.findById(documentVersionId);
+        if (documentVersionOptional.isEmpty()) {
+            throw new ResourceNotFoundException("Document version not found with id = %d".formatted(documentVersionId));
+        }
+        DocumentVersion documentVersion = documentVersionOptional.get();
+        List<User> users = userRepository.findAllById(userIds);
+        for (User user : users) {
+            Signature signature = new Signature();
+            signature.setUser(user);
+            signature.setDocumentVersion(documentVersion);
+            signatureRepository.save(signature);
+            eventPublisher.publishEvent(new DocumentSignRequestEvent(this, signature));
+        }
+
     }
 }
