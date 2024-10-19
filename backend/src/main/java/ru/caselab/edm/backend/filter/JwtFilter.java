@@ -66,6 +66,7 @@ public class JwtFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
         } catch (Exception ex) {
             LOGGER.debug(ex.getMessage());
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, ex.getMessage());
         }
     }
 }
