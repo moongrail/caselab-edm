@@ -93,6 +93,7 @@ public class AttributeController {
     public ResponseEntity<AttributeDTO> updateAttribute(
             @Parameter(description = "ID of the document attribute", example = "1")
             @PathVariable Long id,
+
             @Parameter(description = "Updated attribute details")
             @RequestBody AttributeUpdateDTO updateAttributeDTO) {
         AttributeDTO updatedAttribute = attributeService.updateAttribute(id, updateAttributeDTO);
