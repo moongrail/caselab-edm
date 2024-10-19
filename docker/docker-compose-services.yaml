@@ -4,15 +4,12 @@ services:
     build: ../backend
     image: backend-image
     container_name: backend-container
-    depends_on:
-      edm-db:
-        condition: service_healthy
-      minio:
-        condition: service_healthy
     ports:
       - "8080:8080"
     environment:
-      - DATABASE_URL=jdbc:postgresql://edm-db:5432/edm
+      - DATABASE_URL=jdbc:postgresql://edm-db-test:5432/edm
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - MINIO_ROOT_ENDPOINT=http://localhost:9000
     restart: always
