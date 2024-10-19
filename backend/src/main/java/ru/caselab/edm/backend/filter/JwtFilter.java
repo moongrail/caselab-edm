@@ -14,6 +14,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import ru.caselab.edm.backend.exceptions.ExpiredJwtTokenException;
 import ru.caselab.edm.backend.security.service.JwtService;
 
 import java.io.IOException;
@@ -32,7 +33,7 @@ public class JwtFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ExpiredJwtTokenException, ServletException, IOException {
         try {
             String authHeader = request.getHeader("Authorization");
             String token = null;
