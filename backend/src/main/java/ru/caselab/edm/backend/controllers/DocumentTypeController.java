@@ -1,5 +1,6 @@
 package ru.caselab.edm.backend.controllers;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +16,7 @@ import ru.caselab.edm.backend.service.DocumentTypeService;
 @Data
 @RestController
 @RequestMapping("/document_type")
+@SecurityRequirement(name = "bearer-jwt")
 public class DocumentTypeController {
 
     private final DocumentTypeService documentTypeService;
