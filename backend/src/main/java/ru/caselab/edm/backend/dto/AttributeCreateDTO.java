@@ -14,7 +14,6 @@ public class AttributeCreateDTO {
     @NotBlank
     private String dataType;
 
-    @NotBlank
     private boolean isRequired;
 
     private Set<Long> documentTypeIds;

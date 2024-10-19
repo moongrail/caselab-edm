@@ -38,7 +38,6 @@ public class AttributeController {
     public ResponseEntity<AttributeDTO> createAttribute(
             @Parameter(description = "Details of the new attribute to be created")
             @Valid @RequestBody AttributeCreateDTO attributeDTO) {
-
         AttributeDTO attribute = attributeService.createAttribute(attributeDTO);
         return new ResponseEntity<>(attribute, HttpStatus.CREATED);
     }

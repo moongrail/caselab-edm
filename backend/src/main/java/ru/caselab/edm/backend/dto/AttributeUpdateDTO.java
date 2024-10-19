@@ -13,7 +13,7 @@ public class AttributeUpdateDTO {
     private String name;
     @NotBlank
     private String dataType;
-    @NotBlank
+
     private boolean isRequired;
 
     private Set<Long> documentTypeIds;

@@ -40,16 +40,20 @@ public class AttributeServiceImpl implements AttributeService {
     public AttributeDTO createAttribute(AttributeCreateDTO createAttribute) {
         log.info("Creating attribute with name: {}", createAttribute.getName());
 
-        log.debug("Attribute data: {}", createAttribute);
-        Attribute attribute = Attribute.builder()
-                .dataType(createAttribute.getDataType())
-                .name(createAttribute.getName())
-                .isRequired(createAttribute.isRequired())
-                .documentTypes(mapDocumentTypeIdsToEntities(createAttribute.getDocumentTypeIds()))
-                .build();
-        attributeRepository.save(attribute);
-        log.info("Attribute created with id: {}", attribute.getId());
-        return attributeMapper.toDTO(attribute);
+            log.debug("Attribute data: {}", createAttribute);
+            Attribute attribute = Attribute.builder()
+                    .dataType(createAttribute.getDataType())
+                    .name(createAttribute.getName())
+                    .isRequired(createAttribute.isRequired())
+                    .build();
+
+            if (createAttribute.getDocumentTypeIds() != null && !createAttribute.getDocumentTypeIds().isEmpty()) {
+                attribute.setDocumentTypes(mapDocumentTypeIdsToEntities(createAttribute.getDocumentTypeIds()));
+            }
+
+            attributeRepository.save(attribute);
+            log.info("Attribute created with id: {}", attribute.getId());
+            return attributeMapper.toDTO(attribute);
     }
 
     @Transactional
@@ -89,7 +93,12 @@ public class AttributeServiceImpl implements AttributeService {
         attribute.setDataType(updateAttributeDTO.getDataType());
         attribute.setRequired(updateAttributeDTO.isRequired());
         log.debug("Updating document types for attribute with ID: {}", id);
-        attribute.setDocumentTypes(mapDocumentTypeIdsToEntities(updateAttributeDTO.getDocumentTypeIds()));
+
+        if (updateAttributeDTO.getDocumentTypeIds() != null && !updateAttributeDTO.getDocumentTypeIds().isEmpty()) {
+            attribute.setDocumentTypes(mapDocumentTypeIdsToEntities(updateAttributeDTO.getDocumentTypeIds()));
+        } else {
+            log.debug("No document type IDs provided for update. Skipping document type update.");
+        }
         attributeRepository.save(attribute);
         log.info("Attribute updated successfully: {}", attribute);
         return attributeMapper.toDTO(attribute);
