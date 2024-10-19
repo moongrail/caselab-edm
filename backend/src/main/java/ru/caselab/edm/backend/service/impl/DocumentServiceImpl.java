@@ -9,6 +9,7 @@ import ru.caselab.edm.backend.dto.DocumentCreateDTO;
 import ru.caselab.edm.backend.dto.DocumentUpdateDTO;
 import ru.caselab.edm.backend.entity.Document;
 import ru.caselab.edm.backend.entity.DocumentVersion;
+import ru.caselab.edm.backend.exceptions.ResourceNotFoundException;
 import ru.caselab.edm.backend.exceptions.WrongDateException;
 import ru.caselab.edm.backend.repository.DocumentRepository;
 import ru.caselab.edm.backend.repository.DocumentTypeRepository;
@@ -17,7 +18,6 @@ import ru.caselab.edm.backend.repository.UserRepository;
 import ru.caselab.edm.backend.service.DocumentService;
 
 import java.time.Instant;
-import java.util.NoSuchElementException;
 
 @Service
 @RequiredArgsConstructor
@@ -34,56 +34,77 @@ public class DocumentServiceImpl implements DocumentService {
     }
 
     @Override
+    public Page<DocumentVersion> getAllDocumentVersions(int page, int size) {
+        return documentVersionRepository.findAll(PageRequest.of(page, size));
+    }
+
+    @Override
     public Document getDocument(long id) {
         return documentRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("Document not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Document not found"));
+    }
+
+
+    @Override
+    public DocumentVersion getDocumentVersion(long id) {
+        Document document = documentRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Document not found"));
+
+        System.out.println(document.getDocumentVersion().get(document.getDocumentVersion().size() - 1).getId());
+
+        return document.getDocumentVersion().get(document.getDocumentVersion().size() - 1);
     }
 
     @Transactional
     @Override
-    public Document saveDocument(DocumentCreateDTO document) {
+    public DocumentVersion saveDocument(DocumentCreateDTO document) {
         Document newDocument = new Document();
 
         newDocument.setDocumentType(
                 documentTypeRepository.findById(document.getDocumentTypeId())
-                        .orElseThrow(() -> new NoSuchElementException("Document type not found"))
+                        .orElseThrow(() -> new ResourceNotFoundException("Document type not found"))
         );
 
         newDocument.setUser(
                 userRepository.findById(document.getUserId())
-                        .orElseThrow(() -> new NoSuchElementException("User not found"))
+                        .orElseThrow(() -> new ResourceNotFoundException("User not found"))
         );
 
         DocumentVersion documentVersion = new DocumentVersion();
         documentVersion.setDocumentName(document.getName());
         documentVersion.setCreatedAt(Instant.now());
+        documentVersion.setUpdatedAt(Instant.now());
         //TODO: cюда ссылку когда minio подключат
         documentVersion.setContentUrl("ContentUrl");
 
-        documentVersionRepository.save(documentVersion);
+        newDocument = documentRepository.save(newDocument);
 
+        documentVersion.setDocument(newDocument);
+        documentVersion = documentVersionRepository.save(documentVersion);
 
-        return documentRepository.save(newDocument);
+        System.out.println(documentVersion);
+
+        return documentVersion;
     }
 
     @Transactional
     @Override
-    public Document updateDocument(long id, DocumentUpdateDTO document) {
+    public DocumentVersion updateDocument(long id, DocumentUpdateDTO document) {
         Document existingDocument = documentRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("Document not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Document not found"));
 
         if (document.getDocumentTypeId() != null &&
                 document.getDocumentTypeId().equals(existingDocument.getDocumentType().getId())) {
             existingDocument.setDocumentType(
                     documentTypeRepository.findById(document.getDocumentTypeId())
-                            .orElseThrow(() -> new NoSuchElementException("Document type not found"))
+                            .orElseThrow(() -> new ResourceNotFoundException("Document type not found"))
             );
         }
 
         if (document.getUserId() != null) {
             existingDocument.setUser(
                     userRepository.findById(document.getUserId())
-                            .orElseThrow(() -> new NoSuchElementException("User not found"))
+                            .orElseThrow(() -> new ResourceNotFoundException("User not found"))
             );
         }
 
@@ -91,12 +112,12 @@ public class DocumentServiceImpl implements DocumentService {
 
         if (existingDocument.getDocumentVersion() != null)
             documentVersion = getUpdatedDocumentVersion(document, existingDocument);
-//TODO: ЛОГИКУ НАПИСАТЬ ПО ДОКУМЕНТ ВЕРСИЯМ
-//        documentVersion.setUpdatedAt(Instant.now());
 
-        documentVersionRepository.save(documentVersion);
+        existingDocument = documentRepository.save(existingDocument);
 
-        return documentRepository.save(existingDocument);
+        documentVersion.setDocument(existingDocument);
+
+        return documentVersionRepository.save(documentVersion);
     }
 
     private static DocumentVersion getUpdatedDocumentVersion(DocumentUpdateDTO document, Document existingDocument) {
@@ -112,6 +133,9 @@ public class DocumentServiceImpl implements DocumentService {
         if (document.getContentUrl() != null && !document.getContentUrl().isEmpty()) {
             documentVersion.setContentUrl(document.getContentUrl());
         }
+
+        documentVersion.setUpdatedAt(Instant.now());
+
         return documentVersion;
     }
 
