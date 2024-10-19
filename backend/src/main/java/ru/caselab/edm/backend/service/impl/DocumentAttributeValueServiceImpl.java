@@ -1,5 +1,6 @@
 package ru.caselab.edm.backend.service.impl;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,6 +16,7 @@ import ru.caselab.edm.backend.service.DocumentAttributeValueService;
 import ru.caselab.edm.backend.service.DocumentVersionService;
 
 @Service
+@Slf4j
 public class DocumentAttributeValueServiceImpl implements DocumentAttributeValueService {
 
 
@@ -37,9 +39,13 @@ public class DocumentAttributeValueServiceImpl implements DocumentAttributeValue
     @Override
     @Transactional(readOnly = true)
     public DocumentAttributeValueDTO getDocumentAttributeValueByDocumentAndAttribute(Long documentId, Long attributeId) {
-        DocumentAttributeValue documentAttributeValue = documentAttributeValueRepository.findByDocumentVersionIdAndAttributeId(documentId, attributeId)
-                .orElseThrow(() -> new ResourceNotFoundException("Value doesn't exist"));
 
+        DocumentAttributeValue documentAttributeValue = documentAttributeValueRepository.findByDocumentVersionIdAndAttributeId(documentId, attributeId)
+                .orElseThrow(() -> {
+                    log.warn("Document attribute value not found with document id: {} and attribute id: {}", documentId,attributeId);
+                    return new ResourceNotFoundException("Value doesn't exist");
+                });
+        log.info("Document Attribute value with document id: {} and attribute id: {} found", documentId,attributeId);
         return documentAttributeValueMapper.toDTO(documentAttributeValue);
     }
 
@@ -47,38 +53,60 @@ public class DocumentAttributeValueServiceImpl implements DocumentAttributeValue
     @Transactional(readOnly = true)
     public DocumentAttributeValueDTO getDocumentAttributeValueById(Long id) {
         DocumentAttributeValue documentAttributeValue = documentAttributeValueRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Value doesn't exist"));
-
+                .orElseThrow(() -> {
+                    log.warn("Document attribute value not found with: {}", id);
+                    return new ResourceNotFoundException("Value doesn't exist");
+                });
+        log.info("Document Attribute value with id: {} found", id);
         return documentAttributeValueMapper.toDTO(documentAttributeValue);
     }
 
     @Transactional
     @Override
     public DocumentAttributeValueDTO updateDocumentAttributeValue(Long id, DocumentAttributeValueUpdateDTO value) {
-        DocumentAttributeValue updateValue = documentAttributeValueRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Attribute value not found: " + id));
+        log.info("Updating DocumentAttributeValue with ID: {}", id);
 
+        DocumentAttributeValue updateValue = documentAttributeValueRepository.findById(id)
+                .orElseThrow(() -> {
+                    log.warn("Attribute value not found for ID: {}", id);
+                    return new ResourceNotFoundException("Attribute value not found: " + id);
+                });
+        log.debug("Current DocumentAttributeValue details: {}", updateValue);
         updateValue.setValue(value.getValue());
+        log.debug("Setting new value: {}", value.getValue());
         updateValue.setAttribute(attributeService.getAttributeMapper().toEntity(attributeService.getAttributeById(value.getAttributeId())));
+        log.debug("Setting new attribute with ID: {}", value.getAttributeId());
         updateValue.setDocumentVersion(documentVersionService.getDocumentVersion(value.getDocumentId()));
+        log.debug("Setting new document version with ID: {}", value.getDocumentId());
         documentAttributeValueRepository.save(updateValue);
+        log.info("DocumentAttributeValue updated successfully: {}", updateValue);
         return documentAttributeValueMapper.toDTO(updateValue);
     }
 
     @Transactional
     @Override
-    public DocumentAttributeValueDTO createDocumentAttributeValue(DocumentAttributeValueCreateDTO value) {
+    public DocumentAttributeValueDTO createDocumentAttributeValue(DocumentAttributeValueCreateDTO value) {    log.info("Creating DocumentAttributeValue for document ID: {}", value.getDocumentId());
+        log.info("Creating DocumentAttributeValue for document ID: {}", value.getDocumentId());
+
         DocumentAttributeValue createValue = DocumentAttributeValue.builder()
                 .documentVersion(documentVersionService.getDocumentVersion(value.getDocumentId()))
                 .attribute(attributeService.getAttributeMapper().toEntity(attributeService.getAttributeById(value.getAttributeId())))
                 .value(value.getValue())
                 .build();
-        return documentAttributeValueMapper.toDTO(documentAttributeValueRepository.save(createValue));
+        DocumentAttributeValue savedValue = documentAttributeValueRepository.save(createValue);
+        log.info("DocumentAttributeValue created successfully with ID: {}", savedValue.getId());
+        return documentAttributeValueMapper.toDTO(savedValue);
     }
 
     @Transactional
     @Override
     public void deleteAttributeValue(Long id) {
+        if (!documentAttributeValueRepository.existsById(id)) {
+            log.warn("Attribute value not found for ID: {}", id);
+            throw new ResourceNotFoundException("Attribute value not found for ID: " + id);
+        }
+
         documentAttributeValueRepository.deleteById(id);
+        log.info("Attribute value with ID: {} deleted successfully.", id);
     }
 }
