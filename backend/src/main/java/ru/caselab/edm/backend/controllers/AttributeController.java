@@ -1,5 +1,6 @@
 package ru.caselab.edm.backend.controllers;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -12,6 +13,7 @@ import ru.caselab.edm.backend.service.AttributeService;
 
 @RestController
 @RequestMapping("/attributes")
+@SecurityRequirement(name = "bearer-jwt")
 public class AttributeController {
     private final AttributeService attributeService;
 

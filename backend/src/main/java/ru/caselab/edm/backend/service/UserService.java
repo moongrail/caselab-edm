@@ -5,12 +5,13 @@ import ru.caselab.edm.backend.dto.CreateUserDTO;
 import ru.caselab.edm.backend.dto.UpdatePasswordDTO;
 import ru.caselab.edm.backend.dto.UpdateUserDTO;
 import ru.caselab.edm.backend.dto.UserDTO;
+import ru.caselab.edm.backend.dto.UserPageDTO;
 
 import java.util.UUID;
 
 public interface UserService {
 
-    Page<UserDTO> getAllUsers(int page, int size);
+    UserPageDTO getAllUsers(int page, int size);
 
     UserDTO getUserById(UUID id);
 
