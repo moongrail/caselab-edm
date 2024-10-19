@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
@@ -45,6 +46,7 @@ import java.util.UUID;
 @RequestMapping("/document")
 @RequiredArgsConstructor
 @Tag(name = "Document", description = "Document management operations")
+@SecurityRequirement(name = "bearer-jwt")
 public class DocumentController {
 
     private final DocumentService documentService;
