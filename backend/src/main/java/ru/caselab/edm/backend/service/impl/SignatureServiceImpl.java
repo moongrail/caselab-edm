@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.caselab.edm.backend.dto.SignatureCreateDTO;
 import ru.caselab.edm.backend.entity.Signature;
+import ru.caselab.edm.backend.exceptions.ResourceNotFoundException;
 import ru.caselab.edm.backend.exceptions.SignatureAlreadyExistsException;
 import ru.caselab.edm.backend.repository.DocumentVersionRepository;
 import ru.caselab.edm.backend.repository.SignatureRepository;
@@ -14,7 +15,6 @@ import ru.caselab.edm.backend.service.SignatureService;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
-import java.util.NoSuchElementException;
 import java.util.UUID;
 
 @Service
@@ -34,12 +34,12 @@ public class SignatureServiceImpl implements SignatureService {
         }
 
         signature.setUser(userRepository.findById(createDTO.getUserId())
-                .orElseThrow(() -> new NoSuchElementException("User not found")));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found")));
         if (createDTO.getCreationDate() == null) {
             createDTO.setCreationDate(LocalDateTime.now());
         }
         signature.setDocumentVersion(documentVersionRepository.findById(documentVersionId)
-                .orElseThrow(() -> new NoSuchElementException("DocumentVersion not found"))
+                .orElseThrow(() -> new ResourceNotFoundException("DocumentVersion not found"))
         );
         signature.setCreatedAt(createDTO.getCreationDate());
         signature.setHash(hash(createDTO.getUserId(), documentVersionId));

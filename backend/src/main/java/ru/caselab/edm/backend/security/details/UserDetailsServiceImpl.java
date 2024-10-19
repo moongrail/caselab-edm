@@ -33,13 +33,12 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         LOGGER.debug("loadUserByUsername");
         Optional<User> user = userRepository.findUserByLogin(username);
 
-        User existingUser = user.get();
-
         if (user.isEmpty()) {
             LOGGER.error("Username not found: " + username);
             throw new UsernameNotFoundException("username not found");
+        } else {
+            LOGGER.info("Successful");
+            return new UserInfoDetails(user.get());
         }
-        LOGGER.info("Successful");
-        return new UserInfoDetails(existingUser);
     }
 }

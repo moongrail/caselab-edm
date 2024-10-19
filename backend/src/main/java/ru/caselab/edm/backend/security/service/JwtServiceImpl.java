@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+import ru.caselab.edm.backend.exceptions.ExpiredJwtTokenException;
 
 import java.security.Key;
 import java.util.Date;
@@ -43,7 +44,11 @@ public class JwtServiceImpl implements JwtService {
     @Override
     public boolean validateToken(String token, UserDetails user) {
         final String username = getLogin(token);
-        return (username.equals(user.getUsername()) && !isExpired(token));
+
+        if (!isExpired(token))
+            return (username.equals(user.getUsername()));
+        else
+            throw new ExpiredJwtTokenException("JWT token expired");
     }
 
     @Override

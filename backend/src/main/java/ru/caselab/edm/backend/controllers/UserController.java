@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.caselab.edm.backend.dto.CreateUserDTO;
@@ -17,7 +18,6 @@ import ru.caselab.edm.backend.dto.UpdateUserDTO;
 import ru.caselab.edm.backend.dto.UserDTO;
 import ru.caselab.edm.backend.service.UserService;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -43,7 +43,7 @@ public class UserController {
                     content = @Content)
     })
     @GetMapping
-    public ResponseEntity<List<UserDTO>> getAllUsers(
+    public ResponseEntity<Page<UserDTO>> getAllUsers(
             @Parameter(description = "Page number starting from 0", example = "0")
             @RequestParam(value = "page", defaultValue = "0") int page,
 
@@ -78,6 +78,8 @@ public class UserController {
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserDTO.class))),
             @ApiResponse(responseCode = "400", description = "Invalid user details provided",
                     content = @Content),
+            @ApiResponse(responseCode = "404", description = "Role not found with the given name",
+                    content = @Content),
             @ApiResponse(responseCode = "409", description = "User with the same login or email already exists",
                     content = @Content)
     })
@@ -95,7 +97,7 @@ public class UserController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "User updated successfully",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserDTO.class))),
-            @ApiResponse(responseCode = "404", description = "User not found with the given ID",
+            @ApiResponse(responseCode = "404", description = "User not found with the given ID or role not found with the given name",
                     content = @Content),
             @ApiResponse(responseCode = "400", description = "Invalid user details provided",
                     content = @Content),

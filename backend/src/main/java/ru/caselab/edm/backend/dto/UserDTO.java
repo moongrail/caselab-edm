@@ -2,6 +2,7 @@ package ru.caselab.edm.backend.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
+import java.util.Set;
 import java.util.UUID;
 
 @Schema(description = "DTO for representing user")
@@ -23,6 +24,8 @@ public record UserDTO(
         String lastName,
 
         @Schema(description = "Patronymic", example = "patronymic", nullable = true)
-        String patronymic) {
+        String patronymic,
+        @Schema(description = "Roles", example = "[\"USER\", \"ADMIN\"]")
+        Set<RoleDTO> roles) {
 
 }
