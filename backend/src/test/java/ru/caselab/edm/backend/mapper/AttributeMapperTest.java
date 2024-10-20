@@ -27,7 +27,7 @@ public class AttributeMapperTest {
         Attribute testAttribute = new Attribute();
         testAttribute.setId(1L);
         testAttribute.setName("подпись");
-        testAttribute.setDocumentTypes(new HashSet<>(List.of(testDocumentType)));
+        testAttribute.setDocumentTypes(List.of(testDocumentType));
 
         AttributeDTO testAttributeDTO = new AttributeDTO();
         testAttributeDTO.setId(1L);
@@ -53,7 +53,7 @@ public class AttributeMapperTest {
         Attribute testAttribute = new Attribute();
         testAttribute.setId(1L);
         testAttribute.setName("подпись");
-        testAttribute.setDocumentTypes(new HashSet<>(List.of(testDocumentType)));
+        testAttribute.setDocumentTypes(List.of(testDocumentType));
 
         AttributeDTO testAttributeDTO = new AttributeDTO();
         testAttributeDTO.setId(1L);

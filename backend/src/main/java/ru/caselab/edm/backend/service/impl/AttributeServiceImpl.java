@@ -12,14 +12,15 @@ import ru.caselab.edm.backend.dto.AttributeDTO;
 import ru.caselab.edm.backend.dto.AttributeUpdateDTO;
 import ru.caselab.edm.backend.entity.Attribute;
 import ru.caselab.edm.backend.entity.DocumentType;
+import ru.caselab.edm.backend.exceptions.AttributeAlreadyExistsException;
 import ru.caselab.edm.backend.exceptions.ResourceNotFoundException;
 import ru.caselab.edm.backend.mapper.AttributeMapper;
 import ru.caselab.edm.backend.repository.AttributeRepository;
 import ru.caselab.edm.backend.repository.DocumentTypeRepository;
 import ru.caselab.edm.backend.service.AttributeService;
 
-
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -40,20 +41,25 @@ public class AttributeServiceImpl implements AttributeService {
     public AttributeDTO createAttribute(AttributeCreateDTO createAttribute) {
         log.info("Creating attribute with name: {}", createAttribute.getName());
 
-            log.debug("Attribute data: {}", createAttribute);
-            Attribute attribute = Attribute.builder()
-                    .dataType(createAttribute.getDataType())
-                    .name(createAttribute.getName())
-                    .isRequired(createAttribute.isRequired())
-                    .build();
+        if (!attributeRepository.findByName(createAttribute.getName()).isEmpty()) {
+            throw new AttributeAlreadyExistsException("Attribute with name %s already exists"
+                    .formatted(createAttribute.getName()));
+        }
 
-            if (createAttribute.getDocumentTypeIds() != null && !createAttribute.getDocumentTypeIds().isEmpty()) {
-                attribute.setDocumentTypes(mapDocumentTypeIdsToEntities(createAttribute.getDocumentTypeIds()));
-            }
+        log.debug("Attribute data: {}", createAttribute);
+        Attribute attribute = Attribute.builder()
+                .dataType(createAttribute.getDataType())
+                .name(createAttribute.getName())
+                .isRequired(createAttribute.isRequired())
+                .build();
 
-            attributeRepository.save(attribute);
-            log.info("Attribute created with id: {}", attribute.getId());
-            return attributeMapper.toDTO(attribute);
+        if (createAttribute.getDocumentTypeIds() != null && !createAttribute.getDocumentTypeIds().isEmpty()) {
+            attribute.setDocumentTypes(mapDocumentTypeIdsToEntities(createAttribute.getDocumentTypeIds()));
+        }
+
+        attributeRepository.save(attribute);
+        log.info("Attribute created with id: {}", attribute.getId());
+        return attributeMapper.toDTO(attribute);
     }
 
     @Transactional
@@ -75,7 +81,7 @@ public class AttributeServiceImpl implements AttributeService {
         Page<Attribute> attributes = attributeRepository.findAll(
                 PageRequest.of(page, size)
         );
-        log.info("Fetched {} attributes",attributes.getTotalElements());
+        log.info("Fetched {} attributes", attributes.getTotalElements());
         return attributes.map(attributeMapper::toDTO);
     }
 
@@ -89,6 +95,11 @@ public class AttributeServiceImpl implements AttributeService {
                     return new ResourceNotFoundException("Attribute not found");
                 });
         log.debug("Current attribute details: {}", attribute);
+        if (!attributeRepository.findByName(updateAttributeDTO.getName()).isEmpty()) {
+            throw new AttributeAlreadyExistsException("Attribute with name %s already exists"
+                    .formatted(updateAttributeDTO.getName()));
+        }
+
         attribute.setName(updateAttributeDTO.getName());
         attribute.setDataType(updateAttributeDTO.getDataType());
         attribute.setRequired(updateAttributeDTO.isRequired());
@@ -108,16 +119,16 @@ public class AttributeServiceImpl implements AttributeService {
     @Override
     public void deleteAttribute(Long id) {
         Optional<Attribute> attribute = attributeRepository.findById(id);
-        if(attribute.isPresent()) {
+        if (attribute.isPresent()) {
             attributeRepository.delete(attribute.get());
-        }else {
+        } else {
             throw new ResourceNotFoundException("Attribute not found with this id = %s".formatted(id));
         }
     }
 
-    private Set<DocumentType> mapDocumentTypeIdsToEntities(Set<Long> documentTypeIds) {
+    private List<DocumentType> mapDocumentTypeIdsToEntities(Set<Long> documentTypeIds) {
         log.debug("Mapping DocumentType IDs to entities: {}", documentTypeIds);
-        Set<DocumentType> documentTypes = new HashSet<>();
+        List<DocumentType> documentTypes = new ArrayList<>();
         for (Long id : documentTypeIds) {
             DocumentType documentType = documentTypeRepository.findById(id)
                     .orElseThrow(() -> {

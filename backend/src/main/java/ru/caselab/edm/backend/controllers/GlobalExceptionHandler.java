@@ -8,13 +8,25 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import ru.caselab.edm.backend.exceptions.*;
+import ru.caselab.edm.backend.exceptions.DocumentForbiddenAccess;
+import ru.caselab.edm.backend.exceptions.DocumentTypeAlreadyExistsException;
+import ru.caselab.edm.backend.exceptions.ExpiredJwtTokenException;
+import ru.caselab.edm.backend.exceptions.ExpiredRefreshTokenException;
+import ru.caselab.edm.backend.exceptions.JwtUsernameException;
+import ru.caselab.edm.backend.exceptions.ResourceNotFoundException;
+import ru.caselab.edm.backend.exceptions.SignatureAlreadyExistsException;
+import ru.caselab.edm.backend.exceptions.UserAlreadyExistsException;
+import ru.caselab.edm.backend.exceptions.WrongDateException;
 
 import java.util.HashMap;
 import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+    @ExceptionHandler(Exception.class)
+    ResponseEntity<String> anyException(Exception ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 
     @ExceptionHandler(UserAlreadyExistsException.class)
     ResponseEntity<String> handleUserAlreadyExistsException(UserAlreadyExistsException ex) {
@@ -25,6 +37,7 @@ public class GlobalExceptionHandler {
     ResponseEntity<String> handleResourceNotFoundException(ResourceNotFoundException ex) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
     }
+
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     ResponseEntity<String> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
@@ -72,5 +85,10 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(SignatureAlreadyExistsException.class)
     ResponseEntity<String> handleSignatureAlreadyExistsException(SignatureAlreadyExistsException ex) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(DocumentTypeAlreadyExistsException.class)
+    ResponseEntity<String> handlerDocumentTypeAlreadyExistsException(DocumentTypeAlreadyExistsException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.CONFLICT);
     }
 }

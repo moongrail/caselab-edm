@@ -17,7 +17,8 @@ import ru.caselab.edm.backend.repository.AttributeRepository;
 import ru.caselab.edm.backend.repository.DocumentTypeRepository;
 import ru.caselab.edm.backend.service.DocumentTypeService;
 
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 @Service
@@ -34,6 +35,7 @@ public class DocumentTypeImpl implements DocumentTypeService {
                 PageRequest.of(page, size)
         );
         log.info("Get {} document type", documentTypes.getTotalElements());
+
         return documentTypes.map(mapper::toDto);
     }
 
@@ -50,7 +52,8 @@ public class DocumentTypeImpl implements DocumentTypeService {
     public DocumentTypeDTO createDocumentType(DocumentTypeCreateDTO createdDocumentType) {
         log.info("Creating document type with name: {}", createdDocumentType.getName());
         if (!documentTypeRepository.findByName(createdDocumentType.getName()).isEmpty()) {
-            throw new DocumentTypeAlreadyExistsException("This document type already exists");
+            throw new DocumentTypeAlreadyExistsException("Document type with name %s already exists"
+                    .formatted(createdDocumentType.getName()));
         }
 
         log.debug("Document type data: {}", createdDocumentType);
@@ -75,6 +78,10 @@ public class DocumentTypeImpl implements DocumentTypeService {
                     log.warn("Document type with id: {} not found", id);
                     return new ResourceNotFoundException("Not Found: " + id);
                 });
+        if (!documentTypeRepository.findByName(updateDocumentType.getName()).isEmpty()) {
+            throw new DocumentTypeAlreadyExistsException("Document type with name %s already exists"
+                    .formatted(updateDocumentType.getName()));
+        }
         documentType.setName(updateDocumentType.getName());
         documentType.setDescription(updateDocumentType.getDescription());
         documentType.setAttributes(mapAttributeIdsToEntities(updateDocumentType.getAttributeIds()));
@@ -95,8 +102,8 @@ public class DocumentTypeImpl implements DocumentTypeService {
         log.info("Document type with id: {} deleted successfully", id);
     }
 
-    private Set<Attribute> mapAttributeIdsToEntities(Set<Long> attributeIds) {
-        return new HashSet<>(attributeRepository.findAllById(attributeIds));
+    private List<Attribute> mapAttributeIdsToEntities(Set<Long> attributeIds) {
+        return new ArrayList<>(attributeRepository.findAllById(attributeIds));
     }
 
     @Override

@@ -16,7 +16,7 @@ public class DocumentTypeUpdateDTO {
     @Schema(description = "Description", example = "text document with external contractors", nullable = true)
     private String description;
 
-    @Schema(description = "Attributes", example = "[\"executor\", \"contract amount\"]", nullable = true)
+    @Schema(description = "Attributes", example = "[1, 2]", nullable = true)
     private Set<Long> attributeIds;
 
 }
