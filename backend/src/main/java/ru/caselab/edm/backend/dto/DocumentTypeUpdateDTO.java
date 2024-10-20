@@ -1,18 +1,22 @@
 package ru.caselab.edm.backend.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
-import java.util.List;
+import java.util.Set;
 
+@Schema(description = "DTO for update document type")
 @Data
 public class DocumentTypeUpdateDTO {
+    @Schema(description = "Document type name", example = "contract")
     @NotBlank
     private String name;
-    @NotBlank
+
+    @Schema(description = "Description", example = "text document with external contractors", nullable = true)
     private String description;
-    @NotNull
-    private List<Long> attributesDocumentTypeId;
+
+    @Schema(description = "Attributes", example = "[1, 2]", nullable = true)
+    private Set<Long> attributeIds;
 
 }

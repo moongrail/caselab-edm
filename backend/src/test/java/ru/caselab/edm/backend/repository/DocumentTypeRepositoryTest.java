@@ -9,7 +9,9 @@ import ru.caselab.edm.backend.entity.Attribute;
 import ru.caselab.edm.backend.entity.DocumentType;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @ActiveProfiles("test")
 @DataJpaTest
@@ -24,6 +26,7 @@ class DocumentTypeRepositoryTest {
         Attribute attribute = new Attribute();
         attribute.setName("подписант");
         attribute.setDataType("текст");
+        attribute.setRequired(true);
         attributesRepository.saveAndFlush(attribute);
 
         List<Attribute> documentAttributeList = new ArrayList<>();
@@ -37,15 +40,11 @@ class DocumentTypeRepositoryTest {
 
         documentTypeRepository.save(documentType);
 
-        Assertions.assertThat(documentTypeRepository.findByName("договор").get().getAttributes().get(0))
-                .isEqualTo(documentType.getAttributes().get(0));
 
         Assertions.assertThat(documentTypeRepository.findByName("договор").get())
                 .matches(list -> list.getId().equals(documentType.getId()))
                 .matches(list -> list.getName().equals(documentType.getName()))
                 .matches(list -> list.getDescription().equals(documentType.getDescription()))
-                .matches(list -> list.getCreatedAt() != null)
-                .matches(list -> list.getUpdatedAt() != null)
-                .matches(list -> list.getAttributes().get(0).equals(documentType.getAttributes().get(0)));
+                .matches(list -> list.getAttributes().contains(attribute));
     }
 }

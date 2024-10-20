@@ -3,6 +3,7 @@ package ru.caselab.edm.backend.service.Impl;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -10,10 +11,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import ru.caselab.edm.backend.dto.AttributeDTO;
 import ru.caselab.edm.backend.dto.DocumentTypeCreateDTO;
 import ru.caselab.edm.backend.dto.DocumentTypeDTO;
 import ru.caselab.edm.backend.dto.DocumentTypeUpdateDTO;
-import ru.caselab.edm.backend.dto.DocumentsAttributesDTO;
 import ru.caselab.edm.backend.entity.Attribute;
 import ru.caselab.edm.backend.entity.DocumentType;
 import ru.caselab.edm.backend.mapper.DocumentTypeMapper;
@@ -23,9 +24,7 @@ import ru.caselab.edm.backend.service.impl.DocumentTypeImpl;
 
 import java.time.LocalDateTime;
 import java.time.Month;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @ExtendWith(MockitoExtension.class)
 class DocumentTypeImplTest {
@@ -40,18 +39,141 @@ class DocumentTypeImplTest {
     @InjectMocks
     private DocumentTypeImpl documentTypeService;
 
+    private static DocumentType getDocumentType() {
+
+        Attribute attribute = new Attribute();
+        attribute.setName("подписант");
+        attribute.setDataType("текст");
+
+        List<Attribute> documentAttributeList = new ArrayList<>();
+        documentAttributeList.add(attribute);
+
+        DocumentType documentType = new DocumentType();
+        documentType.setId(1L);
+        documentType.setName("договор");
+        documentType.setDescription("какоей-то описание");
+        return documentType;
+    }
+
+    private static AttributeDTO getDocumentsAttributesDTO(Long attributesId,
+                                                          String attributesName) {
+        AttributeDTO testAttributeDTO = new AttributeDTO();
+        testAttributeDTO.setId(attributesId);
+        testAttributeDTO.setName(attributesName);
+        return testAttributeDTO;
+    }
+
+
+    @Test
+    void createDocumentType() {
+
+        AttributeDTO testAttributeDto1 = getDocumentsAttributesDTO(0L, "подписант");
+
+        DocumentTypeCreateDTO testDto = new DocumentTypeCreateDTO();
+        testDto.setName("договор");
+        testDto.setDescription("какое-то описание");
+
+        Set<Long> documentsAttributesDTOSet = new HashSet<>();
+        documentsAttributesDTOSet.add(testAttributeDto1.getId());
+        testDto.setAttributeIds(documentsAttributesDTOSet);
+
+        DocumentTypeDTO expectedDocumentTypeDTO = getDocumentTypeDTO(
+                documentsAttributesDTOSet,
+                1L, "договор", "какое-то описание"
+        );
+
+        Mockito.when(attributesRepository.findAllById(documentsAttributesDTOSet))
+                .thenReturn(new ArrayList<>(List.of(new Attribute() {{
+                    setId(0L);
+                    setName("подписант");
+                }})));
+
+        Mockito.when(mapper.toDto(Mockito.any(DocumentType.class))).thenReturn(expectedDocumentTypeDTO);
+        DocumentTypeDTO result = documentTypeService.createDocumentType(testDto);
+
+        Assertions.assertThat(result).isEqualTo(expectedDocumentTypeDTO);
+
+        ArgumentCaptor<DocumentType> documentTypeCaptor = ArgumentCaptor.forClass(DocumentType.class);
+        Mockito.verify(documentTypeRepository).save(documentTypeCaptor.capture());
+
+        DocumentType savedDocumentType = documentTypeCaptor.getValue();
+        Assertions.assertThat(savedDocumentType.getName()).isEqualTo("договор");
+        Assertions.assertThat(savedDocumentType.getDescription()).isEqualTo("какое-то описание");
+        Assertions.assertThat(savedDocumentType.getAttributes()).hasSize(1);
+    }
+
+    @Test
+    void updateDocumentType() {
+        // Входные данные
+        DocumentTypeUpdateDTO documentTypeUpdateDTO = new DocumentTypeUpdateDTO();
+        documentTypeUpdateDTO.setAttributeIds(new HashSet<>(List.of(0L)));
+        documentTypeUpdateDTO.setName("Новый документ");
+        documentTypeUpdateDTO.setDescription("Такого вы еще не видели");
+
+        AttributeDTO testAttributeDto1 = getDocumentsAttributesDTO(0L, "подписант");
+        Set<Long> documentsAttributesDTOSet1 = new HashSet<>();
+        documentsAttributesDTOSet1.add(testAttributeDto1.getId());
+
+        DocumentTypeDTO testDocumentTypeDTO = getDocumentTypeDTO(
+                documentsAttributesDTOSet1,
+                1L, "Новый документ",
+                "Такого вы еще не видели"
+        );
+
+        Long id = 1L;
+
+        DocumentType documentType = getDocumentType();
+        documentType.setId(id);
+        documentType.setName("договор");
+        documentType.setDescription("какое-то описание");
+
+        List<Attribute> attributes = new ArrayList<>();
+        attributes.add(new Attribute() {{
+            setId(0L);
+            setName("подписант");
+        }});
+
+        Mockito.when(documentTypeRepository.findById(id)).thenReturn(Optional.of(documentType));
+        Mockito.when(attributesRepository.findAllById(documentTypeUpdateDTO.getAttributeIds())).thenReturn(attributes);
+        Mockito.when(mapper.toDto(documentType)).thenReturn(testDocumentTypeDTO);
+
+        DocumentTypeDTO result = documentTypeService.updateDocumentType(id, documentTypeUpdateDTO);
+
+        Assertions.assertThat(result).isEqualTo(testDocumentTypeDTO);
+
+        Mockito.verify(documentTypeRepository).save(documentType);
+
+        Assertions.assertThat(documentType.getName()).isEqualTo("Новый документ");
+        Assertions.assertThat(documentType.getDescription()).isEqualTo("Такого вы еще не видели");
+        Assertions.assertThat(documentType.getAttributes()).containsExactlyInAnyOrderElementsOf(attributes);
+    }
+
+
+    private static DocumentTypeDTO getDocumentTypeDTO(Set<Long> documentsAttributesIdsSet,
+                                                      Long documentTypeId,
+                                                      String nameDocumentType,
+                                                      String descriptionDocumentType) {
+
+        DocumentTypeDTO testDocumentTypeDTO = new DocumentTypeDTO();
+        testDocumentTypeDTO.setId(documentTypeId);
+        testDocumentTypeDTO.setName(nameDocumentType);
+        testDocumentTypeDTO.setDescription(descriptionDocumentType);
+        testDocumentTypeDTO.setAttributeIds(documentsAttributesIdsSet);
+        return testDocumentTypeDTO;
+    }
+
     @Test
     void getAllDocumentType() {
         DocumentType documentType = getDocumentType();
 
-        DocumentsAttributesDTO testDocumentsAttributesDTO = getDocumentsAttributesDTO(0L,
-                "подписант");
+        AttributeDTO testAttributeDto1 = getDocumentsAttributesDTO(0L, "подписант");
 
-        List<DocumentsAttributesDTO> documentsAttributesDTOList = new ArrayList<>();
-        documentsAttributesDTOList.add(testDocumentsAttributesDTO);
 
-        DocumentTypeDTO testDocumentTypeDTO = getDocumentTypeDTO(documentsAttributesDTOList,
-                1L, "договор",
+        Set<Long> documentsAttributesDTOSet1 = new HashSet<>();
+        documentsAttributesDTOSet1.add(testAttributeDto1.getId());
+
+        DocumentTypeDTO testDocumentTypeDTO1 = getDocumentTypeDTO(documentsAttributesDTOSet1,
+                0L, "договор",
                 "какое-то описание");
 
         int page = 0;
@@ -64,10 +186,10 @@ class DocumentTypeImplTest {
 
         Mockito.when(documentTypeRepository.findAll(pageable)).thenReturn(documentTypes);
 
-        List<DocumentTypeDTO> documentTypeDTOList = List.of(testDocumentTypeDTO);
+        List<DocumentTypeDTO> documentTypeDTOList = List.of(testDocumentTypeDTO1);
         Page<DocumentTypeDTO> documentTypeDTOPage = new PageImpl<>(documentTypeDTOList, pageable, 1);
 
-        Mockito.when(mapper.map(documentType)).thenReturn(testDocumentTypeDTO);
+        Mockito.when(mapper.toDto(documentType)).thenReturn(testDocumentTypeDTO1);
 
         Assertions.assertThat(documentTypeService.getAllDocumentType(page, size))
                 .isEqualTo(documentTypeDTOPage);
@@ -79,104 +201,23 @@ class DocumentTypeImplTest {
 
         DocumentType documentType = getDocumentType();
 
-        DocumentsAttributesDTO testDocumentsAttributesDTO = getDocumentsAttributesDTO(0L,
-                "подписант");
+        AttributeDTO testAttributeDto1 = getDocumentsAttributesDTO(0L, "подписант");
 
-        List<DocumentsAttributesDTO> documentsAttributesDTOList = new ArrayList<>();
-        documentsAttributesDTOList.add(testDocumentsAttributesDTO);
 
-        DocumentTypeDTO testDocumentTypeDTO = getDocumentTypeDTO(documentsAttributesDTOList,
+        Set<Long> documentsAttributesDTOSet2 = new HashSet<>();
+        documentsAttributesDTOSet2.add(testAttributeDto1.getId());
+
+        DocumentTypeDTO testDocumentTypeDTO = getDocumentTypeDTO(documentsAttributesDTOSet2,
                 1L, "договор",
                 "какое-то описание");
 
         Mockito.when(documentTypeRepository.findById(id))
                 .thenReturn(Optional.of(documentType));
 
-        Mockito.when(mapper.map(documentType)).thenReturn(testDocumentTypeDTO);
+        Mockito.when(mapper.toDto(documentType)).thenReturn(testDocumentTypeDTO);
 
         Assertions.assertThat(documentTypeService.getDocumentTypeById(id))
                 .isEqualTo(testDocumentTypeDTO);
-    }
-
-    @Test
-    void createDocumentType() {
-        //Входные данные
-        List<Long> attributesDocumentTypeId = new ArrayList<Long>(List.of(0L));
-
-        DocumentTypeCreateDTO testDto = new DocumentTypeCreateDTO();
-        testDto.setName("договор");
-        testDto.setDescription("какое-то описание");
-        testDto.setAttributesDocumentTypeId(attributesDocumentTypeId);
-
-        //выходные данные
-        DocumentsAttributesDTO testDocumentsAttributesDTO = getDocumentsAttributesDTO(0L,
-                "подписант");
-
-        List<DocumentsAttributesDTO> documentsAttributesDTOList = new ArrayList<>();
-        documentsAttributesDTOList.add(testDocumentsAttributesDTO);
-
-        DocumentTypeDTO testDocumentTypeDTO = getDocumentTypeDTO(documentsAttributesDTOList,
-                1L, "договор",
-                "какое-то описание");
-
-        DocumentType documentType = new DocumentType();
-        documentType.setName("договор");
-        documentType.setDescription("какое-то описание");
-
-        List<Attribute> attributes = new ArrayList<>();
-
-        Mockito.when(attributesRepository.findAllById(attributesDocumentTypeId)).thenReturn(attributes);
-
-        documentType.setAttributes(attributes);
-
-        Mockito.when(mapper.map(documentType)).thenReturn(testDocumentTypeDTO);
-
-        Assertions.assertThat(documentTypeService.createDocumentType(testDto))
-                .isEqualTo(testDocumentTypeDTO);
-
-        Mockito.verify(documentTypeRepository).save(documentType);
-    }
-
-    @Test
-    void updateDocumentType() {
-        //DocumentTypeUpdateDTO
-        DocumentTypeUpdateDTO documentTypeUpdateDTO = new DocumentTypeUpdateDTO();
-        documentTypeUpdateDTO.setAttributesDocumentTypeId(List.of(1L));
-        documentTypeUpdateDTO.setName("Новый документ");
-        documentTypeUpdateDTO.setDescription("Такого вы еще не видели");
-
-        //DocumentTypeDTO
-        DocumentsAttributesDTO testDocumentsAttributesDTO = getDocumentsAttributesDTO(0L,
-                "подписант");
-
-        List<DocumentsAttributesDTO> documentsAttributesDTOList = new ArrayList<>();
-        documentsAttributesDTOList.add(testDocumentsAttributesDTO);
-
-        DocumentTypeDTO testDocumentTypeDTO = getDocumentTypeDTO(documentsAttributesDTOList,
-                1L, "договор",
-                "какое-то описание");
-
-        //Long id
-        Long id = 1L;
-
-        //DocumentType
-        DocumentType documentType = getDocumentType();
-
-        List<Attribute> attributes = new ArrayList<>();
-        List<Long> attributesDocumentTypeId = new ArrayList<>(List.of(1L));
-
-        Mockito.when(documentTypeRepository.findById(id)).thenReturn(Optional.of(documentType));
-
-        Mockito.when(attributesRepository.findAllById(attributesDocumentTypeId)).thenReturn(attributes);
-
-        documentType.setAttributes(attributes);
-
-        Mockito.when(mapper.map(documentType)).thenReturn(testDocumentTypeDTO);
-
-        Assertions.assertThat(documentTypeService.updateDocumentType(id, documentTypeUpdateDTO))
-                .isEqualTo(testDocumentTypeDTO);
-
-        Mockito.verify(documentTypeRepository).save(documentType);
     }
 
     @Test
@@ -191,45 +232,5 @@ class DocumentTypeImplTest {
         documentTypeService.deleteDocumentType(id);
 
         Mockito.verify(documentTypeRepository).deleteById(id);
-    }
-
-    private static DocumentType getDocumentType() {
-
-        Attribute attribute = new Attribute();
-        attribute.setName("подписант");
-        attribute.setDataType("текст");
-
-        List<Attribute> documentAttributeList = new ArrayList<>();
-        documentAttributeList.add(attribute);
-
-        DocumentType documentType = new DocumentType();
-        documentType.setId(1L);
-        documentType.setName("договор");
-        documentType.setDescription("какоей-то описание");
-        documentType.setCreatedAt(NOW);
-        documentType.setAttributes(documentAttributeList);
-        return documentType;
-    }
-
-    private static DocumentsAttributesDTO getDocumentsAttributesDTO(Long attributesId,
-                                                                    String attributesName) {
-        DocumentsAttributesDTO testDocumentsAttributesDTO = new DocumentsAttributesDTO();
-        testDocumentsAttributesDTO.setId(attributesId);
-        testDocumentsAttributesDTO.setName(attributesName);
-        return testDocumentsAttributesDTO;
-    }
-
-    private static DocumentTypeDTO getDocumentTypeDTO(List<DocumentsAttributesDTO> documentsAttributesDTOList,
-                                                      Long documentTypeId,
-                                                      String nameDocumentType,
-                                                      String descriptionDocumentType) {
-
-        DocumentTypeDTO testDocumentTypeDTO = new DocumentTypeDTO();
-        testDocumentTypeDTO.setId(documentTypeId);
-        testDocumentTypeDTO.setName(nameDocumentType);
-        testDocumentTypeDTO.setDescription(descriptionDocumentType);
-        testDocumentTypeDTO.setCreatedAt(NOW);
-        testDocumentTypeDTO.setAttributes(documentsAttributesDTOList);
-        return testDocumentTypeDTO;
     }
 }

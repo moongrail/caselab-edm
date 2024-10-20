@@ -14,16 +14,18 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-import ru.caselab.edm.backend.service.JwtService;
+import ru.caselab.edm.backend.exceptions.ExpiredJwtTokenException;
+import ru.caselab.edm.backend.exceptions.JwtUsernameException;
+import ru.caselab.edm.backend.security.service.JwtService;
 
 import java.io.IOException;
 
 @Component
 public class JwtFilter extends OncePerRequestFilter {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(JwtFilter.class);
     private final JwtService jwtService;
     private final UserDetailsService userService;
-    private static final Logger LOGGER = LoggerFactory.getLogger(JwtFilter.class);
 
     @Autowired
     public JwtFilter(UserDetailsService userService, JwtService jwtService) {
@@ -32,7 +34,7 @@ public class JwtFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws JwtUsernameException, ExpiredJwtTokenException, ServletException, IOException {
         try {
             String authHeader = request.getHeader("Authorization");
             String token = null;
@@ -55,13 +57,16 @@ public class JwtFilter extends OncePerRequestFilter {
                     UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
                     authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authenticationToken);
-                }
+                } else
+                    throw new JwtUsernameException("Username doesn't matches");
 
             }
 
+            LOGGER.info(response.getStatus() + " - Response status");
             filterChain.doFilter(request, response);
         } catch (Exception ex) {
             LOGGER.debug(ex.getMessage());
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, ex.getMessage());
         }
     }
 }

@@ -6,32 +6,27 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import ru.caselab.edm.backend.dto.CreateUserDTO;
 import ru.caselab.edm.backend.dto.UpdatePasswordDTO;
 import ru.caselab.edm.backend.dto.UpdateUserDTO;
 import ru.caselab.edm.backend.dto.UserDTO;
+import ru.caselab.edm.backend.dto.UserPageDTO;
 import ru.caselab.edm.backend.service.UserService;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
 @RequestMapping("/users")
 @Tag(name = "User", description = "User management operations")
+@SecurityRequirement(name = "bearer-jwt")
 public class UserController {
 
     private final UserService userService;
@@ -47,12 +42,12 @@ public class UserController {
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "List of users retrieved successfully",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserDTO.class))),
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserPageDTO.class))),
             @ApiResponse(responseCode = "400", description = "Invalid parameters provided",
                     content = @Content)
     })
     @GetMapping
-    public ResponseEntity<List<UserDTO>> getAllUsers(
+    public ResponseEntity<UserPageDTO> getAllUsers(
             @Parameter(description = "Page number starting from 0", example = "0")
             @RequestParam(value = "page", defaultValue = "0") int page,
 
@@ -87,6 +82,8 @@ public class UserController {
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserDTO.class))),
             @ApiResponse(responseCode = "400", description = "Invalid user details provided",
                     content = @Content),
+            @ApiResponse(responseCode = "404", description = "Role not found with the given name",
+                    content = @Content),
             @ApiResponse(responseCode = "409", description = "User with the same login or email already exists",
                     content = @Content)
     })
@@ -104,7 +101,7 @@ public class UserController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "User updated successfully",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserDTO.class))),
-            @ApiResponse(responseCode = "404", description = "User not found with the given ID",
+            @ApiResponse(responseCode = "404", description = "User not found with the given ID or role not found with the given name",
                     content = @Content),
             @ApiResponse(responseCode = "400", description = "Invalid user details provided",
                     content = @Content),

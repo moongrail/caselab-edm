@@ -3,9 +3,11 @@ package ru.caselab.edm.backend.dto;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import lombok.*;
+import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Data
@@ -22,17 +24,13 @@ public class DocumentCreateDTO {
     @NotNull
     private UUID userId;
 
+    private long attributeId;
+
     @JsonProperty("name")
     @NotBlank
     private String name;
 
-    @JsonProperty("createdAt")
-    private LocalDateTime creationDate;
-
-    @JsonProperty("updatedAt")
-    private LocalDateTime updateDate;
-
     @JsonProperty("data")
     @NotNull
-    private byte[] data;
+    private String data;
 }

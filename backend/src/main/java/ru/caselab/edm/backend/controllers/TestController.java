@@ -18,10 +18,10 @@ public class TestController {
     TestService testService;
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    //@PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "ИЛИ НЕ ЖИВОЕ????????")
-    public String checkController(){
-         return "It's ALIVE!!!!!!";
+    public String checkController() {
+        return "It's ALIVE!!!!!!";
     }
 
     @PostMapping("/jwtTest")

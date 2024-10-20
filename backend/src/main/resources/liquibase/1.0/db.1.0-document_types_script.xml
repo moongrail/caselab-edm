@@ -1,40 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <databaseChangeLog
-        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
 
     <changeSet id="db.1.0-create_document_types_script" author="Maevgal" runOnChange="true">
         <sql>
-            DROP TABLE IF EXISTS document_types;
 
-            CREATE TABLE document_types
+
+            CREATE TABLE IF NOT EXISTS document_types
             (
-            id           BigSerial      PRIMARY KEY,
-            name         VARCHAR (255)  not null,
-            descriptions TEXT,
-            created_at   TIMESTAMP,
-            updated_at   TIMESTAMP
-            );
-
-            CREATE TABLE IF NOT EXISTS attributes
-            (
-                id           BigSerial      PRIMARY KEY,
-                name         VARCHAR (255)  not null unique ,
-                data_type    VARCHAR (255)  not null
-
+                id BIGSERIAL PRIMARY KEY,
+                name VARCHAR(255) NOT NULL UNIQUE,
+                description TEXT,
+                created_at TIMESTAMP DEFAULT NOW(),
+                updated_at TIMESTAMP
                 );
-
-            CREATE TABLE IF NOT EXISTS document_type_attributes
-            (
-            doc_type_id     bigint,
-            attribute_id    bigint,
-            CONSTRAINT doc_type_id_foreign_key FOREIGN KEY (doc_type_id) REFERENCES document_types (id),
-            CONSTRAINT attr_id_foreign_key FOREIGN KEY (attribute_id) REFERENCES attributes(id)
-            );
         </sql>
     </changeSet>
+
 
 
 </databaseChangeLog>
