@@ -1,18 +1,19 @@
 package ru.caselab.edm.backend.controllers;
 
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -29,7 +30,6 @@ import ru.caselab.edm.backend.dto.DocumentTypeUpdateDTO;
 import ru.caselab.edm.backend.service.DocumentTypeService;
 
 @RequiredArgsConstructor
-@Data
 @RestController
 @RequestMapping("/document_type")
 @SecurityRequirement(name = "bearer-jwt")
@@ -43,10 +43,9 @@ public class DocumentTypeController {
             description = "Create a new document type"
     )
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Document type created successfully",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = DocumentTypeDTO.class))),
-            @ApiResponse(responseCode = "409", description = "Document type with the same name already exists",
-                    content = @Content)
+            @ApiResponse(responseCode = "201", description = "Document type created successfully",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = DocumentTypeDTO.class)))
     })
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
@@ -59,13 +58,13 @@ public class DocumentTypeController {
 
     @Operation(
             summary = "Get all document type",
-            description = "Get a list of all document types with pagination. Specify the page number and the number of document type per page."
+            description = "Get a list of all document types with pagination. " +
+                    "Specify the page number and the number of document type per page."
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Getting the list of document types is successful",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = DocumentTypeDTO.class))),
-            @ApiResponse(responseCode = "400", description = "Invalid parameters provided",
-                    content = @Content)
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = DocumentTypeDTO.class)))
     })
     @GetMapping("")
     @ResponseStatus(HttpStatus.OK)
@@ -102,10 +101,10 @@ public class DocumentTypeController {
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Document type updated successfully",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = DocumentTypeDTO.class))),
-            @ApiResponse(responseCode = "404", description = "Document type not found with the given ID or role not found with the given name",
-                    content = @Content),
-            @ApiResponse(responseCode = "409", description = "Document type with the same name already exists",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = DocumentTypeDTO.class))),
+            @ApiResponse(responseCode = "404",
+                    description = "Document type not found with the given ID or role not found with the given name",
                     content = @Content)
     })
     @PatchMapping("/{id}")

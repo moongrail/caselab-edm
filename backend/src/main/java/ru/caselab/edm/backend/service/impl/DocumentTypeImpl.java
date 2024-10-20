@@ -1,6 +1,7 @@
 package ru.caselab.edm.backend.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -21,54 +22,77 @@ import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class DocumentTypeImpl implements DocumentTypeService {
     private final DocumentTypeRepository documentTypeRepository;
     private final AttributeRepository attributeRepository;
     private final DocumentTypeMapper mapper;
 
     public Page<DocumentTypeDTO> getAllDocumentType(int page, int size) {
+        log.info("Get all document type - page: {}, size: {}", page, size);
         Page<DocumentType> documentTypes = documentTypeRepository.findAll(
                 PageRequest.of(page, size)
         );
+        log.info("Get {} document type", documentTypes.getTotalElements());
         return documentTypes.map(mapper::toDto);
     }
 
     public DocumentTypeDTO getDocumentTypeById(Long id) {
         DocumentType documentType = documentTypeRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Not Found: " + id));
+                .orElseThrow(() -> {
+                    log.warn("Document type with id: {} not found", id);
+                    return new ResourceNotFoundException("Document type with id: %s not found ".formatted(id));
+                });
+        log.info("Document type with id: {} found", documentType.getId());
         return mapper.toDto(documentType);
     }
 
     public DocumentTypeDTO createDocumentType(DocumentTypeCreateDTO createdDocumentType) {
-        if (documentTypeRepository.findByName(createdDocumentType.getName()).isEmpty()) {
-            DocumentType documentType = new DocumentType();
-            documentType.setName(createdDocumentType.getName());
-            documentType.setDescription(createdDocumentType.getDescription());
-            documentType.setAttributes(mapAttributeIdsToEntities(createdDocumentType.getAttributeIds()));
-
-            documentTypeRepository.save(documentType);
-
-            return mapper.toDto(documentType);
+        log.info("Creating document type with name: {}", createdDocumentType.getName());
+        if (!documentTypeRepository.findByName(createdDocumentType.getName()).isEmpty()) {
+            throw new DocumentTypeAlreadyExistsException("This document type already exists");
         }
-        throw new DocumentTypeAlreadyExistsException("This document type already exists");
+
+        log.debug("Document type data: {}", createdDocumentType);
+        DocumentType documentType = new DocumentType();
+        documentType.setName(createdDocumentType.getName());
+        documentType.setDescription(createdDocumentType.getDescription());
+        if (createdDocumentType.getAttributeIds() != null
+                && !createdDocumentType.getAttributeIds().isEmpty()) {
+            documentType.setAttributes(mapAttributeIdsToEntities(createdDocumentType.getAttributeIds()));
+        }
+
+        documentTypeRepository.save(documentType);
+        log.info("Document type created with id: {}", documentType.getId());
+
+        return mapper.toDto(documentType);
     }
 
     public DocumentTypeDTO updateDocumentType(Long id, DocumentTypeUpdateDTO updateDocumentType) {
+        log.info("Updating document type with id: {}", id);
         DocumentType documentType = documentTypeRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Not Found: " + id));
+                .orElseThrow(() -> {
+                    log.warn("Document type with id: {} not found", id);
+                    return new ResourceNotFoundException("Not Found: " + id);
+                });
         documentType.setName(updateDocumentType.getName());
         documentType.setDescription(updateDocumentType.getDescription());
         documentType.setAttributes(mapAttributeIdsToEntities(updateDocumentType.getAttributeIds()));
 
         documentTypeRepository.save(documentType);
-
+        log.info("Document type update successfully: {}", documentType);
         return mapper.toDto(documentType);
     }
 
     public void deleteDocumentType(Long id) {
+        log.info("Deleting document type with id: {}", id);
         DocumentType documentType = documentTypeRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Not Found: " + id));
+                .orElseThrow(() -> {
+                    log.warn("Document type with id: {} not found", id);
+                    return new ResourceNotFoundException("Not Found: " + id);
+                });
         documentTypeRepository.deleteById(id);
+        log.info("Document type with id: {} deleted successfully", id);
     }
 
     private Set<Attribute> mapAttributeIdsToEntities(Set<Long> attributeIds) {
