@@ -47,7 +47,7 @@ sudo docker run -d --name minio \
 -e MINIO_ROOT_PASSWORD=minio-password \
 moongrail/caselab-minio:0.0.1 server /data --console-address :9090
 
-sudo docker run  --net=host --name backend-container \
+sudo docker run -d --net=host --restart unless-stopped --name backend-container \
 -p 8080:8080 \
 -e DATABASE_URL=jdbc:postgresql://localhost:5432/edm \
 -e POSTGRES_USER=postgres \
