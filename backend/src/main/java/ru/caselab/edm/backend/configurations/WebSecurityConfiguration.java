@@ -38,6 +38,7 @@ public class WebSecurityConfiguration {
             "/api/v1/jwt/**",
             "/swagger/**",
             "/jwt/**",
+            "/check/**",
             "/api/v1/error"
     };
     final JwtFilter jwtFilter;
@@ -80,7 +81,7 @@ public class WebSecurityConfiguration {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("*"));
+        configuration.setAllowedOrigins(Arrays.asList("172.18.27.103:8080", "localhost:8080"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH"));
         configuration.setAllowCredentials(true);
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Cache-Control", "Content-Type"));
