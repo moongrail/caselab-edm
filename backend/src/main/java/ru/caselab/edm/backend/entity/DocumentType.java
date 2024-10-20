@@ -1,11 +1,19 @@
 package ru.caselab.edm.backend.entity;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -33,5 +41,5 @@ public class DocumentType {
     private Set<Document> documents;
 
     @ManyToMany(mappedBy = "documentTypes")
-    private Set<Attribute> attributes;
+    private List<Attribute> attributes;
 }
