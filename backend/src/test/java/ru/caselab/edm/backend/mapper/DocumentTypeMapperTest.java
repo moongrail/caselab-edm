@@ -9,6 +9,7 @@ import ru.caselab.edm.backend.entity.Attribute;
 import ru.caselab.edm.backend.entity.DocumentType;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 class DocumentTypeMapperTest {
@@ -37,7 +38,7 @@ class DocumentTypeMapperTest {
         testDocumentType.setId(1L);
         testDocumentType.setName("договор");
         testDocumentType.setDescription("какоей-то описание");
-        testDocumentType.setAttributes(new HashSet<>(Collections.of(testAttribute)));
+        testDocumentType.setAttributes(List.of(testAttribute));
 
 
 
