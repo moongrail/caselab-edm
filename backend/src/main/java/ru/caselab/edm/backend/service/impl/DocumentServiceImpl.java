@@ -137,8 +137,8 @@ public class DocumentServiceImpl implements DocumentService {
         }
 
         // TODO: спросить может ли быть contentUrl пустым
-        if (document.getContentUrl() != null && !document.getContentUrl().isEmpty()) {
-            documentVersion.setContentUrl(document.getContentUrl());
+        if (document.getData() != null && !document.getData().isEmpty()) {
+            documentVersion.setContentUrl(document.getData());
         }
 
         documentVersion.setUpdatedAt(Instant.now());
