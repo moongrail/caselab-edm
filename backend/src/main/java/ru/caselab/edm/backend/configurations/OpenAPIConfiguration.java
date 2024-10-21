@@ -22,7 +22,6 @@ import org.springframework.context.annotation.Configuration;
         ), @Server(
                 url = "http://172.18.27.103:8080/api/v1",
                 description = "Virtual server"
-
         )}
 )
 public class OpenAPIConfiguration {
