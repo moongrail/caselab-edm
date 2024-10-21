@@ -1,18 +1,12 @@
 package ru.caselab.edm.backend.repository;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import ru.caselab.edm.backend.entity.Document;
 
-import java.util.Optional;
-import java.util.UUID;
-
 @Repository
 public interface DocumentRepository extends JpaRepository<Document, Long> {
-    @Query(value = """
+    /*@Query(value = """
             SELECT d.*
             FROM documents d
             LEFT JOIN document_versions dv
@@ -22,9 +16,9 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
             WHERE d.id = :documentId AND s.user_id = :userId OR d.id = :documentId AND d.user_id = :userId
             """,
             nativeQuery = true)
-    Optional<Document> getDocumentForUser(Long documentId, UUID userId);
+    Optional<Document> getDocumentForUser(Long documentId, UUID userId);*/
 
-    @Query(value = """
+/*    @Query(value = """
             SELECT d.*
             FROM documents d
             LEFT JOIN document_versions dv
@@ -42,5 +36,5 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
                     ON dv.id = s.document_version_id
                     WHERE s.user_id = :userId OR d.user_id = :userId""",
             nativeQuery = true)
-    Page<Document> getAllDocumentForUser(UUID userId, Pageable pageable);
+    Page<Document> getAllDocumentForUser(UUID userId, Pageable pageable);*/
 }

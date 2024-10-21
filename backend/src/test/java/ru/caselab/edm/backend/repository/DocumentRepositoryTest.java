@@ -17,7 +17,7 @@ import java.util.UUID;
 @ActiveProfiles("test")
 @DataJpaTest
 class DocumentRepositoryTest {
-    @Autowired
+    /*@Autowired
     private JdbcTemplate jdbcTemplate;
     @Autowired
     DocumentRepository repository;
@@ -71,11 +71,6 @@ class DocumentRepositoryTest {
                     (2, 2, 'document_name_test2', '2024-01-15', '2024-01-15', 'test_url1'),
                     (3, 3, 'document_name_test3', '2024-01-15', '2024-01-15', 'test_url3'),
                     (4, 4, 'document_name_test4', '2024-01-15', '2024-01-15', 'test_url4');
-                INSERT INTO signatures (id, user_id, created_at, hash, document_version_id) VALUES 
-                     (1, 'c5df47fe-f4d2-45c2-8084-e646c85a7eba'::uuid, '2024-01-15', 'test_hash', 1),
-                     (2, '48bbbd31-45c0-43c5-b989-c1c14a8c3b8b'::uuid, '2024-01-15', 'test_hash1', 2),
-                     (3, '48bbbd31-45c0-43c5-b989-c1c14a8c3b8b'::uuid, '2024-01-15', 'test_hash2', 3),
-                     (4, 'c5df47fe-f4d2-45c2-8084-e646c85a7eba'::uuid, '2024-01-15', 'test_hash3', 4);
                 """);
-    }
+    }*/
 }

@@ -11,10 +11,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotEmpty;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -25,15 +23,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import ru.caselab.edm.backend.dto.*;
-import ru.caselab.edm.backend.entity.UserInfoDetails;
+import ru.caselab.edm.backend.dto.DocumentCreateDTO;
+import ru.caselab.edm.backend.dto.DocumentDTO;
+import ru.caselab.edm.backend.dto.DocumentPageDTO;
+import ru.caselab.edm.backend.dto.DocumentUpdateDTO;
+import ru.caselab.edm.backend.dto.DocumentVersionDTO;
 import ru.caselab.edm.backend.mapper.DocumentMapper;
 import ru.caselab.edm.backend.mapper.DocumentVersionMapper;
 import ru.caselab.edm.backend.service.DocumentService;
 import ru.caselab.edm.backend.service.SignatureService;
-
-import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/document")
@@ -47,7 +45,7 @@ public class DocumentController {
     private final SignatureService signatureService;
     private final DocumentVersionMapper documentVersionMapper;
 
-    @Operation(summary = "Sign document with given id")
+/*    @Operation(summary = "Sign document with given id")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Document was successfully signed",
                     content = @Content),
@@ -78,7 +76,7 @@ public class DocumentController {
             @Parameter(description = "List of user IDs", required = true, example = "550e8400-e29b-41d4-a716-446655440000,550e8400-e29b-41d4-a716-446655440001")
             @NotEmpty @RequestParam List<UUID> userIds) {
         documentService.sendForSign(userIds, id);
-    }
+    }*/
 
 
     @Operation(summary = "Creation document and first version of this document")
@@ -93,7 +91,7 @@ public class DocumentController {
         return documentVersionMapper.toDto(documentService.saveDocument(documentCreateDTO));
     }
 
-    @Operation(summary = "Returning all documents of the current user")
+/*    @Operation(summary = "Returning all documents of the current user")
     @ApiResponse(responseCode = "200", description = "Documents of the current user were successfully returned",
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = DocumentPageDTO.class)))
     @GetMapping()
@@ -102,6 +100,16 @@ public class DocumentController {
                                            @RequestParam(name = "size", defaultValue = "10") @Min(value = 1) @Max(value = 100) int size,
                                            @AuthenticationPrincipal UserInfoDetails user) {
         return documentMapper.toDtoPage(documentService.getAllDocumentForUser(page, size, user.getId()));
+    }*/
+
+    @Operation(summary = "Returning all documents of the current user")
+    @ApiResponse(responseCode = "200", description = "Documents of the current user were successfully returned",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = DocumentPageDTO.class)))
+    @GetMapping()
+    @ResponseStatus(HttpStatus.OK)
+    public DocumentPageDTO getAllDocuments(@RequestParam(name = "page", defaultValue = "0") @Min(value = 0) int page,
+                                           @RequestParam(name = "size", defaultValue = "10") @Min(value = 1) @Max(value = 100) int size) {
+        return documentMapper.toDtoPage(documentService.getAllDocuments(page, size));
     }
 
     @Operation(summary = "Returning document of the current user by id")
@@ -115,9 +123,11 @@ public class DocumentController {
     @ResponseStatus(HttpStatus.OK)
     public DocumentDTO getDocumentById(
             @Parameter(description = "Document id", required = true, example = "1")
-            @PathVariable Long id,
-                                       @AuthenticationPrincipal UserInfoDetails user) {
-        return documentMapper.toDto(documentService.getDocumentForUser(id, user.getId()));
+            @PathVariable Long id
+            //,@AuthenticationPrincipal UserInfoDetails user
+    ) {
+        return documentMapper.toDto(documentService.getDocument(id));
+        //return documentMapper.toDto(documentService.getDocumentForUser(id, user.getId()));
     }
 
     @Operation(summary = "Updating document fields")
@@ -131,7 +141,7 @@ public class DocumentController {
     public DocumentVersionDTO updateDocument(
             @Parameter(description = "Document id", required = true, example = "1")
             @PathVariable Long id,
-                                          @RequestBody @Valid DocumentUpdateDTO updateDocument) {
+            @RequestBody @Valid DocumentUpdateDTO updateDocument) {
         return documentVersionMapper.toDto(documentService.updateDocument(id, updateDocument));
     }
 

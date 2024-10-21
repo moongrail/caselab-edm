@@ -27,7 +27,7 @@ public class SignatureServiceImpl implements SignatureService {
     @Override
     @Transactional
     public void sign(SignatureCreateDTO createDTO, Long documentVersionId) {
-        Signature signature = new Signature();
+       /* Signature signature = new Signature();
 
         if(signatureRepository.existsByUserIdAndDocumentVersionId(createDTO.getUserId(), documentVersionId)) {
             throw new SignatureAlreadyExistsException("Signature already exists");
@@ -44,7 +44,7 @@ public class SignatureServiceImpl implements SignatureService {
         signature.setCreatedAt(createDTO.getCreationDate());
         signature.setHash(hash(createDTO.getUserId(), documentVersionId));
 
-        signatureRepository.save(signature);
+        signatureRepository.save(signature);*/
     }
 
     private String hash(UUID userId, Long documentVersionId) {

@@ -12,10 +12,6 @@ import ru.caselab.edm.backend.dto.DocumentUpdateDTO;
 import ru.caselab.edm.backend.entity.Document;
 import ru.caselab.edm.backend.entity.DocumentVersion;
 import ru.caselab.edm.backend.exceptions.ResourceNotFoundException;
-import ru.caselab.edm.backend.entity.Signature;
-import ru.caselab.edm.backend.entity.User;
-import ru.caselab.edm.backend.event.DocumentSignRequestEvent;
-import ru.caselab.edm.backend.exceptions.DocumentForbiddenAccess;
 import ru.caselab.edm.backend.exceptions.WrongDateException;
 import ru.caselab.edm.backend.repository.DocumentRepository;
 import ru.caselab.edm.backend.repository.DocumentTypeRepository;
@@ -26,7 +22,6 @@ import ru.caselab.edm.backend.service.DocumentService;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -51,18 +46,17 @@ public class DocumentServiceImpl implements DocumentService {
                 .orElseThrow(() -> new ResourceNotFoundException("Document not found"));
     }
 
-    @Override
+/*    @Override
     public Page<Document> getAllDocumentForUser(int page, int size, UUID userId) {
         Pageable pageable = PageRequest.of(page, size);
         return documentRepository.getAllDocumentForUser(userId, pageable);
-    }
+    }*/
 
-    @Override
+/*    @Override
     public Document getDocumentForUser(long id, UUID userId) {
-        getDocument(id);
-        return documentRepository.getDocumentForUser(id, userId)
-                .orElseThrow(() -> new DocumentForbiddenAccess("Access to the document is forbidden"));
-    }
+
+        return null;
+    }*/
 
     @Transactional
     @Override
@@ -161,7 +155,7 @@ public class DocumentServiceImpl implements DocumentService {
     @Transactional
     @Override
     public void sendForSign(List<UUID> userIds, Long documentVersionId) {
-        Optional<DocumentVersion> documentVersionOptional = documentVersionRepository.findById(documentVersionId);
+        /*Optional<DocumentVersion> documentVersionOptional = documentVersionRepository.findById(documentVersionId);
         if (documentVersionOptional.isEmpty()) {
             throw new ResourceNotFoundException("Document version not found with id = %d".formatted(documentVersionId));
         }
@@ -173,7 +167,7 @@ public class DocumentServiceImpl implements DocumentService {
             signature.setDocumentVersion(documentVersion);
             signatureRepository.save(signature);
             eventPublisher.publishEvent(new DocumentSignRequestEvent(this, signature));
-        }
+        }*/
 
     }
 }

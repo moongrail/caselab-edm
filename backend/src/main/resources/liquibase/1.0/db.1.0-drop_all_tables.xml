@@ -10,8 +10,10 @@
         DROP TABLE IF EXISTS user_roles CASCADE;
         DROP TABLE IF EXISTS roles CASCADE;
         DROP TABLE IF EXISTS users CASCADE;
-        DROP TABLE IF EXISTS signatures CASCADE;
+
+        DROP TABLE IF EXISTS approvment CASCADE;
         DROP TABLE IF EXISTS document_versions cascade;
+        DROP TABLE IF EXISTS signatures CASCADE;
         DROP TABLE IF EXISTS document_types CASCADE;
         DROP TABLE IF EXISTS documents CASCADE;
         DROP TABLE IF EXISTS document_attribute_values;

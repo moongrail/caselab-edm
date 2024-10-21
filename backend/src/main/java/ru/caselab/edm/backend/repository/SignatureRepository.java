@@ -17,5 +17,5 @@ public interface SignatureRepository extends JpaRepository<Signature, Long> {
      * @param versionId the Long version ID
      * @return true if exists, false otherwise
      */
-    boolean existsByUserIdAndDocumentVersionId(UUID userId, Long versionId);
+    //boolean existsByUserIdAndDocumentVersionId(UUID userId, Long versionId);
 }

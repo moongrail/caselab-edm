@@ -23,9 +23,13 @@ public class Signature {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @OneToOne
+    @JoinColumn(name = "approvement item_id", referencedColumnName = "id")
+    private ApprovementProcessItem approvementProcessItem;
+
+/*    @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    private User user;*/
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
@@ -33,7 +37,7 @@ public class Signature {
     @Column(name = "hash", nullable = false, columnDefinition = "TEXT")
     private String hash;
 
-    @ManyToOne
+/*    @ManyToOne
     @JoinColumn(name = "document_version_id", nullable = false)
-    private DocumentVersion documentVersion;
+    private DocumentVersion documentVersion;*/
 }

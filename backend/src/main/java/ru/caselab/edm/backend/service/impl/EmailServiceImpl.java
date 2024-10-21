@@ -35,7 +35,7 @@ public class EmailServiceImpl implements EmailService {
 
     @Override
     public void sendEmailForSign(Signature signature) {
-        try {
+/*        try {
             log.info("Preparing email to send to user: {}", signature.getUser().getEmail());
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true);
@@ -60,6 +60,6 @@ public class EmailServiceImpl implements EmailService {
             log.info("Email sent successfully to user: {}", user.getEmail());
         } catch (MessagingException e) {
             log.error("Error while sending email to %s: %s".formatted(signature.getUser().getEmail()), e.getMessage());
-        }
+        }*/
     }
 }

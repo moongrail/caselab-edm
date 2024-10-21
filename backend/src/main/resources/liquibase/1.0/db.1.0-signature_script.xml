@@ -5,15 +5,14 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
 
-    <changeSet id="Signatures table creation" author="A192747" runOnChange="true">
+    <changeSet id="Signatures_table_creation" author="A192747" runOnChange="true">
         <sql>
 
             CREATE TABLE IF NOT EXISTS signatures (
                 id                      BIGSERIAL       PRIMARY KEY,
-                user_id                 UUID            REFERENCES      users(id)           ON DELETE CASCADE,
-                created_at              TIMESTAMP       DEFAULT         NOW()               NOT NULL,
-                hash                    TEXT            NOT NULL,
-                document_version_id     BIGINT          REFERENCES      document_versions(id) ON DELETE CASCADE
+                approvement_item_id     Bigint          REFERENCES      approvment_process_item(id),
+                created_at              TIMESTAMP       DEFAULT         NOW(),
+                hash                    TEXT
             );
         </sql>
     </changeSet>
