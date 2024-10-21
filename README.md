@@ -37,11 +37,15 @@ docker push ваш_аккаунт_докер/minio:версия(пример 0.0
 #### Если понадобится сделать хотфикс на вируталке заливайте  в докер хаб и поднимайте на сервере
 #### Поднять приложение
 #### Из папки на сервере можно поднять компоуз
+```
 сd docker 
 
 sudo docker compose -f docker-compose-server.yaml up -d
+```
+
 #### Отдельно каждый образ
-``` sudo docker run -d --net=host --restart unless-stopped \
+```
+sudo docker run -d --net=host --restart unless-stopped \
 -e POSTGRES_USER=postgres \
 -e POSTGRES_PASSWORD=postgres \
 -e POSTGRES_DB=edm \
