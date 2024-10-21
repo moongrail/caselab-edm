@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.caselab.edm.backend.dto.DocumentCreateDTO;
 import ru.caselab.edm.backend.dto.DocumentUpdateDTO;
+import ru.caselab.edm.backend.dto.MinioSaveDto;
 import ru.caselab.edm.backend.entity.Document;
 import ru.caselab.edm.backend.entity.DocumentVersion;
 import ru.caselab.edm.backend.exceptions.ResourceNotFoundException;
@@ -17,12 +18,14 @@ import ru.caselab.edm.backend.entity.User;
 import ru.caselab.edm.backend.event.DocumentSignRequestEvent;
 import ru.caselab.edm.backend.exceptions.DocumentForbiddenAccess;
 import ru.caselab.edm.backend.exceptions.WrongDateException;
+import ru.caselab.edm.backend.mapper.MinioDocumentMapper;
 import ru.caselab.edm.backend.repository.DocumentRepository;
 import ru.caselab.edm.backend.repository.DocumentTypeRepository;
 import ru.caselab.edm.backend.repository.DocumentVersionRepository;
 import ru.caselab.edm.backend.repository.SignatureRepository;
 import ru.caselab.edm.backend.repository.UserRepository;
 import ru.caselab.edm.backend.service.DocumentService;
+import ru.caselab.edm.backend.service.MinioService;
 
 import java.time.Instant;
 import java.util.List;
@@ -39,6 +42,8 @@ public class DocumentServiceImpl implements DocumentService {
     private final DocumentVersionRepository documentVersionRepository;
     private final SignatureRepository signatureRepository;
     private final ApplicationEventPublisher eventPublisher;
+    private final MinioDocumentMapper minioDocumentMapper;
+    private final MinioService minioService;
 
     @Override
     public Page<Document> getAllDocuments(int page, int size) {
@@ -83,8 +88,10 @@ public class DocumentServiceImpl implements DocumentService {
         documentVersion.setDocumentName(document.getName());
         documentVersion.setCreatedAt(Instant.now());
         documentVersion.setUpdatedAt(Instant.now());
-        //TODO: cюда ссылку когда minio подключат
-        documentVersion.setContentUrl("ContentUrl");
+
+        MinioSaveDto saveDto = minioDocumentMapper.map(document);
+        minioService.saveObject(saveDto);
+        documentVersion.setContentUrl(saveDto.objectName());
 
         newDocument = documentRepository.save(newDocument);
 
@@ -127,7 +134,7 @@ public class DocumentServiceImpl implements DocumentService {
         return documentVersionRepository.save(documentVersion);
     }
 
-    private static DocumentVersion getUpdatedDocumentVersion(DocumentUpdateDTO document, Document existingDocument) {
+    private DocumentVersion getUpdatedDocumentVersion(DocumentUpdateDTO document, Document existingDocument) {
 
         // изменения только в последнюю версию документа
         DocumentVersion documentVersion = existingDocument.getDocumentVersion()
@@ -137,8 +144,10 @@ public class DocumentServiceImpl implements DocumentService {
         }
 
         // TODO: спросить может ли быть contentUrl пустым
-        if (document.getContentUrl() != null && !document.getContentUrl().isEmpty()) {
-            documentVersion.setContentUrl(document.getContentUrl());
+        if (document.getData() != null && !document.getData().isEmpty()) {
+            MinioSaveDto saveDto = minioDocumentMapper.map(document);
+            minioService.saveObject(saveDto);
+            documentVersion.setContentUrl(saveDto.objectName());
         }
 
         documentVersion.setUpdatedAt(Instant.now());
@@ -175,5 +184,10 @@ public class DocumentServiceImpl implements DocumentService {
             eventPublisher.publishEvent(new DocumentSignRequestEvent(this, signature));
         }
 
+    }
+
+    private String saveToMinio(MinioSaveDto saveDto) {
+        minioService.saveObject(saveDto);
+        return saveDto.objectName();
     }
 }
