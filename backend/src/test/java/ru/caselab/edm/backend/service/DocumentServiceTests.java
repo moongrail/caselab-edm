@@ -11,11 +11,13 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import ru.caselab.edm.backend.dto.DocumentCreateDTO;
 import ru.caselab.edm.backend.dto.DocumentUpdateDTO;
+import ru.caselab.edm.backend.dto.MinioSaveDto;
 import ru.caselab.edm.backend.entity.Document;
 import ru.caselab.edm.backend.entity.DocumentType;
 import ru.caselab.edm.backend.entity.DocumentVersion;
 import ru.caselab.edm.backend.entity.User;
 import ru.caselab.edm.backend.exceptions.ResourceNotFoundException;
+import ru.caselab.edm.backend.mapper.MinioDocumentMapper;
 import ru.caselab.edm.backend.repository.DocumentRepository;
 import ru.caselab.edm.backend.repository.DocumentTypeRepository;
 import ru.caselab.edm.backend.repository.DocumentVersionRepository;
@@ -48,6 +50,11 @@ class DocumentServiceTests {
     private DocumentTypeRepository documentTypeRepository;
     @Mock
     private DocumentVersionRepository documentVersionRepository;
+
+    @Mock
+    private MinioDocumentMapper minioDocumentMapper;
+    @Mock
+    private MinioService minioService;
 
     @InjectMocks
     private DocumentServiceImpl documentService;
@@ -136,6 +143,7 @@ class DocumentServiceTests {
         documentCreateDTO.setDocumentTypeId(1L);
 
         when(userRepository.findById(any())).thenReturn(Optional.of(document.getUser()));
+        when(minioDocumentMapper.map(documentCreateDTO)).thenReturn(new MinioSaveDto("test", new byte[0]));
         when(documentTypeRepository.findById(any())).thenReturn(Optional.of(document.getDocumentType()));
 
         when(documentRepository.save(any(Document.class))).thenReturn(document);
