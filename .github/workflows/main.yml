@@ -25,3 +25,13 @@ jobs:
       cache_path: 'backend/pom.xml'
       test_report_path: '**/target/surefire-reports/TEST-*.xml'
 
+  build:
+    if: github.ref == 'refs/heads/main'
+    needs: test
+    uses: ./.github/workflows/build.yml
+    with:
+      image_name: 'moongrail/caselab-backend'
+      image_tag: 'latest'
+    secrets:
+      docker_username: ${{ secrets.DOCKER_USERNAME }}
+      docker_password: ${{ secrets.DOCKER_TOKEN }}
