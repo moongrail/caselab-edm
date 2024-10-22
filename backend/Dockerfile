@@ -14,6 +14,6 @@ COPY --from=build /app/target/*.jar app.jar
 
 ENTRYPOINT ["java", "-jar", "app.jar"]
 
-#FROM amazoncorretto:17-alpine-jdk
-#COPY target/*.jar app.jar
-#ENTRYPOINT ["java","-jar","/app.jar"]
+# FROM amazoncorretto:17-alpine-jdk
+# COPY target/*.jar app.jar
+# ENTRYPOINT ["java","-jar","/app.jar"]
