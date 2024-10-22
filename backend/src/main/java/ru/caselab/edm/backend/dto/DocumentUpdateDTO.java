@@ -27,6 +27,6 @@ public class DocumentUpdateDTO {
     @JsonProperty("name")
     private String name;
 
-    @JsonProperty("content_url")
-    private String contentUrl;
+    @JsonProperty("data")
+    private String data;
 }
