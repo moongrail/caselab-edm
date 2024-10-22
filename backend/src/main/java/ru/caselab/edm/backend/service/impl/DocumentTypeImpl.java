@@ -17,8 +17,7 @@ import ru.caselab.edm.backend.repository.AttributeRepository;
 import ru.caselab.edm.backend.repository.DocumentTypeRepository;
 import ru.caselab.edm.backend.service.DocumentTypeService;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Set;
 
 @Service
@@ -102,8 +101,8 @@ public class DocumentTypeImpl implements DocumentTypeService {
         log.info("Document type with id: {} deleted successfully", id);
     }
 
-    private List<Attribute> mapAttributeIdsToEntities(Set<Long> attributeIds) {
-        return new ArrayList<>(attributeRepository.findAllById(attributeIds));
+    private Set<Attribute> mapAttributeIdsToEntities(Set<Long> attributeIds) {
+        return new HashSet<>(attributeRepository.findAllById(attributeIds));
     }
 
     @Override

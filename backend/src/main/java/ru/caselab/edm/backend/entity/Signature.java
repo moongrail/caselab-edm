@@ -24,7 +24,7 @@ public class Signature {
     private Long id;
 
     @OneToOne
-    @JoinColumn(name = "approvement item_id", referencedColumnName = "id")
+    @JoinColumn(name = "approvement_item_id", referencedColumnName = "id")
     private ApprovementProcessItem approvementProcessItem;
 
 /*    @ManyToOne

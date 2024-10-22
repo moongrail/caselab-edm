@@ -29,7 +29,7 @@ class DocumentTypeRepositoryTest {
         attribute.setRequired(true);
         attributesRepository.saveAndFlush(attribute);
 
-        List<Attribute> documentAttributeList = new ArrayList<>();
+        Set<Attribute> documentAttributeList = new HashSet<>();
         documentAttributeList.add(attribute);
 
         DocumentType documentType = new DocumentType();
