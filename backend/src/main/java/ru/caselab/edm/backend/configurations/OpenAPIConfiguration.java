@@ -16,13 +16,10 @@ import org.springframework.context.annotation.Configuration;
                 title = "Document Management System API",
                 version = "1.0"
         ),
-        servers = {@Server(
+        servers = @Server(
                 url = "http://localhost:8080/api/v1",
                 description = "Local server"
-        ), @Server(
-                url = "http://172.18.27.103:8080/api/v1",
-                description = "Virtual server"
-        )}
+        )
 )
 public class OpenAPIConfiguration {
 
