@@ -7,18 +7,14 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import ru.caselab.edm.backend.dto.CreateUserDTO;
-import ru.caselab.edm.backend.dto.UpdatePasswordDTO;
-import ru.caselab.edm.backend.dto.UpdateUserDTO;
-import ru.caselab.edm.backend.dto.UserDTO;
-import ru.caselab.edm.backend.dto.UserPageDTO;
+import ru.caselab.edm.backend.dto.*;
 import ru.caselab.edm.backend.service.UserService;
 
 import java.util.UUID;
@@ -159,5 +155,17 @@ public class UserController {
             @PathVariable("id") UUID id) {
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Login")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successfully login", content = @Content(schema = @Schema(implementation = JwtDTO.class))),
+            @ApiResponse(responseCode = "401", description = "Invalid login or password", content = @Content)
+    })
+    @PostMapping("/auth")
+    public ResponseEntity<JwtDTO> authUser(
+            @Parameter(description = "User login details")
+            @RequestBody LoginUserDTO loginUserDTO) {
+        return ResponseEntity.ok(userService.auth(loginUserDTO));
     }
 }
