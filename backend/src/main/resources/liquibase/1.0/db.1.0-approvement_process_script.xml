@@ -12,7 +12,7 @@
             (
                 id BIGSERIAL PRIMARY KEY,
                 document_version_id BIGINT REFERENCES document_versions(id),
-                status VARCHAR(100),
+                status text,
                 deadline TIMESTAMP DEFAULT NOW(),
                 agreement_procent FLOAT
             );

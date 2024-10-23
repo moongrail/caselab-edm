@@ -14,7 +14,7 @@
                 document_version_id BIGINT REFERENCES document_versions(id),
                 app_procc_id BIGINT REFERENCES approvement_process(id),
                 user_id UUID REFERENCES users(id),
-                status VARCHAR(100),
+                status TEXT,
                 created_at TIMESTAMP DEFAULT NOW(),
                 agreement_procent FLOAT
             );

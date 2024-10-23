@@ -2,6 +2,8 @@ package ru.caselab.edm.backend.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -30,6 +32,7 @@ public class ApprovementProcess {
     private DocumentVersion documentVersion;
 
     @Column(name = "status")
+    @Enumerated(value = EnumType.STRING)
     private ApprovementProcessStatus status;
 
     @Column(name = "deadline")
