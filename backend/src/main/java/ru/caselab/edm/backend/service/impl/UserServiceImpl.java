@@ -9,19 +9,18 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.caselab.edm.backend.dto.CreateUserDTO;
-import ru.caselab.edm.backend.dto.UpdatePasswordDTO;
-import ru.caselab.edm.backend.dto.UpdateUserDTO;
-import ru.caselab.edm.backend.dto.UserDTO;
-import ru.caselab.edm.backend.dto.UserPageDTO;
+import ru.caselab.edm.backend.dto.*;
 import ru.caselab.edm.backend.entity.Role;
 import ru.caselab.edm.backend.entity.User;
+import ru.caselab.edm.backend.entity.UserInfoDetails;
 import ru.caselab.edm.backend.enums.RoleName;
 import ru.caselab.edm.backend.exceptions.ResourceNotFoundException;
 import ru.caselab.edm.backend.exceptions.UserAlreadyExistsException;
 import ru.caselab.edm.backend.mapper.UserMapper;
 import ru.caselab.edm.backend.repository.RoleRepository;
 import ru.caselab.edm.backend.repository.UserRepository;
+import ru.caselab.edm.backend.security.service.JwtService;
+import ru.caselab.edm.backend.security.service.RefreshTokenService;
 import ru.caselab.edm.backend.service.UserService;
 
 import java.util.HashSet;
@@ -37,13 +36,17 @@ public class UserServiceImpl implements UserService {
     private final RoleRepository roleRepository;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
+    private final RefreshTokenService refreshTokenService;
 
     @Autowired
-    public UserServiceImpl(UserRepository userRepository, RoleRepository roleRepository, UserMapper userMapper, PasswordEncoder passwordEncoder) {
+    public UserServiceImpl(UserRepository userRepository, RoleRepository roleRepository, UserMapper userMapper, PasswordEncoder passwordEncoder, JwtService jwtService, RefreshTokenService refreshTokenService) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.userMapper = userMapper;
         this.passwordEncoder = passwordEncoder;
+        this.jwtService = jwtService;
+        this.refreshTokenService = refreshTokenService;
     }
 
     @Transactional(readOnly = true)
@@ -182,6 +185,26 @@ public class UserServiceImpl implements UserService {
             log.warn("User not found with id: {}", id);
             throw new ResourceNotFoundException("User not found with this id = %s".formatted(id));
         }
+    }
+
+    @Transactional
+    @Override
+    public JwtDTO auth(LoginUserDTO loginUserDTO) {
+        log.info("Getting user with login: {}", loginUserDTO.login());
+        User existingUser = userRepository.findUserByLogin(loginUserDTO.login()).orElseThrow(() -> new BadCredentialsException("Invalid login or password"));
+        log.info("User with login: {} successfully received", loginUserDTO.login());
+
+        log.info("Checking user and DTO for password equality");
+
+        if (passwordEncoder.matches(loginUserDTO.password(), existingUser.getPassword())) {
+            log.info("Passwords are equals");
+            log.info("Creating JwtDTO");
+            JwtDTO jwtDTO = new JwtDTO(refreshTokenService.createRefreshToken(existingUser.getLogin()).getToken(), jwtService.generateToken(new UserInfoDetails(existingUser)));
+            log.info("JwtDTO successfully created");
+
+            return jwtDTO;
+        } else
+            throw new BadCredentialsException("Invalid login or password");
     }
 }
 

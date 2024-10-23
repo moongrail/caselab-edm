@@ -1,11 +1,6 @@
 package ru.caselab.edm.backend.service;
 
-import org.springframework.data.domain.Page;
-import ru.caselab.edm.backend.dto.CreateUserDTO;
-import ru.caselab.edm.backend.dto.UpdatePasswordDTO;
-import ru.caselab.edm.backend.dto.UpdateUserDTO;
-import ru.caselab.edm.backend.dto.UserDTO;
-import ru.caselab.edm.backend.dto.UserPageDTO;
+import ru.caselab.edm.backend.dto.*;
 
 import java.util.UUID;
 
@@ -22,5 +17,7 @@ public interface UserService {
     void updatePassword(UUID id, UpdatePasswordDTO updatePasswordDTO);
 
     void deleteUser(UUID id);
+    
+    JwtDTO auth(LoginUserDTO loginUserDTO);
 
 }
