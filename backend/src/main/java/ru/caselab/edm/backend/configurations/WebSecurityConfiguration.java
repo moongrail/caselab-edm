@@ -38,7 +38,7 @@ public class WebSecurityConfiguration {
             "/swagger/**",
             "/jwt/**",
             "/check/**",
-            "/api/v1/error"
+            "/api/v1/error",
     };
     private final JwtFilter jwtFilter;
 
@@ -57,7 +57,8 @@ public class WebSecurityConfiguration {
                 .authorizeHttpRequests(auth -> auth
                                 .requestMatchers(WHITELIST).permitAll()
                                 .requestMatchers("/error").permitAll()
-                                .requestMatchers(HttpMethod.POST, "/users/**").permitAll()
+                                .requestMatchers(HttpMethod.POST, "/users").permitAll()
+                                .requestMatchers("/users/auth").permitAll()
                                 .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
