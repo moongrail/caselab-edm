@@ -5,6 +5,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -66,7 +67,7 @@ class DocumentServiceTests {
         MockitoAnnotations.openMocks(this);
 
         User user = new User();
-        user.setId(UUID.randomUUID());
+        user.setId(UUID.fromString("48bbbd31-45c0-43c5-b989-c1c14a8c3b8b"));
         user.setPassword("password");
         user.setFirstName("firstName");
         user.setLastName("lastName");
@@ -110,6 +111,64 @@ class DocumentServiceTests {
         assertEquals(expectedPage.getContent(), actualPage.getContent());
         verify(documentRepository).findAll(PageRequest.of(0, 10));
     }
+
+    @Test
+    @DisplayName("Get All Documents for User")
+    void getAllDocumentForUser() {
+        Page<Document> expectedPage = new PageImpl<>(Collections.singletonList(document));
+
+        Mockito.when(documentRepository.getAllDocumentForUser(
+                        UUID.fromString("48bbbd31-45c0-43c5-b989-c1c14a8c3b8b"),
+                        PageRequest.of(0, 10)))
+                .thenReturn(expectedPage);
+
+        Page<Document> actualPage = documentService.getAllDocumentForUser(0,
+                10,
+                UUID.fromString("48bbbd31-45c0-43c5-b989-c1c14a8c3b8b"));
+
+        assertEquals(expectedPage.getTotalElements(), actualPage.getTotalElements());
+        assertEquals(expectedPage.getContent(), actualPage.getContent());
+        verify(documentRepository).getAllDocumentForUser(
+                UUID.fromString("48bbbd31-45c0-43c5-b989-c1c14a8c3b8b"),
+                PageRequest.of(0, 10));
+    }
+
+    @Test
+    @DisplayName("Get Document For User Success")
+    void getDocumentForUserSuccess() {
+        Mockito.when(documentRepository.getDocumentForUser(
+                1L,
+                UUID.fromString("48bbbd31-45c0-43c5-b989-c1c14a8c3b8b"))
+        ).thenReturn(Optional.of(document));
+
+        assertEquals(document.getId(), documentService.getDocumentForUser(
+                1L,
+                UUID.fromString("48bbbd31-45c0-43c5-b989-c1c14a8c3b8b")).getId());
+        assertEquals(document.getUser(), documentService.getDocumentForUser(
+                1L,
+                UUID.fromString("48bbbd31-45c0-43c5-b989-c1c14a8c3b8b")).getUser());
+        assertEquals(document.getDocumentType(), documentService.getDocumentForUser(
+                1L,
+                UUID.fromString("48bbbd31-45c0-43c5-b989-c1c14a8c3b8b")).getDocumentType());
+    }
+
+    @Test
+    @DisplayName("Document for User not found")
+    void getDocumentForUser_NotFound() {
+        Mockito.when(documentRepository.getDocumentForUser(
+                        1L,
+                        UUID.fromString("48bbbd31-45c0-43c5-b989-c1c14a8c3b8b")))
+                .thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> documentService.getDocumentForUser(
+                1L,
+                UUID.fromString("48bbbd31-45c0-43c5-b989-c1c14a8c3b8b")));
+
+        verify(documentRepository).getDocumentForUser(
+                1L,
+                UUID.fromString("48bbbd31-45c0-43c5-b989-c1c14a8c3b8b"));
+    }
+
 
     @Test
     @DisplayName("Get Document success")

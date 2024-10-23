@@ -8,9 +8,7 @@ import org.springframework.test.context.ActiveProfiles;
 import ru.caselab.edm.backend.entity.Attribute;
 import ru.caselab.edm.backend.entity.DocumentType;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 @ActiveProfiles("test")

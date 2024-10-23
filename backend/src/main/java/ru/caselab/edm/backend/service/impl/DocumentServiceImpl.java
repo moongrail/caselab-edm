@@ -51,17 +51,17 @@ public class DocumentServiceImpl implements DocumentService {
                 .orElseThrow(() -> new ResourceNotFoundException("Document not found"));
     }
 
-/*    @Override
+    @Override
     public Page<Document> getAllDocumentForUser(int page, int size, UUID userId) {
         Pageable pageable = PageRequest.of(page, size);
         return documentRepository.getAllDocumentForUser(userId, pageable);
-    }*/
+    }
 
-/*    @Override
+    @Override
     public Document getDocumentForUser(long id, UUID userId) {
-
-        return null;
-    }*/
+        return documentRepository.getDocumentForUser(id, userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Document not found"));
+    }
 
     @Transactional
     @Override
