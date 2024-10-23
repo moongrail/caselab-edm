@@ -12,6 +12,7 @@ import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
+import ru.caselab.edm.backend.enums.ApprovementProcessItemStatus;
 
 import java.time.LocalDateTime;
 
@@ -36,7 +37,7 @@ public class ApprovementProcessItem {
     private LocalDateTime createdAt;
 
     @Column(name = "status")
-    private String status;
+    private ApprovementProcessItemStatus status;
 
     @ManyToOne
     @JoinColumn(name = "document_version_id")
