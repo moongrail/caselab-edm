@@ -1,0 +1,53 @@
+name: Deploy workflow
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        type: string
+        required: true
+      scp_local:
+        type: string
+        required: true
+      scp_remote:
+        type: string
+        required: true
+    secrets:
+      SERVER_HOST:
+        required: true
+      SERVER_USERNAME:
+        required: true
+      SERVER_PASSWORD:
+        required: true
+      SERVER_PORT:
+        required: true
+
+jobs:
+  deploy:
+    environment: ${{ inputs.environment }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Copy docker-compose to the server
+        uses: garygrossgarten/github-action-scp@0.9.0
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USERNAME }}
+          password: ${{ secrets.SERVER_PASSWORD }}
+          port: ${{ secrets.SERVER_PORT }}
+          local: ${{ inputs.scp_local }}
+          remote: ${{ inputs.scp_remote }}
+
+      - name: Restart docker compose containers
+        uses: appleboy/ssh-action@v1.1.0
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USERNAME }}
+          password: ${{ secrets.SERVER_PASSWORD }}
+          port: ${{ secrets.SERVER_PORT }}
+          script: |
+            cd docker
+            sudo docker compose -f docker-compose-server-yaml --pull
+            sudo docker compose -f docker-compose-server.yaml up -d
