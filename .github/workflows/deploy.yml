@@ -49,5 +49,5 @@ jobs:
           port: ${{ secrets.SERVER_PORT }}
           script: |
             cd docker
-            sudo docker compose -f docker-compose-server-yaml --pull
+            sudo docker compose -f docker-compose-server-yaml pull
             sudo docker compose -f docker-compose-server.yaml up -d
