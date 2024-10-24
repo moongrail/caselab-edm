@@ -2,15 +2,15 @@ package ru.caselab.edm.backend.event;
 
 import lombok.Getter;
 import org.springframework.context.ApplicationEvent;
-import ru.caselab.edm.backend.entity.Signature;
+import ru.caselab.edm.backend.entity.ApprovementProcessItem;
 
 @Getter
 public class DocumentSignRequestEvent extends ApplicationEvent {
 
-    private final Signature signature;
+    private final ApprovementProcessItem approvementProcessItem;
 
-    public DocumentSignRequestEvent(Object source, Signature signature) {
+    public DocumentSignRequestEvent(Object source, ApprovementProcessItem approvementProcessItem) {
         super(source);
-        this.signature = signature;
+        this.approvementProcessItem = approvementProcessItem;
     }
 }

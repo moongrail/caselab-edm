@@ -7,14 +7,24 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.caselab.edm.backend.dto.ApprovementProcessItemDTO;
 import ru.caselab.edm.backend.dto.DocumentCreateDTO;
 import ru.caselab.edm.backend.dto.DocumentUpdateDTO;
 import ru.caselab.edm.backend.dto.MinioSaveDto;
+import ru.caselab.edm.backend.entity.ApprovementProcessItem;
 import ru.caselab.edm.backend.entity.Document;
 import ru.caselab.edm.backend.entity.DocumentVersion;
+import ru.caselab.edm.backend.entity.User;
+import ru.caselab.edm.backend.entity.UserInfoDetails;
+import ru.caselab.edm.backend.enums.ApprovementProcessItemStatus;
+import ru.caselab.edm.backend.event.DocumentSignRequestEvent;
+import ru.caselab.edm.backend.exceptions.ApprovementProccessItemAlreadyExistsException;
+import ru.caselab.edm.backend.exceptions.DocumentForbiddenAccess;
 import ru.caselab.edm.backend.exceptions.ResourceNotFoundException;
 import ru.caselab.edm.backend.exceptions.WrongDateException;
+import ru.caselab.edm.backend.mapper.ApprovementProccessItemMapper;
 import ru.caselab.edm.backend.mapper.MinioDocumentMapper;
+import ru.caselab.edm.backend.repository.ApprovementItemRepository;
 import ru.caselab.edm.backend.repository.DocumentRepository;
 import ru.caselab.edm.backend.repository.DocumentTypeRepository;
 import ru.caselab.edm.backend.repository.DocumentVersionRepository;
@@ -24,7 +34,8 @@ import ru.caselab.edm.backend.service.DocumentService;
 import ru.caselab.edm.backend.service.MinioService;
 
 import java.time.Instant;
-import java.util.List;
+import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -39,6 +50,8 @@ public class DocumentServiceImpl implements DocumentService {
     private final ApplicationEventPublisher eventPublisher;
     private final MinioDocumentMapper minioDocumentMapper;
     private final MinioService minioService;
+    private final ApprovementItemRepository approvementItemRepository;
+    private final ApprovementProccessItemMapper approvementProccessItemMapper;
 
     @Override
     public Page<Document> getAllDocuments(int page, int size) {
@@ -163,21 +176,31 @@ public class DocumentServiceImpl implements DocumentService {
 
     @Transactional
     @Override
-    public void sendForSign(List<UUID> userIds, Long documentVersionId) {
-        /*Optional<DocumentVersion> documentVersionOptional = documentVersionRepository.findById(documentVersionId);
+    public ApprovementProcessItemDTO sendForSign(UUID userId, Long documentVersionId, UserInfoDetails authenticatedUser) {
+        Optional<DocumentVersion> documentVersionOptional = documentVersionRepository.findById(documentVersionId);
         if (documentVersionOptional.isEmpty()) {
             throw new ResourceNotFoundException("Document version not found with id = %d".formatted(documentVersionId));
         }
+        Optional<User> userOptional = userRepository.findById(userId);
+        if (userOptional.isEmpty()) {
+            throw new ResourceNotFoundException("User not found with id = %s".formatted(userId));
+        }
+        User user = userOptional.get();
         DocumentVersion documentVersion = documentVersionOptional.get();
-        List<User> users = userRepository.findAllById(userIds);
-        for (User user : users) {
-            Signature signature = new Signature();
-            signature.setUser(user);
-            signature.setDocumentVersion(documentVersion);
-            signatureRepository.save(signature);
-            eventPublisher.publishEvent(new DocumentSignRequestEvent(this, signature));
-        }*/
-
+        if (!documentVersion.getDocument().getUser().getId().equals(authenticatedUser.getId())) {
+            throw new DocumentForbiddenAccess("You don't have access to this document with id = %d".formatted(documentVersionId));
+        }
+        if (approvementItemRepository.existsByDocumentVersionIdAndUserId(documentVersion.getId(), user.getId())) {
+            throw new ApprovementProccessItemAlreadyExistsException("Provided document already sent to user");
+        }
+        ApprovementProcessItem approvementProcessItem = new ApprovementProcessItem();
+        approvementProcessItem.setUser(user);
+        approvementProcessItem.setDocumentVersion(documentVersion);
+        approvementProcessItem.setStatus(ApprovementProcessItemStatus.IN_PROGRESS);
+        approvementProcessItem.setCreatedAt(LocalDateTime.now());
+        approvementItemRepository.save(approvementProcessItem);
+        eventPublisher.publishEvent(new DocumentSignRequestEvent(this, approvementProcessItem));
+        return approvementProccessItemMapper.toDTO(approvementProcessItem);
     }
 
     private String saveToMinio(MinioSaveDto saveDto) {

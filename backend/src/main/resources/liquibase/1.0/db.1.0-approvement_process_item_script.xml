@@ -16,7 +16,7 @@
                 user_id UUID REFERENCES users(id),
                 status TEXT,
                 created_at TIMESTAMP DEFAULT NOW(),
-                agreement_procent FLOAT
+                UNIQUE(document_version_id, user_id)
             );
 
             CREATE SEQUENCE IF NOT EXISTS approvment_process_item_sequence START WITH 1 INCREMENT BY 1;
