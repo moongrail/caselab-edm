@@ -8,5 +8,4 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/approval")
 public class ApprovementProcessController {
 
-    public ResponseEntity<A>
 }
