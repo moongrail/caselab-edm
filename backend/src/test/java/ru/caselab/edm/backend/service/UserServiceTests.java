@@ -75,7 +75,7 @@ public class UserServiceTests {
         roleDTOS.add(new RoleDTO(1L, "USER"));
         role = Role.builder()
                 .id(1L)
-                .name(RoleName.USER.name())
+                .name(RoleName.USER)
                 .build();
     }
 

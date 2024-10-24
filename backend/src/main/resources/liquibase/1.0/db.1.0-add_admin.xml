@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+
+    <changeSet id="db.1.0-add_admin" author="Shukhrat" runOnChange="true">
+        <sql>
+            INSERT INTO users VALUES
+            ('852633e8-d6c3-4cf6-8e9e-eb9690537b61', 'admin', 'caselabedm@mail.ru',
+            '$2a$10$j9t3hZ7JFqf2/ti/r3dp5.WXMwOx8QTU4eucC9qgyQ1YIW/46eRvK',
+            'Админ', 'Админов', 'Админович');
+
+            INSERT INTO user_roles VALUES('852633e8-d6c3-4cf6-8e9e-eb9690537b61', 1)
+        </sql>
+    </changeSet>
+</databaseChangeLog>
