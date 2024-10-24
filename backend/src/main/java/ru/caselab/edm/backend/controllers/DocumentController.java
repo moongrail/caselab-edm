@@ -14,6 +14,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -40,6 +41,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Tag(name = "Document", description = "Document management operations")
 @SecurityRequirement(name = "bearer-jwt")
+@PreAuthorize("hasRole('USER')")
 public class DocumentController {
 
     private final DocumentService documentService;
