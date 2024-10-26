@@ -11,11 +11,12 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import ru.caselab.edm.backend.dto.AttributeDTO;
 import ru.caselab.edm.backend.dto.DocumentAttributeValueCreateDTO;
 import ru.caselab.edm.backend.dto.DocumentAttributeValueUpdateDTO;
 import ru.caselab.edm.backend.dto.DocumentAttributeValueDTO;
 import ru.caselab.edm.backend.service.DocumentAttributeValueService;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/attribute-values")
@@ -27,6 +28,22 @@ public class DocumentAttributeValueController {
 
     public DocumentAttributeValueController(DocumentAttributeValueService attributeValueService) {
         this.documentAttributeValueService = attributeValueService;
+    }
+
+    @Operation(summary = "Get list of attributes values by document version id")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Attributes values found and returned successfully",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = DocumentAttributeValueDTO.class))),
+            @ApiResponse(responseCode = "404", description = "Not found document version by current id",
+                    content = @Content)
+    })
+    @GetMapping("/documents/version/{documentVersionId}")
+    public ResponseEntity<List<DocumentAttributeValueDTO>> getValuesByDocumentVersionId(
+            @Parameter(description = "List of attributes values by document version id")
+            @PathVariable Long documentVersionId
+    ){
+        List<DocumentAttributeValueDTO> values = documentAttributeValueService.getDocumentAttributeValuesByDocumentId(documentVersionId);
+        return new ResponseEntity<>(values, HttpStatus.OK);
     }
 
     @Operation(summary = "Create an document attribute value",
@@ -65,6 +82,7 @@ public class DocumentAttributeValueController {
         DocumentAttributeValueDTO value = documentAttributeValueService.getDocumentAttributeValueByDocumentAndAttribute(documentId, attributeId);
         return new ResponseEntity<>(value, HttpStatus.OK);
     }
+
 
     @Operation(
             summary = "Get document attribute value by id",

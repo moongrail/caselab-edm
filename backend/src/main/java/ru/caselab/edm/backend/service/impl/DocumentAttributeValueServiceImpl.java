@@ -15,6 +15,8 @@ import ru.caselab.edm.backend.service.AttributeService;
 import ru.caselab.edm.backend.service.DocumentAttributeValueService;
 import ru.caselab.edm.backend.service.DocumentVersionService;
 
+import java.util.List;
+
 @Service
 @Slf4j
 public class DocumentAttributeValueServiceImpl implements DocumentAttributeValueService {
@@ -59,6 +61,15 @@ public class DocumentAttributeValueServiceImpl implements DocumentAttributeValue
                 });
         log.info("Document Attribute value with id: {} found", id);
         return documentAttributeValueMapper.toDTO(documentAttributeValue);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<DocumentAttributeValueDTO> getDocumentAttributeValuesByDocumentId(Long id) {
+        log.info("Getting attribute values by document id: {}", id);
+        documentVersionService.getDocumentVersion(id);
+        List<DocumentAttributeValue> values = documentAttributeValueRepository.findByDocumentVersionId(id);
+        return documentAttributeValueMapper.toDto(values);
     }
 
     @Transactional
@@ -109,4 +120,5 @@ public class DocumentAttributeValueServiceImpl implements DocumentAttributeValue
         documentAttributeValueRepository.deleteById(id);
         log.info("Attribute value with ID: {} deleted successfully.", id);
     }
+
 }
