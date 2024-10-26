@@ -4,7 +4,6 @@ import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -31,7 +30,7 @@ public class UserInfoDetails implements UserDetails {
         List<SimpleGrantedAuthority> auths = new ArrayList<>();
 
         for (Role role : user.getRoles()) {
-            auths.add(new SimpleGrantedAuthority("ROLE_" + role.getName().toUpperCase()));
+            auths.add(new SimpleGrantedAuthority("ROLE_" + role.getName().name()));
         }
 
         return auths;
