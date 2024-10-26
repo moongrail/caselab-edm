@@ -17,7 +17,7 @@ on:
         required: true
       SERVER_USERNAME:
         required: true
-      SERVER_PASSWORD:
+      SERVER_KEY:
         required: true
       SERVER_PORT:
         required: true
