@@ -1,4 +1,4 @@
-name: CI Pipeline
+name: CI/CD Pipeline
 
 on:
   push:
@@ -7,6 +7,7 @@ on:
     paths:
       - 'backend/**'
       - '.github/workflows/**'
+      - 'docker/docker-compose-server.yaml'
   pull_request:
     branches:
       - main
@@ -35,3 +36,13 @@ jobs:
     secrets:
       docker_username: ${{ secrets.DOCKER_USERNAME }}
       docker_password: ${{ secrets.DOCKER_TOKEN }}
+
+  deploy-prod:
+    if: github.ref == 'refs/heads/main'
+    needs: build
+    uses: ./.github/workflows/deploy.yml
+    with:
+      environment: prod
+      scp_local: 'docker/docker-compose-server.yaml'
+      scp_remote: '/home/ubuntu'
+    secrets: inherit
