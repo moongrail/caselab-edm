@@ -25,12 +25,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import ru.caselab.edm.backend.dto.ApprovementProcessItemDTO;
-import ru.caselab.edm.backend.dto.DocumentCreateDTO;
-import ru.caselab.edm.backend.dto.DocumentDTO;
-import ru.caselab.edm.backend.dto.DocumentPageDTO;
-import ru.caselab.edm.backend.dto.DocumentUpdateDTO;
-import ru.caselab.edm.backend.dto.DocumentVersionDTO;
+import ru.caselab.edm.backend.dto.*;
 import ru.caselab.edm.backend.entity.UserInfoDetails;
 import ru.caselab.edm.backend.mapper.DocumentMapper;
 import ru.caselab.edm.backend.mapper.DocumentVersionMapper;
@@ -51,7 +46,7 @@ public class DocumentController {
     private final SignatureService signatureService;
     private final DocumentVersionMapper documentVersionMapper;
 
-/*    @Operation(summary = "Sign document with given id")
+   @Operation(summary = "Sign document with given id")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Document was successfully signed",
                     content = @Content),
@@ -61,9 +56,10 @@ public class DocumentController {
     @ResponseStatus(HttpStatus.OK)
     public void signDocument(@Valid @RequestBody SignatureCreateDTO signatureCreateDTO,
                              @Parameter(description = "Document id", required = true, example = "1")
-                             @PathVariable Long id) {
-        signatureService.sign(signatureCreateDTO, id);
-    }*/
+                             @PathVariable Long id,
+                             @AuthenticationPrincipal UserInfoDetails authenticatedUser) {
+        signatureService.sign(signatureCreateDTO, id, authenticatedUser);
+    }
 
     @Operation(
             summary = "Send document for signature",

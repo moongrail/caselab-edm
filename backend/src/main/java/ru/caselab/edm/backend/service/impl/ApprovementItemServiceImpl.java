@@ -7,7 +7,7 @@ import ru.caselab.edm.backend.service.ApprovementItemService;
 import java.util.UUID;
 
 @Service
-public class ApprovementItemServeceImpl implements ApprovementItemService {
+public class ApprovementItemServiceImpl implements ApprovementItemService {
     @Override
     public ApprovementProcessItem createItemForAprovementProcess(UUID UserId, Long documentVersionId, Long processId) {
         return null;
