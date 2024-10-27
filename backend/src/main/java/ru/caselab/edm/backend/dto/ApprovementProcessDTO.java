@@ -18,7 +18,7 @@ public class ApprovementProcessDTO {
 
     private LocalDateTime deadline;
 
-    private float agreementProcent;
+    private float agreementPercent;
 
     private List<Long> approvementProcessItemsIds;
 }
