@@ -16,7 +16,6 @@ import ru.caselab.edm.backend.service.SignatureService;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
@@ -42,14 +41,13 @@ public class SignatureServiceImpl implements SignatureService {
             throw new ResourceNotFoundException("User not found with id = %s".formatted(createDTO.getUserId()));
 
         User user = userOptional.get();
-        DocumentVersion documentVersion = documentVersionOptional.get();
-        if (!documentVersion.getDocument().getUser().getId().equals(authenticatedUser.getId()))
-            throw new DocumentForbiddenAccess("You don't have a access to document with id = %d".formatted(documentVersionId));
 
-        if (!approvementItemRepository.existsByDocumentVersionIdAndUserId(documentVersionId, user.getId()))
+        Optional<ApprovementProcessItem> approvementProcessItemOptional = approvementItemRepository.findByDocumentVersionIdAndUserId(documentVersionId, user.getId());
+
+        if (approvementProcessItemOptional.isEmpty())
             throw new ResourceNotFoundException("Signing request not found");
 
-        ApprovementProcessItem approvementProcessItem = approvementItemRepository.findByDocumentVersionIdAndUserId(documentVersionId, user.getId()).get();
+        ApprovementProcessItem approvementProcessItem = approvementProcessItemOptional.get();
         approvementProcessItem.setStatus(ApprovementProcessItemStatus.valueOf(createDTO.getStatus()));
 
         Signature signature = new Signature();
