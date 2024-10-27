@@ -16,5 +16,7 @@
     <include file="liquibase/1.0/db.1.0-approvement_process_item_script.xml"/>
     <include file="liquibase/1.0/db.1.0-signature_script.xml"/>
     <include file="liquibase/1.0/db.1.0-add_roles.xml"/>
+    <include file="liquibase/1.0/db.1.0-remove_not_null_signature.xml"/>
+    <include file="liquibase/1.0/db.1.0-add_admin.xml"/>
 
 </databaseChangeLog>

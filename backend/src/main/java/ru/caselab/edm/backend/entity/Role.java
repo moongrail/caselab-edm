@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import ru.caselab.edm.backend.enums.RoleName;
 
 import java.util.Set;
 
@@ -23,7 +24,8 @@ public class Role {
     private Long id;
 
     @Column(nullable = false, unique = true)
-    private String name;
+    @Enumerated(EnumType.STRING)
+    private RoleName name;
 
     @ManyToMany(mappedBy = "roles")
     private Set<User> users;
