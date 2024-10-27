@@ -99,7 +99,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ApprovementProccessItemAlreadyExistsException.class)
     ResponseEntity<String> handleApprovementProccessItemAlreadyExistsException(ApprovementProccessItemAlreadyExistsException ex) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.CONFLICT);
-      
+    }
+    
     @ExceptionHandler(AuthorizationDeniedException.class)
     ResponseEntity<String> handleAuthorizationDeniedException(AuthorizationDeniedException ex) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.FORBIDDEN);
