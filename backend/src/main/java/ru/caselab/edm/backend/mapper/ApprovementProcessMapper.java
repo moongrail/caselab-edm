@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring")
-interface ApprovementProcessMapper {
+public interface ApprovementProcessMapper {
 
     @Mapping(source = "approvementProcessItems", target = "approvementProcessItemsIds")
     @Mapping(source = "documentVersion.id", target = "documentVersionId")

@@ -30,6 +30,7 @@ import ru.caselab.edm.backend.dto.*;
 import ru.caselab.edm.backend.entity.UserInfoDetails;
 import ru.caselab.edm.backend.mapper.DocumentMapper;
 import ru.caselab.edm.backend.mapper.DocumentVersionMapper;
+import ru.caselab.edm.backend.service.ApprovementService;
 import ru.caselab.edm.backend.service.DocumentService;
 import ru.caselab.edm.backend.service.SignatureService;
 
@@ -47,6 +48,27 @@ public class DocumentController {
     private final DocumentMapper documentMapper;
     private final SignatureService signatureService;
     private final DocumentVersionMapper documentVersionMapper;
+    private final ApprovementService approvementService;
+
+    @Operation(
+            summary = "Start approval process for current document version"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Approval process was startes",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApprovementProcessDTO.class))),
+            @ApiResponse(responseCode = "404", description = "Document with provided version ID not found or user not found with provided ID",
+                    content = @Content),
+            @ApiResponse(responseCode = "403", description = "Access to the document is forbidden", content = @Content),
+            @ApiResponse(responseCode = "409", description = "Document already sent to user", content = @Content)
+    })
+    @PostMapping("/approvement/start")
+    public ResponseEntity<ApprovementProcessDTO> startApprovement(
+            @Valid @RequestBody ApprovementProcessCreateDTO processCreateDTO,
+            @AuthenticationPrincipal UserInfoDetails authenticatedUser
+    ){
+        return new ResponseEntity<>(approvementService.createApprovementProcess(processCreateDTO, authenticatedUser), HttpStatus.OK);
+    }
+
 
    @Operation(summary = "Sign document with given id")
     @ApiResponses(value = {
