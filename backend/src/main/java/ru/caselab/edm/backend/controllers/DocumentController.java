@@ -98,10 +98,10 @@ public class DocumentController {
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = DocumentPageDTO.class)))
     @GetMapping()
     @ResponseStatus(HttpStatus.OK)
-    public DocumentPageDTO getAllDocuments(@RequestParam(name = "page", defaultValue = "0") @Min(value = 0) int page,
+    public DocumentVersionPageDto getAllDocuments(@RequestParam(name = "page", defaultValue = "0") @Min(value = 0) int page,
                                            @RequestParam(name = "size", defaultValue = "10") @Min(value = 1) @Max(value = 100) int size,
                                            @AuthenticationPrincipal UserInfoDetails user) {
-        return documentMapper.toDtoPage(documentService.getAllDocumentForUser(page, size, user.getId()));
+        return documentVersionMapper.toDtoPage(documentService.getAllDocumentForUser(page, size, user.getId()));
     }
 
     @Operation(summary = "Returning document of the current user by id")
@@ -113,11 +113,11 @@ public class DocumentController {
     })
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public DocumentDTO getDocumentById(
+    public DocumentVersionDTO getDocumentById(
             @Parameter(description = "Document id", required = true, example = "1")
             @PathVariable Long id,
                                        @AuthenticationPrincipal UserInfoDetails user) {
-        return documentMapper.toDto(documentService.getDocumentForUser(id, user.getId()));
+        return documentVersionMapper.toDto(documentService.getDocumentForUser(id, user.getId()));
     }
 
     @Operation(summary = "Updating document fields")

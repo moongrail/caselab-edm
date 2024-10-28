@@ -3,6 +3,7 @@ package ru.caselab.edm.backend.service.impl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -57,16 +58,21 @@ public class DocumentServiceImpl implements DocumentService {
     }
 
     @Override
-    public Page<Document> getAllDocumentForUser(int page, int size, UUID userId) {
+    public Page<DocumentVersion> getAllDocumentForUser(int page, int size, UUID userId) {
         Pageable pageable = PageRequest.of(page, size);
-        return documentRepository.getAllDocumentForUser(userId, pageable);
+        Page<Document> documents = documentRepository.getAllDocumentForUser(userId, pageable);
+        List<DocumentVersion> documentVersions = documents.stream()
+                .map(document -> document.getDocumentVersion().get(document.getDocumentVersion().size() - 1))
+                .toList();
+        return new PageImpl<>(documentVersions, pageable, documents.getTotalElements());
     }
 
     @Override
-    public Document getDocumentForUser(long id, UUID userId) {
+    public DocumentVersion getDocumentForUser(long id, UUID userId) {
         getDocument(id);
-        return documentRepository.getDocumentForUser(id, userId)
+        Document document =  documentRepository.getDocumentForUser(id, userId)
                 .orElseThrow(() -> new DocumentForbiddenAccess("Access to the document is forbidden"));
+        return document.getDocumentVersion().get(document.getDocumentVersion().size() - 1);
     }
 
     @Transactional
