@@ -1,13 +1,12 @@
 package ru.caselab.edm.backend.dto;
 
-import jakarta.persistence.*;
-import ru.caselab.edm.backend.entity.ApprovementProcessItem;
-import ru.caselab.edm.backend.entity.DocumentVersion;
+import lombok.Data;
 import ru.caselab.edm.backend.enums.ApprovementProcessStatus;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Data
 public class ApprovementProcessDTO {
 
     private Long id;
