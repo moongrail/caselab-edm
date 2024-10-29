@@ -16,6 +16,7 @@ import lombok.Setter;
 import ru.caselab.edm.backend.enums.ApprovementProcessStatus;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -42,5 +43,5 @@ public class ApprovementProcess {
     private float agreementProcent;
 
     @OneToMany(mappedBy = "approvementProcess")
-    private List<ApprovementProcessItem> approvementProcessItems;
+    private List<ApprovementProcessItem> approvementProcessItems= new ArrayList<>();
 }
