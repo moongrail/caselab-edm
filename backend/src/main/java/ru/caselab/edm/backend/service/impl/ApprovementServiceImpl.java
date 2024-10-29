@@ -41,7 +41,11 @@ public class ApprovementServiceImpl implements ApprovementService {
     public ApprovementProcessDTO createApprovementProcess(ApprovementProcessCreateDTO createProcess, UserInfoDetails authenticatedUser) {
         log.info("Started approval process for document version {}", createProcess.getDocumentVersionId());
         Optional<DocumentVersion> documentVersionOptional = documentVersionRepository.findById(createProcess.getDocumentVersionId());
-        DocumentVersion documentVersion = documentVersionOptional.get();
+        DocumentVersion documentVersion = documentVersionOptional.orElseThrow(() -> {
+            log.warn("Document Version not found with id: {}",createProcess.getDocumentVersionId() );
+            return new ResourceNotFoundException("Attribute not found with id = %s".formatted(createProcess.getDocumentVersionId()));
+
+        });
         if (!documentVersion.getDocument().getUser().getId().equals(authenticatedUser.getId())) {
             throw new DocumentForbiddenAccess("You don't have access to this document with id = %d".formatted(createProcess.getDocumentVersionId()));
         }
