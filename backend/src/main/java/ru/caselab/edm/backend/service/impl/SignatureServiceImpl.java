@@ -35,13 +35,10 @@ public class SignatureServiceImpl implements SignatureService {
 
         signature.setUser(userRepository.findById(createDTO.getUserId())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found")));
-        if (createDTO.getCreationDate() == null) {
-            createDTO.setCreationDate(LocalDateTime.now());
-        }
         signature.setDocumentVersion(documentVersionRepository.findById(documentVersionId)
                 .orElseThrow(() -> new ResourceNotFoundException("DocumentVersion not found"))
         );
-        signature.setCreatedAt(createDTO.getCreationDate());
+        signature.setCreatedAt(LocalDateTime.now());
         signature.setHash(hash(createDTO.getUserId(), documentVersionId));
 
         signatureRepository.save(signature);

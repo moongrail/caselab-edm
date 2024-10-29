@@ -162,7 +162,6 @@ class DocumentServiceTests {
         when(documentRepository.findById(1L)).thenReturn(Optional.of(document));
 
         DocumentUpdateDTO updateDTO = new DocumentUpdateDTO();
-        updateDTO.setCreationDate(LocalDateTime.now().minusDays(1));
         updateDTO.setUserId(UUID.randomUUID());
         updateDTO.setDocumentTypeId(1L);
 
