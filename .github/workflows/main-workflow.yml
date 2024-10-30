@@ -18,7 +18,7 @@ on:
 
 jobs:
   test:
-    uses: ./.github/workflows/test.yml
+    uses: ./.github/workflows/reusable-test.yml
     with:
       java_version: '17'
       java_distribution: 'corretto'
@@ -29,7 +29,7 @@ jobs:
   build:
     if: github.ref == 'refs/heads/main'
     needs: test
-    uses: ./.github/workflows/build.yml
+    uses: ./.github/workflows/reusable-build.yml
     with:
       image_name: 'moongrail/caselab-backend'
       image_tag: 'latest'
@@ -38,7 +38,7 @@ jobs:
   deploy-prod:
     if: github.ref == 'refs/heads/main'
     needs: build
-    uses: ./.github/workflows/deploy.yml
+    uses: ./.github/workflows/reusable-deploy.yml
     with:
       environment: prod
       scp_local: 'docker/docker-compose-server.yaml'
