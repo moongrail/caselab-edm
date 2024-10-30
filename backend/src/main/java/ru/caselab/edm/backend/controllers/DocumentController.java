@@ -26,11 +26,18 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import ru.caselab.edm.backend.dto.*;
+import ru.caselab.edm.backend.dto.ApprovementProcessItemDTO;
+import ru.caselab.edm.backend.dto.DocumentCreateDTO;
+import ru.caselab.edm.backend.dto.DocumentDTO;
+import ru.caselab.edm.backend.dto.DocumentPageDTO;
+import ru.caselab.edm.backend.dto.DocumentUpdateDTO;
+import ru.caselab.edm.backend.dto.DocumentVersionDTO;
+import ru.caselab.edm.backend.dto.SignatureCreateDTO;
 import ru.caselab.edm.backend.entity.UserInfoDetails;
 import ru.caselab.edm.backend.mapper.DocumentMapper;
 import ru.caselab.edm.backend.mapper.DocumentVersionMapper;
 import ru.caselab.edm.backend.service.DocumentService;
+import ru.caselab.edm.backend.service.DocumentVersionService;
 import ru.caselab.edm.backend.service.SignatureService;
 
 import java.util.UUID;
@@ -44,11 +51,12 @@ import java.util.UUID;
 public class DocumentController {
 
     private final DocumentService documentService;
+    private final DocumentVersionService documentVersionService;
     private final DocumentMapper documentMapper;
     private final SignatureService signatureService;
     private final DocumentVersionMapper documentVersionMapper;
 
-   @Operation(summary = "Sign document with given id")
+    @Operation(summary = "Sign document with given id")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Document was successfully signed",
                     content = @Content),
@@ -95,8 +103,9 @@ public class DocumentController {
     })
     @PostMapping()
     @ResponseStatus(HttpStatus.CREATED)
-    public DocumentVersionDTO createDocument(@Valid @RequestBody DocumentCreateDTO documentCreateDTO) {
-        return documentVersionMapper.toDto(documentService.saveDocument(documentCreateDTO));
+    public DocumentDTO createDocument(@Valid @RequestBody DocumentCreateDTO documentCreateDTO,
+                                             @AuthenticationPrincipal UserInfoDetails user) {
+        return documentMapper.toDto(documentService.saveDocument(documentCreateDTO, user.getId()));
     }
 
     @Operation(summary = "Returning all documents of the current user")
@@ -137,8 +146,9 @@ public class DocumentController {
     public DocumentVersionDTO updateDocument(
             @Parameter(description = "Document id", required = true, example = "1")
             @PathVariable Long id,
+            @AuthenticationPrincipal UserInfoDetails user,
             @RequestBody @Valid DocumentUpdateDTO updateDocument) {
-        return documentVersionMapper.toDto(documentService.updateDocument(id, updateDocument));
+        return documentVersionMapper.toDto(documentService.updateDocument(id, updateDocument, user.getId()));
     }
 
     @Operation(summary = "Deleting document")

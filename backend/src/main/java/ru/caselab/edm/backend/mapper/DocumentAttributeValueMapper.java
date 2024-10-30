@@ -18,6 +18,8 @@ public interface DocumentAttributeValueMapper {
 
     DocumentAttributeValue toEntity(DocumentAttributeValueDTO documentAttributeValueDTO);
 
+    List<DocumentAttributeValue> toEntity(List<DocumentAttributeValueDTO> documentAttributeValueDTOList);
+
     List<DocumentAttributeValueDTO> toDto(List<DocumentAttributeValue> documentAttributeValueList);
 
     default Long mapAttributeToId(Attribute attribute) {

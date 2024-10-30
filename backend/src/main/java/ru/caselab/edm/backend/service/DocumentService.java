@@ -1,6 +1,7 @@
 package ru.caselab.edm.backend.service;
 
 import org.springframework.data.domain.Page;
+import org.springframework.transaction.annotation.Transactional;
 import ru.caselab.edm.backend.dto.ApprovementProcessItemDTO;
 import ru.caselab.edm.backend.dto.DocumentCreateDTO;
 import ru.caselab.edm.backend.dto.DocumentUpdateDTO;
@@ -19,9 +20,9 @@ public interface DocumentService {
 
     Document getDocument(long id);
 
-    DocumentVersion saveDocument(DocumentCreateDTO document);
+    Document saveDocument(DocumentCreateDTO document, UUID userId);
 
-    DocumentVersion updateDocument(long id, DocumentUpdateDTO document);
+    DocumentVersion updateDocument(long id, DocumentUpdateDTO document, UUID userId);
 
     void deleteDocument(long id);
 

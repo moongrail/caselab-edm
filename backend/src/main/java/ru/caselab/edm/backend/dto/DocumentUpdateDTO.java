@@ -18,14 +18,14 @@ public class DocumentUpdateDTO {
     @JsonProperty("documentTypeId")
     private Long documentTypeId;
 
-    @JsonProperty("userId")
-    private UUID userId;
+/*    @JsonProperty("userId")
+    private UUID userId;*/
 
     @JsonProperty("createdAt")
     private LocalDateTime creationDate;
 
     @JsonProperty("name")
-    private String name;
+    private String documentName;
 
     @JsonProperty("data")
     private String data;

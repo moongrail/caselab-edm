@@ -63,7 +63,7 @@ public class AttributeServiceImpl implements AttributeService {
 
     @Transactional
     @Override
-    public AttributeDTO getAttributeById(Long id) {
+    public Attribute getAttributeEntityById(Long id) {
         Attribute attribute = attributeRepository.findById(id)
                 .orElseThrow(() -> {
                     log.warn("Attribute not found with id: {}", id);
@@ -71,6 +71,13 @@ public class AttributeServiceImpl implements AttributeService {
 
                 });
         log.info("Attribute with id: {} found", attribute.getId());
+        return attribute;
+    }
+
+    @Transactional
+    @Override
+    public AttributeDTO getAttributeById(Long id) {
+        Attribute attribute = getAttributeEntityById(id);
         return attributeMapper.toDTO(attribute);
     }
 

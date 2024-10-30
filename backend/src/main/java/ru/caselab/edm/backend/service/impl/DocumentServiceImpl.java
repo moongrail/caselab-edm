@@ -31,6 +31,7 @@ import ru.caselab.edm.backend.repository.DocumentVersionRepository;
 import ru.caselab.edm.backend.repository.SignatureRepository;
 import ru.caselab.edm.backend.repository.UserRepository;
 import ru.caselab.edm.backend.service.DocumentService;
+import ru.caselab.edm.backend.service.DocumentVersionService;
 import ru.caselab.edm.backend.service.MinioService;
 
 import java.time.Instant;
@@ -50,6 +51,7 @@ public class DocumentServiceImpl implements DocumentService {
     private final ApplicationEventPublisher eventPublisher;
     private final MinioDocumentMapper minioDocumentMapper;
     private final MinioService minioService;
+    private final DocumentVersionService documentVersionService;
     private final ApprovementItemRepository approvementItemRepository;
     private final ApprovementProccessItemMapper approvementProccessItemMapper;
 
@@ -78,39 +80,29 @@ public class DocumentServiceImpl implements DocumentService {
 
     @Transactional
     @Override
-    public DocumentVersion saveDocument(DocumentCreateDTO document) {
+    public Document saveDocument(DocumentCreateDTO document, UUID userId) {
+        Long documentTypeId = document.getDocumentTypeId();
         Document newDocument = new Document();
-
         newDocument.setDocumentType(
-                documentTypeRepository.findById(document.getDocumentTypeId())
+                documentTypeRepository.findById(documentTypeId)
                         .orElseThrow(() -> new ResourceNotFoundException("Document type not found"))
         );
 
         newDocument.setUser(
-                userRepository.findById(document.getUserId())
+                userRepository.findById(userId)
                         .orElseThrow(() -> new ResourceNotFoundException("User not found"))
         );
 
-        DocumentVersion documentVersion = new DocumentVersion();
-        documentVersion.setDocumentName(document.getName());
-        documentVersion.setCreatedAt(Instant.now());
-        documentVersion.setUpdatedAt(Instant.now());
+        documentRepository.save(newDocument);
 
-        MinioSaveDto saveDto = minioDocumentMapper.map(document);
-        minioService.saveObject(saveDto);
-        documentVersion.setContentUrl(saveDto.objectName());
+        documentVersionService.saveDocumentVersion(document, newDocument, userId);
 
-        newDocument = documentRepository.save(newDocument);
-
-        documentVersion.setDocument(newDocument);
-        documentVersion = documentVersionRepository.save(documentVersion);
-
-        return documentVersion;
+        return newDocument;
     }
 
     @Transactional
     @Override
-    public DocumentVersion updateDocument(long id, DocumentUpdateDTO document) {
+    public DocumentVersion updateDocument(long id, DocumentUpdateDTO document, UUID userId) {
         Document existingDocument = documentRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Document not found"));
 
@@ -122,9 +114,9 @@ public class DocumentServiceImpl implements DocumentService {
             );
         }
 
-        if (document.getUserId() != null) {
+        if (userId != null) {
             existingDocument.setUser(
-                    userRepository.findById(document.getUserId())
+                    userRepository.findById(userId)
                             .orElseThrow(() -> new ResourceNotFoundException("User not found"))
             );
         }
@@ -132,7 +124,7 @@ public class DocumentServiceImpl implements DocumentService {
         DocumentVersion documentVersion = new DocumentVersion();
 
         if (existingDocument.getDocumentVersion() != null)
-            documentVersion = getUpdatedDocumentVersion(document, existingDocument);
+            documentVersion = getUpdatedDocumentVersion(document, existingDocument, userId);
 
         existingDocument = documentRepository.save(existingDocument);
 
@@ -141,18 +133,18 @@ public class DocumentServiceImpl implements DocumentService {
         return documentVersionRepository.save(documentVersion);
     }
 
-    private DocumentVersion getUpdatedDocumentVersion(DocumentUpdateDTO document, Document existingDocument) {
+    private DocumentVersion getUpdatedDocumentVersion(DocumentUpdateDTO document, Document existingDocument, UUID userId) {
 
         // изменения только в последнюю версию документа
         DocumentVersion documentVersion = existingDocument.getDocumentVersion()
                 .get(existingDocument.getDocumentVersion().size() - 1);
-        if (document.getName() != null) {
-            documentVersion.setDocumentName(document.getName());
+        if (document.getDocumentName() != null) {
+            documentVersion.setDocumentName(document.getDocumentName());
         }
 
         // TODO: спросить может ли быть contentUrl пустым
         if (document.getData() != null && !document.getData().isEmpty()) {
-            MinioSaveDto saveDto = minioDocumentMapper.map(document);
+            MinioSaveDto saveDto = minioDocumentMapper.map(document, userId);
             minioService.saveObject(saveDto);
             documentVersion.setContentUrl(saveDto.objectName());
         }

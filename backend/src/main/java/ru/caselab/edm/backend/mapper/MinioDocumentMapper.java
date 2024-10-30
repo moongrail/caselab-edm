@@ -6,7 +6,9 @@ import org.mapstruct.MappingConstants;
 import org.mapstruct.Named;
 import ru.caselab.edm.backend.dto.DocumentCreateDTO;
 import ru.caselab.edm.backend.dto.DocumentUpdateDTO;
+import ru.caselab.edm.backend.dto.DocumentVersionCreateDTO;
 import ru.caselab.edm.backend.dto.MinioSaveDto;
+import ru.caselab.edm.backend.entity.UserInfoDetails;
 import ru.caselab.edm.backend.utils.MinioObjectNameFormatterUtil;
 
 import java.util.Base64;
@@ -15,13 +17,13 @@ import java.util.UUID;
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface MinioDocumentMapper {
 
-    @Mapping(source = "data", target = "data", qualifiedByName = "getByteArrayFromBase64")
-    @Mapping(target = "objectName", expression = "java(formatObjectName(dto.getUserId(), dto.getName()))")
-    MinioSaveDto map(DocumentCreateDTO dto);
+    @Mapping(source = "dto.data", target = "data", qualifiedByName = "getByteArrayFromBase64")
+    @Mapping(target = "objectName", expression = "java(formatObjectName(userId, dto.getDocumentName()))")
+    MinioSaveDto map(DocumentCreateDTO dto, UUID userId);
 
-    @Mapping(source = "data", target = "data", qualifiedByName = "getByteArrayFromBase64")
-    @Mapping(target = "objectName", expression = "java(formatObjectName(dto.getUserId(), dto.getName()))")
-    MinioSaveDto map(DocumentUpdateDTO dto);
+    @Mapping(source = "dto.data", target = "data", qualifiedByName = "getByteArrayFromBase64")
+    @Mapping(target = "objectName", expression = "java(formatObjectName(userId, dto.getDocumentName()))")
+    MinioSaveDto map(DocumentUpdateDTO dto, UUID userId);
 
 
     @Named("getByteArrayFromBase64")
@@ -30,6 +32,7 @@ public interface MinioDocumentMapper {
     }
 
     default String formatObjectName(UUID userId, String documentName) {
+
         return MinioObjectNameFormatterUtil.formatName(userId, documentName);
     }
 }
