@@ -51,6 +51,8 @@ public class DocumentServiceImpl implements DocumentService {
     private final ApplicationEventPublisher eventPublisher;
     private final MinioDocumentMapper minioDocumentMapper;
     private final MinioService minioService;
+    private final ApprovementItemRepository approvementItemRepository;
+    private final ApprovementProccessItemMapper approvementProccessItemMapper;
     private final DocumentVersionService documentVersionService;
     private final ApprovementItemRepository approvementItemRepository;
     private final ApprovementProccessItemMapper approvementProccessItemMapper;

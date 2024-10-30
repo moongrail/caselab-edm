@@ -1,6 +1,7 @@
 package ru.caselab.edm.backend.service;
 
 import org.springframework.data.domain.Page;
+import ru.caselab.edm.backend.dto.ApprovementProcessItemDTO;
 import org.springframework.transaction.annotation.Transactional;
 import ru.caselab.edm.backend.dto.ApprovementProcessItemDTO;
 import ru.caselab.edm.backend.dto.DocumentCreateDTO;

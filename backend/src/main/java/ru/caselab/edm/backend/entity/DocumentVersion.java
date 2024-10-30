@@ -49,6 +49,9 @@ public class DocumentVersion {
     @OneToMany(mappedBy = "documentVersion")
     private List<DocumentAttributeValue> documentAttributeValue;
 
+    /*    @OneToMany(mappedBy = "documentVersion")
+        private List<Signature> signature;*/
+
     @OneToMany(mappedBy = "documentVersion")
     private List<ApprovementProcessItem> approvementProcessItems;
 
