@@ -44,8 +44,8 @@ public class User {
     @OneToMany(mappedBy = "user")
     private Set<Document> documents;
 
-    @OneToMany(mappedBy = "user")
-    private Set<Signature> signatures;
+/*    @OneToMany(mappedBy = "user")
+    private Set<Signature> signatures;*/
 
     @ManyToMany
     @JoinTable(
@@ -54,4 +54,7 @@ public class User {
             inverseJoinColumns = @JoinColumn(name = "role_id")
     )
     private Set<Role> roles;
+
+    @OneToOne(mappedBy = "user")
+    private ApprovementProcessItem approvementProcessItem;
 }

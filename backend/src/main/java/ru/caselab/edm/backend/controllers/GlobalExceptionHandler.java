@@ -1,5 +1,6 @@
 package ru.caselab.edm.backend.controllers;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -9,6 +10,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import ru.caselab.edm.backend.exceptions.ApprovementProccessItemAlreadyExistsException;
 import ru.caselab.edm.backend.exceptions.DocumentForbiddenAccess;
 import ru.caselab.edm.backend.exceptions.DocumentTypeAlreadyExistsException;
 import ru.caselab.edm.backend.exceptions.ExpiredJwtTokenException;
@@ -23,9 +25,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestControllerAdvice
+@Slf4j
 public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     ResponseEntity<String> anyException(Exception ex) {
+        log.error(ex.getMessage(), ex);
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
@@ -38,7 +42,6 @@ public class GlobalExceptionHandler {
     ResponseEntity<String> handleResourceNotFoundException(ResourceNotFoundException ex) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
     }
-
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     ResponseEntity<String> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
@@ -93,6 +96,11 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.CONFLICT);
     }
 
+    @ExceptionHandler(ApprovementProccessItemAlreadyExistsException.class)
+    ResponseEntity<String> handleApprovementProccessItemAlreadyExistsException(ApprovementProccessItemAlreadyExistsException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.CONFLICT);
+    }
+    
     @ExceptionHandler(AuthorizationDeniedException.class)
     ResponseEntity<String> handleAuthorizationDeniedException(AuthorizationDeniedException ex) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.FORBIDDEN);

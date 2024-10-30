@@ -11,9 +11,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotEmpty;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -30,10 +30,10 @@ import ru.caselab.edm.backend.dto.*;
 import ru.caselab.edm.backend.entity.UserInfoDetails;
 import ru.caselab.edm.backend.mapper.DocumentMapper;
 import ru.caselab.edm.backend.mapper.DocumentVersionMapper;
+import ru.caselab.edm.backend.service.ApprovementService;
 import ru.caselab.edm.backend.service.DocumentService;
 import ru.caselab.edm.backend.service.SignatureService;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -48,8 +48,29 @@ public class DocumentController {
     private final DocumentMapper documentMapper;
     private final SignatureService signatureService;
     private final DocumentVersionMapper documentVersionMapper;
+    private final ApprovementService approvementService;
 
-    @Operation(summary = "Sign document with given id")
+    @Operation(
+            summary = "Start approval process for current document version"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Approval process was startes",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApprovementProcessDTO.class))),
+            @ApiResponse(responseCode = "404", description = "Document with provided version ID not found or user not found with provided ID",
+                    content = @Content),
+            @ApiResponse(responseCode = "403", description = "Access to the document is forbidden", content = @Content),
+            @ApiResponse(responseCode = "409", description = "Document already sent to user", content = @Content)
+    })
+    @PostMapping("/approvement/start")
+    public ResponseEntity<ApprovementProcessDTO> startApprovement(
+            @Valid @RequestBody ApprovementProcessCreateDTO processCreateDTO,
+            @AuthenticationPrincipal UserInfoDetails authenticatedUser
+    ){
+        return new ResponseEntity<>(approvementService.createApprovementProcess(processCreateDTO, authenticatedUser), HttpStatus.OK);
+    }
+
+
+   @Operation(summary = "Sign document with given id")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Document was successfully signed",
                     content = @Content),
@@ -59,27 +80,32 @@ public class DocumentController {
     @ResponseStatus(HttpStatus.OK)
     public void signDocument(@Valid @RequestBody SignatureCreateDTO signatureCreateDTO,
                              @Parameter(description = "Document id", required = true, example = "1")
-                             @PathVariable Long id) {
-        signatureService.sign(signatureCreateDTO, id);
+                             @PathVariable Long id,
+                             @AuthenticationPrincipal UserInfoDetails authenticatedUser) {
+        signatureService.sign(signatureCreateDTO, id, authenticatedUser);
     }
 
     @Operation(
             summary = "Send document for signature",
-            description = "Send document for signature to users"
+            description = "Send document for signature to user"
     )
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Document sent for signature", content = @Content),
-            @ApiResponse(responseCode = "404", description = "Document with provided version ID not found",
-                    content = @Content)
+            @ApiResponse(responseCode = "200", description = "Document sent for signature",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApprovementProcessItemDTO.class))),
+            @ApiResponse(responseCode = "404", description = "Document with provided version ID not found or user not found with provided ID",
+                    content = @Content),
+            @ApiResponse(responseCode = "403", description = "Access to the document is forbidden", content = @Content),
+            @ApiResponse(responseCode = "409", description = "Document already sent to user", content = @Content)
     })
     @PostMapping("/{id}/send_for_signature")
     @ResponseStatus(HttpStatus.OK)
-    public void sendForSignature(
+    public ResponseEntity<ApprovementProcessItemDTO> sendForSignature(
             @Parameter(description = "Document version ID", required = true, example = "1")
-            @PathVariable Long id,
-            @Parameter(description = "List of user IDs", required = true, example = "550e8400-e29b-41d4-a716-446655440000,550e8400-e29b-41d4-a716-446655440001")
-            @NotEmpty @RequestParam List<UUID> userIds) {
-        documentService.sendForSign(userIds, id);
+            @PathVariable(name = "id") Long id,
+            @Parameter(description = "User ID", required = true, example = "550e8400-e29b-41d4-a716-446655440000,550e8400-e29b-41d4-a716-446655440001")
+            @RequestParam(name = "userId") UUID userId,
+            @AuthenticationPrincipal UserInfoDetails authenticatedUser) {
+        return new ResponseEntity<>(documentService.sendForSign(userId, id, authenticatedUser), HttpStatus.OK);
     }
 
 
@@ -117,8 +143,8 @@ public class DocumentController {
     @ResponseStatus(HttpStatus.OK)
     public DocumentDTO getDocumentById(
             @Parameter(description = "Document id", required = true, example = "1")
-            @PathVariable Long id,
-                                       @AuthenticationPrincipal UserInfoDetails user) {
+            @PathVariable Long id, @AuthenticationPrincipal UserInfoDetails user
+    ) {
         return documentMapper.toDto(documentService.getDocumentForUser(id, user.getId()));
     }
 
@@ -133,7 +159,7 @@ public class DocumentController {
     public DocumentVersionDTO updateDocument(
             @Parameter(description = "Document id", required = true, example = "1")
             @PathVariable Long id,
-                                          @RequestBody @Valid DocumentUpdateDTO updateDocument) {
+            @RequestBody @Valid DocumentUpdateDTO updateDocument) {
         return documentVersionMapper.toDto(documentService.updateDocument(id, updateDocument));
     }
 

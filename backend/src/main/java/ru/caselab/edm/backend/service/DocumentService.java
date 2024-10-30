@@ -1,12 +1,13 @@
 package ru.caselab.edm.backend.service;
 
 import org.springframework.data.domain.Page;
+import ru.caselab.edm.backend.dto.ApprovementProcessItemDTO;
 import ru.caselab.edm.backend.dto.DocumentCreateDTO;
 import ru.caselab.edm.backend.dto.DocumentUpdateDTO;
 import ru.caselab.edm.backend.entity.Document;
 import ru.caselab.edm.backend.entity.DocumentVersion;
+import ru.caselab.edm.backend.entity.UserInfoDetails;
 
-import java.util.List;
 import java.util.UUID;
 
 public interface DocumentService {
@@ -24,5 +25,5 @@ public interface DocumentService {
 
     void deleteDocument(long id);
 
-    void sendForSign(List<UUID> userIds, Long documentVersionId);
+    ApprovementProcessItemDTO sendForSign(UUID userId, Long documentVersionId, UserInfoDetails authenticatedUser);
 }

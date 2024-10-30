@@ -19,8 +19,7 @@ import ru.caselab.edm.backend.repository.AttributeRepository;
 import ru.caselab.edm.backend.repository.DocumentTypeRepository;
 import ru.caselab.edm.backend.service.AttributeService;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
@@ -95,11 +94,6 @@ public class AttributeServiceImpl implements AttributeService {
                     return new ResourceNotFoundException("Attribute not found");
                 });
         log.debug("Current attribute details: {}", attribute);
-        if (!attributeRepository.findByName(updateAttributeDTO.getName()).isEmpty()) {
-            throw new AttributeAlreadyExistsException("Attribute with name %s already exists"
-                    .formatted(updateAttributeDTO.getName()));
-        }
-
         attribute.setName(updateAttributeDTO.getName());
         attribute.setDataType(updateAttributeDTO.getDataType());
         attribute.setRequired(updateAttributeDTO.isRequired());
@@ -126,9 +120,9 @@ public class AttributeServiceImpl implements AttributeService {
         }
     }
 
-    private List<DocumentType> mapDocumentTypeIdsToEntities(Set<Long> documentTypeIds) {
+    private Set<DocumentType> mapDocumentTypeIdsToEntities(Set<Long> documentTypeIds) {
         log.debug("Mapping DocumentType IDs to entities: {}", documentTypeIds);
-        List<DocumentType> documentTypes = new ArrayList<>();
+        Set<DocumentType> documentTypes = new HashSet<>();
         for (Long id : documentTypeIds) {
             DocumentType documentType = documentTypeRepository.findById(id)
                     .orElseThrow(() -> {

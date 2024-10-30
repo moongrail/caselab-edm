@@ -38,7 +38,7 @@ class DocumentTypeMapperTest {
         testDocumentType.setId(1L);
         testDocumentType.setName("договор");
         testDocumentType.setDescription("какоей-то описание");
-        testDocumentType.setAttributes(List.of(testAttribute));
+        testDocumentType.setAttributes(new HashSet<>(List.of(testAttribute)));
 
 
 

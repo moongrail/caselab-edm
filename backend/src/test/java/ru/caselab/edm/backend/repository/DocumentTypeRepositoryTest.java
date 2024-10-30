@@ -8,9 +8,7 @@ import org.springframework.test.context.ActiveProfiles;
 import ru.caselab.edm.backend.entity.Attribute;
 import ru.caselab.edm.backend.entity.DocumentType;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 @ActiveProfiles("test")
@@ -29,7 +27,7 @@ class DocumentTypeRepositoryTest {
         attribute.setRequired(true);
         attributesRepository.saveAndFlush(attribute);
 
-        List<Attribute> documentAttributeList = new ArrayList<>();
+        Set<Attribute> documentAttributeList = new HashSet<>();
         documentAttributeList.add(attribute);
 
         DocumentType documentType = new DocumentType();
