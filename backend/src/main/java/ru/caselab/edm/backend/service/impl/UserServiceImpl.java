@@ -92,7 +92,7 @@ public class UserServiceImpl implements UserService {
         }
         Set<Role> roles = new HashSet<>();
         for (RoleName role : createdUser.roles()) {
-            Optional<Role> roleOptional = roleRepository.findByName(role.name());
+            Optional<Role> roleOptional = roleRepository.findByName(role);
             if (roleOptional.isPresent()) {
                 roles.add(roleOptional.get());
             } else {
@@ -133,7 +133,7 @@ public class UserServiceImpl implements UserService {
             }
             Set<Role> roles = new HashSet<>();
             for (RoleName role : updatedUser.roles()) {
-                Optional<Role> roleOptional = roleRepository.findByName(role.name());
+                Optional<Role> roleOptional = roleRepository.findByName(role);
                 if (roleOptional.isPresent()) {
                     roles.add(roleOptional.get());
                 } else {
