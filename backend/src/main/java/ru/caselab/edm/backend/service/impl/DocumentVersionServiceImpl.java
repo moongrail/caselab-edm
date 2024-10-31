@@ -11,7 +11,6 @@ import ru.caselab.edm.backend.dto.MinioSaveDto;
 import ru.caselab.edm.backend.entity.Document;
 import ru.caselab.edm.backend.entity.DocumentAttributeValue;
 import ru.caselab.edm.backend.entity.DocumentVersion;
-import ru.caselab.edm.backend.exceptions.ResourceNotFoundException;
 import ru.caselab.edm.backend.mapper.MinioDocumentMapper;
 import ru.caselab.edm.backend.repository.DocumentRepository;
 import ru.caselab.edm.backend.repository.DocumentVersionRepository;
@@ -21,7 +20,6 @@ import ru.caselab.edm.backend.service.MinioService;
 
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -35,12 +33,19 @@ public class DocumentVersionServiceImpl implements DocumentVersionService {
     private final MinioDocumentMapper minioDocumentMapper;
 
     @Override
-    public DocumentVersion getDocumentVersion(long id) {
+    public DocumentVersion getDocumentVersion(long documentId) {
+        List<DocumentVersion> documentVersion = documentVersionRepository.findByDocumentId(documentId);
 
-        Document document = documentRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Document not found"));
+        DocumentVersion latestDocumentVersion = documentVersion
+                .stream()
+                .max(Comparator.comparing(DocumentVersion::getCreatedAt))
+                .orElseThrow();
 
-        return document.getDocumentVersion().get(document.getDocumentVersion().size() - 1);
+        /*Long latestDocumentVersionId = latestDocumentVersion.getId();
+        List<DocumentAttributeValueDTO> documentAttributeValuesByDocumentId
+                = documentAttributeValueService.getDocumentAttributeValuesByDocumentId(latestDocumentVersionId);*/
+
+        return latestDocumentVersion;
     }
 
     @Override

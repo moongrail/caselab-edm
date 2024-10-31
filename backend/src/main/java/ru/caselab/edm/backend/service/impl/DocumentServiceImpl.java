@@ -69,11 +69,14 @@ public class DocumentServiceImpl implements DocumentService {
     }
 
     @Override
-    public Document getDocumentForUser(long id, UUID userId) {
-
-
-        return documentRepository.getDocumentForUser(id, userId)
+    public DocumentVersion getDocumentForUser(long id, UUID userId) {
+        Document document = documentRepository.getDocumentForUser(id, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Document not found"));
+
+        Long documentId = document.getId();
+        DocumentVersion documentVersion = documentVersionService.getDocumentVersion(documentId);
+
+        return documentVersion;
     }
 
     @Transactional

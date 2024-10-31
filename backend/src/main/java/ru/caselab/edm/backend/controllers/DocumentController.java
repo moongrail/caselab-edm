@@ -26,7 +26,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import ru.caselab.edm.backend.dto.*;
+import ru.caselab.edm.backend.dto.ApprovementProcessCreateDTO;
+import ru.caselab.edm.backend.dto.ApprovementProcessDTO;
+import ru.caselab.edm.backend.dto.ApprovementProcessItemDTO;
+import ru.caselab.edm.backend.dto.DocumentCreateDTO;
+import ru.caselab.edm.backend.dto.DocumentDTO;
+import ru.caselab.edm.backend.dto.DocumentPageDTO;
+import ru.caselab.edm.backend.dto.DocumentUpdateDTO;
+import ru.caselab.edm.backend.dto.DocumentVersionDTO;
+import ru.caselab.edm.backend.dto.SignatureCreateDTO;
+import ru.caselab.edm.backend.entity.DocumentVersion;
 import ru.caselab.edm.backend.entity.UserInfoDetails;
 import ru.caselab.edm.backend.mapper.DocumentMapper;
 import ru.caselab.edm.backend.mapper.DocumentVersionMapper;
@@ -42,7 +51,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Tag(name = "Document", description = "Document management operations")
 @SecurityRequirement(name = "bearer-jwt")
-@PreAuthorize("hasRole('USER')")
+/*@PreAuthorize("hasRole('USER')")*/
 public class DocumentController {
 
     private final DocumentService documentService;
@@ -67,12 +76,12 @@ public class DocumentController {
     public ResponseEntity<ApprovementProcessDTO> startApprovement(
             @Valid @RequestBody ApprovementProcessCreateDTO processCreateDTO,
             @AuthenticationPrincipal UserInfoDetails authenticatedUser
-    ){
+    ) {
         return new ResponseEntity<>(approvementService.createApprovementProcess(processCreateDTO, authenticatedUser), HttpStatus.OK);
     }
 
 
-   @Operation(summary = "Sign document with given id")
+    @Operation(summary = "Sign document with given id")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Document was successfully signed",
                     content = @Content),
@@ -120,7 +129,7 @@ public class DocumentController {
     @PostMapping()
     @ResponseStatus(HttpStatus.CREATED)
     public DocumentDTO createDocument(@Valid @RequestBody DocumentCreateDTO documentCreateDTO,
-                                             @AuthenticationPrincipal UserInfoDetails user) {
+                                      @AuthenticationPrincipal UserInfoDetails user) {
         return documentMapper.toDto(documentService.saveDocument(documentCreateDTO, user.getId()));
     }
 
@@ -144,11 +153,13 @@ public class DocumentController {
     })
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public DocumentDTO getDocumentById(
+    public DocumentVersionDTO getDocumentById(
             @Parameter(description = "Document id", required = true, example = "1")
             @PathVariable Long id, @AuthenticationPrincipal UserInfoDetails user
     ) {
-        return documentMapper.toDto(documentService.getDocumentForUser(id, user.getId()));
+        DocumentVersion documentForUser = documentService.getDocumentForUser(id, user.getId());
+
+        return documentVersionMapper.toDto(documentForUser);
     }
 
     @Operation(summary = "Updating document fields")
