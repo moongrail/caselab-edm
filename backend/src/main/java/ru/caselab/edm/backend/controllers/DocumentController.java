@@ -124,7 +124,7 @@ public class DocumentController {
         return documentMapper.toDto(documentService.saveDocument(documentCreateDTO, user.getId()));
     }
 
-    @Operation(summary = "Returning all documents of the current user")
+    @Operation(summary = "Returning last version all documents of the current user")
     @ApiResponse(responseCode = "200", description = "Documents of the current user were successfully returned",
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = DocumentPageDTO.class)))
     @GetMapping()
@@ -159,12 +159,12 @@ public class DocumentController {
     })
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public DocumentVersionDTO updateDocument(
+    public DocumentDTO updateDocument(
             @Parameter(description = "Document id", required = true, example = "1")
             @PathVariable Long id,
             @AuthenticationPrincipal UserInfoDetails user,
             @RequestBody @Valid DocumentUpdateDTO updateDocument) {
-        return documentVersionMapper.toDto(documentService.updateDocument(id, updateDocument, user.getId()));
+        return documentMapper.toDto(documentService.updateDocument(id, updateDocument, user.getId()));
     }
 
     @Operation(summary = "Deleting document")

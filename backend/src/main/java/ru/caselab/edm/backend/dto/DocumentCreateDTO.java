@@ -30,6 +30,6 @@ public class DocumentCreateDTO {
     @Schema(description = "Content url", example = "")
     private String data;
 
-    @Schema(description = "Value attributes", example = "[1, 2]")
+    @Schema(description = "Value attributes")
     private List<AttributeValuetoCreateDocumentDTO> attributeValues;
 }

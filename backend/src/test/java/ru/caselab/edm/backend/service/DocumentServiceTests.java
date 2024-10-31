@@ -3,6 +3,7 @@ package ru.caselab.edm.backend.service;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -11,22 +12,19 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import ru.caselab.edm.backend.dto.DocumentCreateDTO;
-import ru.caselab.edm.backend.dto.DocumentUpdateDTO;
-import ru.caselab.edm.backend.dto.MinioSaveDto;
 import ru.caselab.edm.backend.entity.Document;
 import ru.caselab.edm.backend.entity.DocumentType;
 import ru.caselab.edm.backend.entity.DocumentVersion;
 import ru.caselab.edm.backend.entity.User;
 import ru.caselab.edm.backend.exceptions.ResourceNotFoundException;
-import ru.caselab.edm.backend.mapper.MinioDocumentMapper;
 import ru.caselab.edm.backend.repository.DocumentRepository;
 import ru.caselab.edm.backend.repository.DocumentTypeRepository;
 import ru.caselab.edm.backend.repository.DocumentVersionRepository;
 import ru.caselab.edm.backend.repository.UserRepository;
 import ru.caselab.edm.backend.service.impl.DocumentServiceImpl;
+import ru.caselab.edm.backend.service.impl.DocumentVersionServiceImpl;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.UUID;
@@ -52,15 +50,18 @@ class DocumentServiceTests {
     @Mock
     private DocumentVersionRepository documentVersionRepository;
 
-    @Mock
+/*    @Mock
     private MinioDocumentMapper minioDocumentMapper;
     @Mock
-    private MinioService minioService;
+    private MinioService minioService;*/
 
     @InjectMocks
     private DocumentServiceImpl documentService;
+    @Mock
+    private DocumentVersionServiceImpl documentVersionService;
 
     private Document document;
+    private DocumentVersion documentVersion;
 
     @BeforeEach
     void setUp() {
@@ -85,7 +86,7 @@ class DocumentServiceTests {
         document.setUser(user);
         document.setDocumentType(documentType);
 
-        DocumentVersion documentVersion = new DocumentVersion();
+        documentVersion = new DocumentVersion();
         documentVersion.setId(1L);
         documentVersion.setDocumentName("New Document");
         documentVersion.setDocument(document);
@@ -193,28 +194,48 @@ class DocumentServiceTests {
         verify(documentRepository).findById(1L);
     }
 
-   /* @Test
+    @Test
     @DisplayName("Save correct Document")
     void saveDocument_Success() {
+        User user1 = new User();
+
+        UUID userId = UUID.fromString("48bbbd31-45c0-43c5-b989-c1c14a8c3b8b");
+
+        DocumentType documentType1 = new DocumentType();
+        Long documentTypeId = 1L;
+
+        Document document1 = new Document();
+        document1.setUser(user1);
+        document1.setDocumentType(documentType1);
+
+        Document savedDocument = new Document();
+        savedDocument.setId(1L);
+        savedDocument.setUser(user1);
+        savedDocument.setDocumentType(documentType1);
+
+        DocumentVersion documentVersion1 = new DocumentVersion();
+
         DocumentCreateDTO documentCreateDTO = new DocumentCreateDTO();
-        documentCreateDTO.setName("New Document");
-        UUID userId = UUID.randomUUID();
-        documentCreateDTO.setUserId(userId);
-        documentCreateDTO.setDocumentTypeId(1L);
+        documentCreateDTO.setDocumentTypeId(documentTypeId);
 
-        when(userRepository.findById(any())).thenReturn(Optional.of(document.getUser()));
-        when(minioDocumentMapper.map(documentCreateDTO, userId)).thenReturn(new MinioSaveDto("test", new byte[0]));
-        when(documentTypeRepository.findById(any())).thenReturn(Optional.of(document.getDocumentType()));
+        Mockito.when(documentTypeRepository.findById(documentTypeId))
+                .thenReturn(Optional.of(documentType1));
 
-        when(documentRepository.save(any(Document.class))).thenReturn(document);
+        Mockito.when(userRepository.findById(userId)).thenReturn(Optional.of(user1));
+        // when(minioDocumentMapper.map(documentCreateDTO, userId)).thenReturn(new MinioSaveDto("test", new byte[0]));
 
-        Document savedDocument = documentService.saveDocument(documentCreateDTO).getDocument();
+        Mockito.when(documentRepository.save(document1)).thenReturn(savedDocument);
 
-        assertEquals(document.getId(), savedDocument.getId(), "Saved Document ID should match");
+        Mockito.when(documentVersionService.saveDocumentVersion(documentCreateDTO,
+                savedDocument, userId)).thenReturn(documentVersion1);
 
-        verify(documentRepository).save(any(Document.class));
+        Document saveDocument = documentService.saveDocument(documentCreateDTO, userId);
+
+        assertEquals(saveDocument.getId(), 1L, "Saved Document ID should match");
+
+
+
     }
-*/
 
   /*  @Test
     @DisplayName("Update correct Document")

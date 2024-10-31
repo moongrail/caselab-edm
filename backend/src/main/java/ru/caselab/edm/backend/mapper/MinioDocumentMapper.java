@@ -5,10 +5,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
 import org.mapstruct.Named;
 import ru.caselab.edm.backend.dto.DocumentCreateDTO;
-import ru.caselab.edm.backend.dto.DocumentUpdateDTO;
-import ru.caselab.edm.backend.dto.DocumentVersionCreateDTO;
 import ru.caselab.edm.backend.dto.MinioSaveDto;
-import ru.caselab.edm.backend.entity.UserInfoDetails;
 import ru.caselab.edm.backend.utils.MinioObjectNameFormatterUtil;
 
 import java.util.Base64;
@@ -21,10 +18,22 @@ public interface MinioDocumentMapper {
     @Mapping(target = "objectName", expression = "java(formatObjectName(userId, dto.getDocumentName()))")
     MinioSaveDto map(DocumentCreateDTO dto, UUID userId);
 
-    @Mapping(source = "dto.data", target = "data", qualifiedByName = "getByteArrayFromBase64")
-    @Mapping(target = "objectName", expression = "java(formatObjectName(userId, dto.getDocumentName()))")
-    MinioSaveDto map(DocumentUpdateDTO dto, UUID userId);
+    @Mapping(source = "data", target = "data", qualifiedByName = "getByteArrayFromBase64")
+    @Mapping(target = "objectName", expression = "java(formatObjectName(userId, documentName))")
+    MinioSaveDto map(String documentName, String data, UUID userId);
 
+    /*
+
+    @JsonProperty("name")
+    @Schema(description = "Document name", example = "Spongebob best episodes")
+    private String documentName;
+
+    @JsonProperty("data")
+    @Schema(description = "Content url", example = "")
+    private String data;
+
+    @Schema(description = "Value attributes")
+    private List<DocumentAttributeValueUpdateDTO> attributeValues;*/
 
     @Named("getByteArrayFromBase64")
     default byte[] getByteArrayFromBase64(String base64data) {

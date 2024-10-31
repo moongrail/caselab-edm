@@ -8,5 +8,5 @@ import java.util.Optional;
 
 @Repository
 public interface DocumentVersionRepository extends JpaRepository<DocumentVersion, Long> {
-    Optional<DocumentVersion> findByName(String name);
+    Optional<DocumentVersion> findByDocumentName(String name);
 }

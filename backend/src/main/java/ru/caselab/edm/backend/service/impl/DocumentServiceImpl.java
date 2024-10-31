@@ -10,7 +10,6 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.caselab.edm.backend.dto.ApprovementProcessItemDTO;
 import ru.caselab.edm.backend.dto.DocumentCreateDTO;
 import ru.caselab.edm.backend.dto.DocumentUpdateDTO;
-import ru.caselab.edm.backend.dto.MinioSaveDto;
 import ru.caselab.edm.backend.entity.ApprovementProcessItem;
 import ru.caselab.edm.backend.entity.Document;
 import ru.caselab.edm.backend.entity.DocumentVersion;
@@ -23,18 +22,15 @@ import ru.caselab.edm.backend.exceptions.DocumentForbiddenAccess;
 import ru.caselab.edm.backend.exceptions.ResourceNotFoundException;
 import ru.caselab.edm.backend.exceptions.WrongDateException;
 import ru.caselab.edm.backend.mapper.ApprovementProccessItemMapper;
-import ru.caselab.edm.backend.mapper.MinioDocumentMapper;
 import ru.caselab.edm.backend.repository.ApprovementItemRepository;
 import ru.caselab.edm.backend.repository.DocumentRepository;
 import ru.caselab.edm.backend.repository.DocumentTypeRepository;
 import ru.caselab.edm.backend.repository.DocumentVersionRepository;
-import ru.caselab.edm.backend.repository.SignatureRepository;
 import ru.caselab.edm.backend.repository.UserRepository;
+import ru.caselab.edm.backend.service.DocumentAttributeValueService;
 import ru.caselab.edm.backend.service.DocumentService;
 import ru.caselab.edm.backend.service.DocumentVersionService;
-import ru.caselab.edm.backend.service.MinioService;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
@@ -47,15 +43,11 @@ public class DocumentServiceImpl implements DocumentService {
     private final UserRepository userRepository;
     private final DocumentTypeRepository documentTypeRepository;
     private final DocumentVersionRepository documentVersionRepository;
-    private final SignatureRepository signatureRepository;
     private final ApplicationEventPublisher eventPublisher;
-    private final MinioDocumentMapper minioDocumentMapper;
-    private final MinioService minioService;
     private final ApprovementItemRepository approvementItemRepository;
     private final ApprovementProccessItemMapper approvementProccessItemMapper;
     private final DocumentVersionService documentVersionService;
-    private final ApprovementItemRepository approvementItemRepository;
-    private final ApprovementProccessItemMapper approvementProccessItemMapper;
+    private final DocumentAttributeValueService documentAttributeValueService;
 
     @Override
     public Page<Document> getAllDocuments(int page, int size) {
@@ -71,11 +63,15 @@ public class DocumentServiceImpl implements DocumentService {
     @Override
     public Page<Document> getAllDocumentForUser(int page, int size, UUID userId) {
         Pageable pageable = PageRequest.of(page, size);
+
+
         return documentRepository.getAllDocumentForUser(userId, pageable);
     }
 
     @Override
     public Document getDocumentForUser(long id, UUID userId) {
+
+
         return documentRepository.getDocumentForUser(id, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Document not found"));
     }
@@ -95,26 +91,18 @@ public class DocumentServiceImpl implements DocumentService {
                         .orElseThrow(() -> new ResourceNotFoundException("User not found"))
         );
 
-        documentRepository.save(newDocument);
+        Document saved = documentRepository.save(newDocument);
 
-        documentVersionService.saveDocumentVersion(document, newDocument, userId);
+        documentVersionService.saveDocumentVersion(document, saved, userId);
 
-        return newDocument;
+        return saved;
     }
 
     @Transactional
     @Override
-    public DocumentVersion updateDocument(long id, DocumentUpdateDTO document, UUID userId) {
+    public Document updateDocument(long id, DocumentUpdateDTO document, UUID userId) {
         Document existingDocument = documentRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Document not found"));
-
-        if (document.getDocumentTypeId() != null &&
-                document.getDocumentTypeId().equals(existingDocument.getDocumentType().getId())) {
-            existingDocument.setDocumentType(
-                    documentTypeRepository.findById(document.getDocumentTypeId())
-                            .orElseThrow(() -> new ResourceNotFoundException("Document type not found"))
-            );
-        }
 
         if (userId != null) {
             existingDocument.setUser(
@@ -123,37 +111,11 @@ public class DocumentServiceImpl implements DocumentService {
             );
         }
 
-        DocumentVersion documentVersion = new DocumentVersion();
-
-        if (existingDocument.getDocumentVersion() != null)
-            documentVersion = getUpdatedDocumentVersion(document, existingDocument, userId);
-
         existingDocument = documentRepository.save(existingDocument);
 
-        documentVersion.setDocument(existingDocument);
+        documentVersionService.updateDocumentVersion(document, existingDocument, userId);
 
-        return documentVersionRepository.save(documentVersion);
-    }
-
-    private DocumentVersion getUpdatedDocumentVersion(DocumentUpdateDTO document, Document existingDocument, UUID userId) {
-
-        // изменения только в последнюю версию документа
-        DocumentVersion documentVersion = existingDocument.getDocumentVersion()
-                .get(existingDocument.getDocumentVersion().size() - 1);
-        if (document.getDocumentName() != null) {
-            documentVersion.setDocumentName(document.getDocumentName());
-        }
-
-        // TODO: спросить может ли быть contentUrl пустым
-        if (document.getData() != null && !document.getData().isEmpty()) {
-            MinioSaveDto saveDto = minioDocumentMapper.map(document, userId);
-            minioService.saveObject(saveDto);
-            documentVersion.setContentUrl(saveDto.objectName());
-        }
-
-        documentVersion.setUpdatedAt(Instant.now());
-
-        return documentVersion;
+        return existingDocument;
     }
 
     private void validateDate(DocumentVersion documentVersion) {
@@ -197,8 +159,8 @@ public class DocumentServiceImpl implements DocumentService {
         return approvementProccessItemMapper.toDTO(approvementProcessItem);
     }
 
-    private String saveToMinio(MinioSaveDto saveDto) {
+/*    private String saveToMinio(MinioSaveDto saveDto) {
         minioService.saveObject(saveDto);
         return saveDto.objectName();
-    }
+    }*/
 }

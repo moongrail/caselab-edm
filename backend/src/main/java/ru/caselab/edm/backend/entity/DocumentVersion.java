@@ -1,5 +1,6 @@
 package ru.caselab.edm.backend.entity;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -16,6 +17,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -46,11 +48,8 @@ public class DocumentVersion {
     @JoinColumn(name = "documents_id")
     private Document document;
 
-    @OneToMany(mappedBy = "documentVersion")
-    private List<DocumentAttributeValue> documentAttributeValue;
-
-    /*    @OneToMany(mappedBy = "documentVersion")
-        private List<Signature> signature;*/
+    @OneToMany(mappedBy = "documentVersion", cascade = CascadeType.ALL)
+    private List<DocumentAttributeValue> documentAttributeValue= new ArrayList<>();
 
     @OneToMany(mappedBy = "documentVersion")
     private List<ApprovementProcessItem> approvementProcessItems;

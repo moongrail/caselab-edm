@@ -1,7 +1,6 @@
 package ru.caselab.edm.backend.service;
 
 import ru.caselab.edm.backend.dto.AttributeValuetoCreateDocumentDTO;
-import ru.caselab.edm.backend.dto.DocumentAttributeValueCreateDTO;
 import ru.caselab.edm.backend.dto.DocumentAttributeValueDTO;
 import ru.caselab.edm.backend.dto.DocumentAttributeValueUpdateDTO;
 import ru.caselab.edm.backend.entity.Document;
@@ -18,13 +17,19 @@ public interface DocumentAttributeValueService {
 
     List<DocumentAttributeValueDTO> getDocumentAttributeValuesByDocumentId(Long id);
 
-    DocumentAttributeValueDTO updateDocumentAttributeValue(Long id, DocumentAttributeValueUpdateDTO value);
+    //DocumentAttributeValueDTO updateDocumentAttributeValue(Long id, DocumentAttributeValueUpdateDTO value);
 
-/*    DocumentAttributeValueDTO createDocumentAttributeValue(DocumentAttributeValueCreateDTO value);*/
+    List<DocumentAttributeValue> updateDocumentAttributeValue(List<DocumentAttributeValueUpdateDTO> value,
+                                                              DocumentVersion documentVersionOld,
+                                                              DocumentVersion documentVersionNew);
+
+
+    /*    DocumentAttributeValueDTO createDocumentAttributeValue(DocumentAttributeValueCreateDTO value);*/
 
     List<DocumentAttributeValue> createDocumentAttributeValues(List<AttributeValuetoCreateDocumentDTO> document, Document newDocument, DocumentVersion newDocumentVersion);
 
-/*    List<DocumentAttributeValue> createDocumentAttributeValue(List<DocumentAttributeValueCreateDTO> value);*/
+    /*    List<DocumentAttributeValue> createDocumentAttributeValue(List<DocumentAttributeValueCreateDTO> value);*/
+
 
     void deleteAttributeValue(Long id);
 

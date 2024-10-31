@@ -23,7 +23,7 @@ public interface DocumentService {
 
     Document saveDocument(DocumentCreateDTO document, UUID userId);
 
-    DocumentVersion updateDocument(long id, DocumentUpdateDTO document, UUID userId);
+    Document updateDocument(long id, DocumentUpdateDTO document, UUID userId);
 
     void deleteDocument(long id);
 
