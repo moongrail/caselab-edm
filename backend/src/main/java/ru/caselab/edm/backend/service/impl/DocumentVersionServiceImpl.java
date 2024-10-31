@@ -12,7 +12,6 @@ import ru.caselab.edm.backend.entity.Document;
 import ru.caselab.edm.backend.entity.DocumentAttributeValue;
 import ru.caselab.edm.backend.entity.DocumentVersion;
 import ru.caselab.edm.backend.mapper.MinioDocumentMapper;
-import ru.caselab.edm.backend.repository.DocumentRepository;
 import ru.caselab.edm.backend.repository.DocumentVersionRepository;
 import ru.caselab.edm.backend.service.DocumentAttributeValueService;
 import ru.caselab.edm.backend.service.DocumentVersionService;
@@ -27,7 +26,6 @@ import java.util.UUID;
 public class DocumentVersionServiceImpl implements DocumentVersionService {
 
     private final DocumentVersionRepository documentVersionRepository;
-    private final DocumentRepository documentRepository;
     private final MinioService minioService;
     private final DocumentAttributeValueService documentAttributeValueService;
     private final MinioDocumentMapper minioDocumentMapper;
@@ -41,17 +39,12 @@ public class DocumentVersionServiceImpl implements DocumentVersionService {
                 .max(Comparator.comparing(DocumentVersion::getCreatedAt))
                 .orElseThrow();
 
-        /*Long latestDocumentVersionId = latestDocumentVersion.getId();
-        List<DocumentAttributeValueDTO> documentAttributeValuesByDocumentId
-                = documentAttributeValueService.getDocumentAttributeValuesByDocumentId(latestDocumentVersionId);*/
-
         return latestDocumentVersion;
     }
 
     @Override
     public Page<DocumentVersion> getAllDocumentVersions(int page, int size) {
         return documentVersionRepository.findAll(PageRequest.of(page, size));
-
     }
 
     @Override
@@ -93,8 +86,6 @@ public class DocumentVersionServiceImpl implements DocumentVersionService {
                                                       DocumentVersion updatingDocumentVersion,
                                                       DocumentVersion exsistingVersion,
                                                       UUID userId) {
-
-
         if (document.getDocumentName() != null) {
             updatingDocumentVersion.setDocumentName(document.getDocumentName());
 

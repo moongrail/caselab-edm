@@ -32,6 +32,7 @@ import ru.caselab.edm.backend.service.DocumentService;
 import ru.caselab.edm.backend.service.DocumentVersionService;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -63,8 +64,6 @@ public class DocumentServiceImpl implements DocumentService {
     @Override
     public Page<Document> getAllDocumentForUser(int page, int size, UUID userId) {
         Pageable pageable = PageRequest.of(page, size);
-
-
         return documentRepository.getAllDocumentForUser(userId, pageable);
     }
 
@@ -73,10 +72,12 @@ public class DocumentServiceImpl implements DocumentService {
         Document document = documentRepository.getDocumentForUser(id, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Document not found"));
 
-        Long documentId = document.getId();
-        DocumentVersion documentVersion = documentVersionService.getDocumentVersion(documentId);
+        DocumentVersion lastDocumentVersion = document.getDocumentVersion()
+                .stream()
+                .max(Comparator.comparing(DocumentVersion::getCreatedAt))
+                .orElseThrow();
 
-        return documentVersion;
+        return lastDocumentVersion;
     }
 
     @Transactional
@@ -161,9 +162,4 @@ public class DocumentServiceImpl implements DocumentService {
         eventPublisher.publishEvent(new DocumentSignRequestEvent(this, approvementProcessItem));
         return approvementProccessItemMapper.toDTO(approvementProcessItem);
     }
-
-/*    private String saveToMinio(MinioSaveDto saveDto) {
-        minioService.saveObject(saveDto);
-        return saveDto.objectName();
-    }*/
 }

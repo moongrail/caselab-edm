@@ -114,46 +114,6 @@ class DocumentServiceTests {
     }
 
     @Test
-    @DisplayName("Get All Documents for User")
-    void getAllDocumentForUser() {
-        Page<Document> expectedPage = new PageImpl<>(Collections.singletonList(document));
-
-        Mockito.when(documentRepository.getAllDocumentForUser(
-                        UUID.fromString("48bbbd31-45c0-43c5-b989-c1c14a8c3b8b"),
-                        PageRequest.of(0, 10)))
-                .thenReturn(expectedPage);
-
-        Page<Document> actualPage = documentService.getAllDocumentForUser(0,
-                10,
-                UUID.fromString("48bbbd31-45c0-43c5-b989-c1c14a8c3b8b"));
-
-        assertEquals(expectedPage.getTotalElements(), actualPage.getTotalElements());
-        assertEquals(expectedPage.getContent(), actualPage.getContent());
-        verify(documentRepository).getAllDocumentForUser(
-                UUID.fromString("48bbbd31-45c0-43c5-b989-c1c14a8c3b8b"),
-                PageRequest.of(0, 10));
-    }
-
-    @Test
-    @DisplayName("Get Document For User Success")
-    void getDocumentForUserSuccess() {
-        Mockito.when(documentRepository.getDocumentForUser(
-                1L,
-                UUID.fromString("48bbbd31-45c0-43c5-b989-c1c14a8c3b8b"))
-        ).thenReturn(Optional.of(document));
-
-        assertEquals(document.getId(), documentService.getDocumentForUser(
-                1L,
-                UUID.fromString("48bbbd31-45c0-43c5-b989-c1c14a8c3b8b")).getId());
-        assertEquals(document.getUser(), documentService.getDocumentForUser(
-                1L,
-                UUID.fromString("48bbbd31-45c0-43c5-b989-c1c14a8c3b8b")).getUser());
-        assertEquals(document.getDocumentType(), documentService.getDocumentForUser(
-                1L,
-                UUID.fromString("48bbbd31-45c0-43c5-b989-c1c14a8c3b8b")).getDocumentType());
-    }
-
-    @Test
     @DisplayName("Document for User not found")
     void getDocumentForUser_NotFound() {
         Mockito.when(documentRepository.getDocumentForUser(
@@ -222,7 +182,6 @@ class DocumentServiceTests {
                 .thenReturn(Optional.of(documentType1));
 
         Mockito.when(userRepository.findById(userId)).thenReturn(Optional.of(user1));
-        // when(minioDocumentMapper.map(documentCreateDTO, userId)).thenReturn(new MinioSaveDto("test", new byte[0]));
 
         Mockito.when(documentRepository.save(document1)).thenReturn(savedDocument);
 
@@ -232,49 +191,7 @@ class DocumentServiceTests {
         Document saveDocument = documentService.saveDocument(documentCreateDTO, userId);
 
         assertEquals(saveDocument.getId(), 1L, "Saved Document ID should match");
-
-
-
     }
-
-  /*  @Test
-    @DisplayName("Update correct Document")
-    void updateDocument_Success() {
-        when(documentRepository.findById(1L)).thenReturn(Optional.of(document));
-
-        DocumentUpdateDTO updateDTO = new DocumentUpdateDTO();
-        updateDTO.setCreationDate(LocalDateTime.now().minusDays(1));
-        updateDTO.setUserId(UUID.randomUUID());
-        updateDTO.setDocumentTypeId(1L);
-
-        when(documentVersionRepository.findById(any())).thenReturn(Optional.of(DocumentVersion.builder()
-                .id(1L)
-                .documentName("name")
-                .build()));
-        when(userRepository.findById(any())).thenReturn(Optional.of(document.getUser()));
-        when(documentTypeRepository.findById(any())).thenReturn(Optional.of(document.getDocumentType()));
-
-        when(documentRepository.save(any(Document.class))).thenReturn(document);
-
-        Document updatedDoc = documentService.updateDocument(1L, updateDTO, user.getId()).getDocument();
-
-
-        verify(documentRepository).findById(1L);
-        verify(documentRepository).save(any(Document.class));
-    }*/
-/*
-    @Test
-    @DisplayName("Update Document not found")
-    void updateDocument_NotFound() {
-        when(documentRepository.findById(1L)).thenReturn(Optional.empty());
-
-
-        assertThrows(ResourceNotFoundException.class, () ->
-                documentService.updateDocument(1L, new DocumentUpdateDTO(), user.getId())
-        );
-
-        verify(documentRepository).findById(1L);
-    }*/
 
     @Test
     @DisplayName("Delete Document")

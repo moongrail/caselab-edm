@@ -51,7 +51,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Tag(name = "Document", description = "Document management operations")
 @SecurityRequirement(name = "bearer-jwt")
-/*@PreAuthorize("hasRole('USER')")*/
+@PreAuthorize("hasRole('USER')")
 public class DocumentController {
 
     private final DocumentService documentService;

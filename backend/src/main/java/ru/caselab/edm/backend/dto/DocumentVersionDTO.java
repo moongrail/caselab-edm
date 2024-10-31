@@ -2,7 +2,6 @@ package ru.caselab.edm.backend.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-import ru.caselab.edm.backend.entity.DocumentAttributeValue;
 
 import java.time.Instant;
 import java.util.List;
@@ -29,5 +28,5 @@ public class DocumentVersionDTO {
     private Long documentId;
 
     @Schema(description = "Value attributes", example = "[1, 2]")
-    private List<DocumentAttributeValue> attributeValues;
+    private List<DocumentAttributeValueDTO> attributeValues;
 }
