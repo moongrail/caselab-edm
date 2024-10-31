@@ -129,7 +129,7 @@ public class UserServiceTests {
 
         when(userRepository.existsByEmail("test@test.ru")).thenReturn(false);
         when(userRepository.existsByLogin("test")).thenReturn(false);
-        when(roleRepository.findByName(RoleName.USER.name())).thenReturn(Optional.of(role));
+        when(roleRepository.findByName(RoleName.USER)).thenReturn(Optional.of(role));
         when(passwordEncoder.encode("test")).thenReturn("encodedTest");
         when(userMapper.toDTO(any(User.class))).thenReturn(userDTO);
 
@@ -173,7 +173,7 @@ public class UserServiceTests {
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(userRepository.existsByEmail("newTest@test.ru")).thenReturn(false);
         when(userRepository.existsByLogin("newTest")).thenReturn(false);
-        when(roleRepository.findByName(RoleName.USER.name())).thenReturn(Optional.of(role));
+        when(roleRepository.findByName(RoleName.USER)).thenReturn(Optional.of(role));
         when(userMapper.toDTO(any(User.class))).thenReturn(userDTO);
 
         UserDTO result = userService.updateUser(userId, updateUserDTO);
@@ -194,7 +194,7 @@ public class UserServiceTests {
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(userRepository.existsByEmail("testt@test.ru")).thenReturn(true);
         when(userRepository.existsByLogin("test")).thenReturn(true);
-        when(roleRepository.findByName(RoleName.USER.name())).thenReturn(Optional.of(role));
+        when(roleRepository.findByName(RoleName.USER)).thenReturn(Optional.of(role));
         when(userMapper.toDTO(any(User.class))).thenReturn(userDTO);
 
         UserDTO result = userService.updateUser(userId, updateUserDTO);
