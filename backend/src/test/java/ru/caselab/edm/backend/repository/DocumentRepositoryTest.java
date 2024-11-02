@@ -85,15 +85,15 @@ class DocumentRepositoryTest {
 
         List<DocumentOutputAllDocumentsDTO> expected = List.of(
                 new DocumentOutputAllDocumentsDTO("Ivanov",
-                        Instant.parse("2024-01-14T21:00:00Z").atOffset(ZoneOffset.UTC).toInstant(),
+                        Instant.parse("2024-01-14T21:00:00Z").atOffset(ZoneOffset.ofHours(3)).toInstant(),
                         "document_name_test2",
                         ApprovementProcessStatus.ACCEPTED),
                 new DocumentOutputAllDocumentsDTO("Ivanov",
-                        Instant.parse("2024-01-14T21:00:00Z").atOffset(ZoneOffset.UTC).toInstant(),
+                        Instant.parse("2024-01-14T21:00:00Z").atOffset(ZoneOffset.ofHours(3)).toInstant(),
                         "document_name_test1",
                         ApprovementProcessStatus.NOTACCEPTED),
                 new DocumentOutputAllDocumentsDTO("Ivanov",
-                        Instant.parse("2024-01-14T21:00:00Z").atOffset(ZoneOffset.UTC).toInstant(),
+                        Instant.parse("2024-01-14T21:00:00Z").atOffset(ZoneOffset.ofHours(3)).toInstant(),
                         "document_name_test3",
                         ApprovementProcessStatus.NOTACCEPTED)
         );
