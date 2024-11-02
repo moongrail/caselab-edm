@@ -22,19 +22,6 @@ public interface MinioDocumentMapper {
     @Mapping(target = "objectName", expression = "java(formatObjectName(userId, documentName))")
     MinioSaveDto map(String documentName, String data, UUID userId);
 
-    /*
-
-    @JsonProperty("name")
-    @Schema(description = "Document name", example = "Spongebob best episodes")
-    private String documentName;
-
-    @JsonProperty("data")
-    @Schema(description = "Content url", example = "")
-    private String data;
-
-    @Schema(description = "Value attributes")
-    private List<DocumentAttributeValueUpdateDTO> attributeValues;*/
-
     @Named("getByteArrayFromBase64")
     default byte[] getByteArrayFromBase64(String base64data) {
         return Base64.getDecoder().decode(base64data);

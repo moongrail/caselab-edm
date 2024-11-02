@@ -12,6 +12,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -31,12 +32,15 @@ import ru.caselab.edm.backend.dto.ApprovementProcessDTO;
 import ru.caselab.edm.backend.dto.ApprovementProcessItemDTO;
 import ru.caselab.edm.backend.dto.DocumentCreateDTO;
 import ru.caselab.edm.backend.dto.DocumentDTO;
+import ru.caselab.edm.backend.dto.DocumentOutputAllDocumentsDTO;
 import ru.caselab.edm.backend.dto.DocumentPageDTO;
 import ru.caselab.edm.backend.dto.DocumentUpdateDTO;
 import ru.caselab.edm.backend.dto.DocumentVersionDTO;
 import ru.caselab.edm.backend.dto.SignatureCreateDTO;
+import ru.caselab.edm.backend.entity.Document;
 import ru.caselab.edm.backend.entity.DocumentVersion;
 import ru.caselab.edm.backend.entity.UserInfoDetails;
+import ru.caselab.edm.backend.enums.DocumentSortingType;
 import ru.caselab.edm.backend.mapper.DocumentMapper;
 import ru.caselab.edm.backend.mapper.DocumentVersionMapper;
 import ru.caselab.edm.backend.service.ApprovementService;
@@ -44,6 +48,7 @@ import ru.caselab.edm.backend.service.DocumentService;
 import ru.caselab.edm.backend.service.DocumentVersionService;
 import ru.caselab.edm.backend.service.SignatureService;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -138,26 +143,48 @@ public class DocumentController {
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = DocumentPageDTO.class)))
     @GetMapping()
     @ResponseStatus(HttpStatus.OK)
-    public DocumentPageDTO getAllDocuments(@RequestParam(name = "page", defaultValue = "0") @Min(value = 0) int page,
-                                           @RequestParam(name = "size", defaultValue = "10") @Min(value = 1) @Max(value = 100) int size,
-                                           @AuthenticationPrincipal UserInfoDetails user) {
-        return documentMapper.toDtoPage(documentService.getAllDocumentForUser(page, size, user.getId()));
+    public Page<DocumentOutputAllDocumentsDTO> getAllDocuments(@RequestParam(name = "page", defaultValue = "0")
+                                                               @Min(value = 0) int page,
+                                                               @RequestParam(name = "size", defaultValue = "10")
+                                                               @Min(value = 1) @Max(value = 100) int size,
+                                                               @RequestParam(name = "sort_type", defaultValue = "WITHOUT")
+                                                               DocumentSortingType sortingType,
+                                                               @AuthenticationPrincipal UserInfoDetails user) {
+        return documentService.getAllDocumentForUser(page, size, user.getId(), sortingType);
     }
 
-    @Operation(summary = "Returning document of the current user by id")
+    @Operation(summary = "Returning last version document of the current user by id")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Document of the current user was successfully returned",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = DocumentDTO.class))),
             @ApiResponse(responseCode = "403", description = "Access to the document is forbidden",
                     content = @Content)
     })
-    @GetMapping("/{id}")
+    @GetMapping("/{id}/versions/last")
     @ResponseStatus(HttpStatus.OK)
-    public DocumentVersionDTO getDocumentById(
+    public DocumentVersionDTO getLastVersionDocumentById(
             @Parameter(description = "Document id", required = true, example = "1")
             @PathVariable Long id, @AuthenticationPrincipal UserInfoDetails user
     ) {
-        DocumentVersion documentForUser = documentService.getDocumentForUser(id, user.getId());
+        DocumentVersion documentForUser = documentService.getLastVersionDocumentForUser(id, user.getId());
+
+        return documentVersionMapper.toDto(documentForUser);
+    }
+
+    @Operation(summary = "Returning all version document of the current user by id")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Document of the current user was successfully returned",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = DocumentDTO.class))),
+            @ApiResponse(responseCode = "403", description = "Access to the document is forbidden",
+                    content = @Content)
+    })
+    @GetMapping("/{id}/versions")
+    @ResponseStatus(HttpStatus.OK)
+    public List<DocumentVersionDTO> getAllVersionDocumentById(
+            @Parameter(description = "Document id", required = true, example = "1")
+            @PathVariable Long id, @AuthenticationPrincipal UserInfoDetails user
+    ) {
+        List<DocumentVersion> documentForUser = documentService.getAllVersionDocumentForUser(id, user.getId());
 
         return documentVersionMapper.toDto(documentForUser);
     }

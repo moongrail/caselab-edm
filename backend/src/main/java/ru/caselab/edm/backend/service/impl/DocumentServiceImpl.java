@@ -1,14 +1,16 @@
 package ru.caselab.edm.backend.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.caselab.edm.backend.dto.ApprovementProcessItemDTO;
 import ru.caselab.edm.backend.dto.DocumentCreateDTO;
+import ru.caselab.edm.backend.dto.DocumentOutputAllDocumentsDTO;
 import ru.caselab.edm.backend.dto.DocumentUpdateDTO;
 import ru.caselab.edm.backend.entity.ApprovementProcessItem;
 import ru.caselab.edm.backend.entity.Document;
@@ -16,6 +18,7 @@ import ru.caselab.edm.backend.entity.DocumentVersion;
 import ru.caselab.edm.backend.entity.User;
 import ru.caselab.edm.backend.entity.UserInfoDetails;
 import ru.caselab.edm.backend.enums.ApprovementProcessItemStatus;
+import ru.caselab.edm.backend.enums.DocumentSortingType;
 import ru.caselab.edm.backend.event.DocumentSignRequestEvent;
 import ru.caselab.edm.backend.exceptions.ApprovementProccessItemAlreadyExistsException;
 import ru.caselab.edm.backend.exceptions.DocumentForbiddenAccess;
@@ -27,17 +30,18 @@ import ru.caselab.edm.backend.repository.DocumentRepository;
 import ru.caselab.edm.backend.repository.DocumentTypeRepository;
 import ru.caselab.edm.backend.repository.DocumentVersionRepository;
 import ru.caselab.edm.backend.repository.UserRepository;
-import ru.caselab.edm.backend.service.DocumentAttributeValueService;
 import ru.caselab.edm.backend.service.DocumentService;
 import ru.caselab.edm.backend.service.DocumentVersionService;
 
 import java.time.LocalDateTime;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class DocumentServiceImpl implements DocumentService {
 
     private final DocumentRepository documentRepository;
@@ -48,7 +52,6 @@ public class DocumentServiceImpl implements DocumentService {
     private final ApprovementItemRepository approvementItemRepository;
     private final ApprovementProccessItemMapper approvementProccessItemMapper;
     private final DocumentVersionService documentVersionService;
-    private final DocumentAttributeValueService documentAttributeValueService;
 
     @Override
     public Page<Document> getAllDocuments(int page, int size) {
@@ -62,16 +65,30 @@ public class DocumentServiceImpl implements DocumentService {
     }
 
     @Override
-    public Page<Document> getAllDocumentForUser(int page, int size, UUID userId) {
-        Pageable pageable = PageRequest.of(page, size);
-        return documentRepository.getAllDocumentForUser(userId, pageable);
+    public Page<DocumentOutputAllDocumentsDTO> getAllDocumentForUser(int page,
+                                                                     int size,
+                                                                     UUID userId,
+                                                                     DocumentSortingType sortingType) {
+        log.info("Get all document for user with sorting- page: {}, size: {}, userId: {}, sortingType: {}",
+                page, size, userId, sortingType);
+        PageRequest pageable = PageRequest.of(page, size);
+        if (!DocumentSortingType.WITHOUT.equals(sortingType)) {
+            pageable = pageable.withSort(Sort.by(sortingType.getDirection(), sortingType.getFieldName()));
+        }
+        Page<DocumentOutputAllDocumentsDTO> allDocumentWithNameAndStatusProjectionForUser =
+                documentRepository.getAllDocumentWithNameAndStatusProjectionForUser(userId, pageable);
+
+        log.info("Get {} document", allDocumentWithNameAndStatusProjectionForUser.getTotalElements());
+        return allDocumentWithNameAndStatusProjectionForUser;
     }
 
     @Override
-    public DocumentVersion getDocumentForUser(long id, UUID userId) {
+    public DocumentVersion getLastVersionDocumentForUser(long id, UUID userId) {
+        log.info("Get document with id: {} for user: {}",
+                id, userId);
         Document document = documentRepository.getDocumentForUser(id, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Document not found"));
-
+        log.info("Get last version document");
         DocumentVersion lastDocumentVersion = document.getDocumentVersion()
                 .stream()
                 .max(Comparator.comparing(DocumentVersion::getCreatedAt))
@@ -80,31 +97,45 @@ public class DocumentServiceImpl implements DocumentService {
         return lastDocumentVersion;
     }
 
+    @Override
+    public List<DocumentVersion> getAllVersionDocumentForUser(long id, UUID userId) {
+        log.info("Get document with id: {} for user: {}", id, userId);
+        Document document = documentRepository.getDocumentForUser(id, userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Document not found"));
+        log.info("Get all version document");
+        List<DocumentVersion> allDocumentVersion = document.getDocumentVersion();
+
+        return allDocumentVersion;
+    }
+
+
     @Transactional
     @Override
     public Document saveDocument(DocumentCreateDTO document, UUID userId) {
         Long documentTypeId = document.getDocumentTypeId();
         Document newDocument = new Document();
+        log.info("Creating document with name: {}", document.getDocumentName());
         newDocument.setDocumentType(
                 documentTypeRepository.findById(documentTypeId)
                         .orElseThrow(() -> new ResourceNotFoundException("Document type not found"))
         );
 
+        log.info("Creating document for User: {}", userId);
         newDocument.setUser(
                 userRepository.findById(userId)
                         .orElseThrow(() -> new ResourceNotFoundException("User not found"))
         );
-
+        log.info("Save new document with id {}", newDocument.getId());
         Document saved = documentRepository.save(newDocument);
-
+        log.info("Save document version document {}", document.getDocumentName());
         documentVersionService.saveDocumentVersion(document, saved, userId);
-
         return saved;
     }
 
     @Transactional
     @Override
     public Document updateDocument(long id, DocumentUpdateDTO document, UUID userId) {
+        log.info("Updating document with id: {}", id);
         Document existingDocument = documentRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Document not found"));
 
@@ -118,7 +149,7 @@ public class DocumentServiceImpl implements DocumentService {
         existingDocument = documentRepository.save(existingDocument);
 
         documentVersionService.updateDocumentVersion(document, existingDocument, userId);
-
+        log.info("Document update successfully");
         return existingDocument;
     }
 

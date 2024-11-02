@@ -2,17 +2,16 @@ package ru.caselab.edm.backend.mapper.impl;
 
 import jakarta.persistence.OneToMany;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 import ru.caselab.edm.backend.dto.DocumentAttributeValueDTO;
 import ru.caselab.edm.backend.dto.DocumentVersionDTO;
-import ru.caselab.edm.backend.dto.DocumentVersionPageDto;
 import ru.caselab.edm.backend.entity.ApprovementProcess;
 import ru.caselab.edm.backend.entity.ApprovementProcessItem;
 import ru.caselab.edm.backend.entity.DocumentAttributeValue;
 import ru.caselab.edm.backend.entity.DocumentVersion;
 import ru.caselab.edm.backend.mapper.DocumentVersionMapper;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -27,7 +26,6 @@ public class DocumentVersionMapperImpl implements DocumentVersionMapper {
         documentVersionDTO.setDocumentName(documentVersion.getDocumentName());
         documentVersionDTO.setAttributeValues(toAttrDtos(documentVersion.getDocumentAttributeValue()));
         documentVersionDTO.setCreatedAt(documentVersion.getCreatedAt());
-        documentVersionDTO.setUpdatedAt(documentVersion.getUpdatedAt());
         documentVersionDTO.setContentUrl(documentVersion.getContentUrl());
         return documentVersionDTO;
     }
@@ -38,17 +36,20 @@ public class DocumentVersionMapperImpl implements DocumentVersionMapper {
     @OneToMany(mappedBy = "documentVersion")
     private List<ApprovementProcess> approvementProcesses;
 
-
     @Override
-    public DocumentVersionPageDto toDtoPage(Page<DocumentVersion> requests) {
-
-        return new DocumentVersionPageDto(requests.getNumber(),
-                requests.getSize(), requests.getTotalPages(), requests.getNumberOfElements(),
-                toDto(requests.getContent().stream().toList()));
-    }
-
-    private List<DocumentVersionDTO> toDto(List<DocumentVersion> versions) {
-        return versions.stream().map(this::toDto).toList();
+    public List<DocumentVersionDTO> toDto(List<DocumentVersion> versions) {
+        List<DocumentVersionDTO> documentVersionDTOList = new ArrayList<>();
+        for (DocumentVersion v : versions) {
+            DocumentVersionDTO dto = new DocumentVersionDTO();
+            dto.setDocumentId(v.getDocument().getId());
+            dto.setDocumentName(v.getDocumentName());
+            dto.setId(v.getId());
+            dto.setCreatedAt(v.getCreatedAt());
+            dto.setContentUrl(v.getContentUrl());
+            dto.setAttributeValues(toAttrDtos(v.getDocumentAttributeValue()));
+            documentVersionDTOList.add(dto);
+        }
+        return documentVersionDTOList;
     }
 
     private List<DocumentAttributeValueDTO> toAttrDtos(List<DocumentAttributeValue> entityList) {
@@ -59,8 +60,6 @@ public class DocumentVersionMapperImpl implements DocumentVersionMapper {
 
     private DocumentAttributeValueDTO toAttrDtos(DocumentAttributeValue entity) {
         DocumentAttributeValueDTO dto = new DocumentAttributeValueDTO();
-        dto.setId(entity.getId());
-        dto.setDocumentId(entity.getDocumentVersion().getDocument().getId());
         dto.setAttributeId(entity.getAttribute().getId());
         dto.setValue(entity.getValue());
         return dto;

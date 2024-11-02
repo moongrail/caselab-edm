@@ -17,10 +17,6 @@ import java.util.List;
 @NoArgsConstructor
 public class DocumentUpdateDTO {
 
-/*    @JsonProperty("documentTypeId")
-    @NotNull
-    private Long documentTypeId;*/
-
     @JsonProperty("name")
     @Schema(description = "Document name", example = "Spongebob best episodes")
     private String documentName;

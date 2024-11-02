@@ -6,12 +6,15 @@ import ru.caselab.edm.backend.dto.DocumentUpdateDTO;
 import ru.caselab.edm.backend.entity.Document;
 import ru.caselab.edm.backend.entity.DocumentVersion;
 
+import java.util.List;
 import java.util.UUID;
 
 public interface DocumentVersionService {
     DocumentVersion getDocumentVersion(long id);
 
     Page<DocumentVersion> getAllDocumentVersions(int page, int size);
+
+    List<DocumentVersion> getAllDocumentVersions(Long documentId);
 
     DocumentVersion saveDocumentVersion(DocumentCreateDTO document, Document newDocument, UUID userId);
 

@@ -1,6 +1,7 @@
 package ru.caselab.edm.backend.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -23,6 +24,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class DocumentVersionServiceImpl implements DocumentVersionService {
 
     private final DocumentVersionRepository documentVersionRepository;
@@ -40,6 +42,11 @@ public class DocumentVersionServiceImpl implements DocumentVersionService {
                 .orElseThrow();
 
         return latestDocumentVersion;
+    }
+
+    @Override
+    public List<DocumentVersion> getAllDocumentVersions(Long documentId) {
+        return documentVersionRepository.findByDocumentId(documentId);
     }
 
     @Override
@@ -69,6 +76,7 @@ public class DocumentVersionServiceImpl implements DocumentVersionService {
     }
 
     @Transactional
+    @Override
     public DocumentVersion updateDocumentVersion(DocumentUpdateDTO document, Document existingDocument, UUID userId) {
         DocumentVersion updatingDocumentVersion = new DocumentVersion();
         DocumentVersion exsistingVersion = existingDocument.getDocumentVersion()
@@ -77,24 +85,13 @@ public class DocumentVersionServiceImpl implements DocumentVersionService {
                 .orElseThrow();
         updatingDocumentVersion.setDocument(existingDocument);
 
-        updatingDocumentVersion = getUpdatedDocumentVersion(document, updatingDocumentVersion, exsistingVersion, userId);
-
-        return documentVersionRepository.save(updatingDocumentVersion);
-    }
-
-    private DocumentVersion getUpdatedDocumentVersion(DocumentUpdateDTO document,
-                                                      DocumentVersion updatingDocumentVersion,
-                                                      DocumentVersion exsistingVersion,
-                                                      UUID userId) {
         if (document.getDocumentName() != null) {
             updatingDocumentVersion.setDocumentName(document.getDocumentName());
-
         } else {
             updatingDocumentVersion.setDocumentName(exsistingVersion.getDocumentName());
         }
         String documentName = updatingDocumentVersion.getDocumentName();
 
-        // TODO: спросить может ли быть contentUrl пустым
         if (document.getData() != null && !document.getData().isEmpty()) {
             String data = document.getData();
             MinioSaveDto saveDto = minioDocumentMapper.map(documentName, data, userId);
@@ -114,6 +111,6 @@ public class DocumentVersionServiceImpl implements DocumentVersionService {
 
         updatingDocumentVersion.setDocumentAttributeValue(documentAttributeValueList);
 
-        return updatingDocumentVersion;
+        return documentVersionRepository.save(updatingDocumentVersion);
     }
 }
