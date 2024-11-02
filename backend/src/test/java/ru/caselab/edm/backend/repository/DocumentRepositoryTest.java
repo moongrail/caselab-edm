@@ -16,6 +16,8 @@ import ru.caselab.edm.backend.enums.ApprovementProcessStatus;
 import ru.caselab.edm.backend.enums.DocumentSortingType;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -79,17 +81,19 @@ class DocumentRepositoryTest {
     void getAllDocumentWithNameAndStatusProjectionForUser() {
         initdb();
         Pageable pageable = PageRequest.of(0, 5, Sort.by("status"));
+
+
         List<DocumentOutputAllDocumentsDTO> expected = List.of(
                 new DocumentOutputAllDocumentsDTO("Ivanov",
-                        Instant.parse("2024-01-14T21:00:00Z"),
+                        Instant.parse("2024-01-14T21:00:00Z").atOffset(ZoneOffset.UTC).toInstant(),
                         "document_name_test2",
                         ApprovementProcessStatus.ACCEPTED),
                 new DocumentOutputAllDocumentsDTO("Ivanov",
-                        Instant.parse("2024-01-14T21:00:00Z"),
+                        Instant.parse("2024-01-14T21:00:00Z").atOffset(ZoneOffset.UTC).toInstant(),
                         "document_name_test1",
                         ApprovementProcessStatus.NOTACCEPTED),
                 new DocumentOutputAllDocumentsDTO("Ivanov",
-                        Instant.parse("2024-01-14T21:00:00Z"),
+                        Instant.parse("2024-01-14T21:00:00Z").atOffset(ZoneOffset.UTC).toInstant(),
                         "document_name_test3",
                         ApprovementProcessStatus.NOTACCEPTED)
         );
