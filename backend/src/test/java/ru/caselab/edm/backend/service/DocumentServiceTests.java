@@ -12,6 +12,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import ru.caselab.edm.backend.dto.DocumentCreateDTO;
+import ru.caselab.edm.backend.dto.DocumentOutputAllDocumentsDTO;
 import ru.caselab.edm.backend.dto.DocumentUpdateDTO;
 import ru.caselab.edm.backend.entity.Document;
 import ru.caselab.edm.backend.entity.DocumentType;
@@ -63,7 +64,7 @@ class DocumentServiceTests {
     private Document document;
     private DocumentVersion documentVersion;
 
-    private final UUID userId = UUID.randomUUID();
+    private final UUID userId = UUID.fromString("48bbbd31-45c0-43c5-b989-c1c14a8c3b8b");
     private final long documentId = 123L;
     private final int page = 0;
     private final int size = 10;
@@ -109,8 +110,13 @@ class DocumentServiceTests {
     void getAllDocumentForUserWithoutSorting() {
         PageRequest pageable = PageRequest.of(page, size);
 
+        List<DocumentOutputAllDocumentsDTO> content = List.of(new DocumentOutputAllDocumentsDTO());
+        Page<DocumentOutputAllDocumentsDTO> expectedPage = new PageImpl<>(content);
+
         DocumentSortingType sortingType = DocumentSortingType.WITHOUT;
 
+        when(documentRepository.getAllDocumentWithNameAndStatusProjectionForUser(userId, pageable))
+                .thenReturn(expectedPage);
         documentService.getAllDocumentForUser(page, size, userId, sortingType);
 
         verify(documentRepository).getAllDocumentWithNameAndStatusProjectionForUser(
@@ -124,6 +130,12 @@ class DocumentServiceTests {
 
         PageRequest pageable = PageRequest.of(page, size);
         pageable = pageable.withSort(Sort.by(sortingType.getDirection(), sortingType.getFieldName()));
+
+        List<DocumentOutputAllDocumentsDTO> content = List.of(new DocumentOutputAllDocumentsDTO());
+        Page<DocumentOutputAllDocumentsDTO> expectedPage = new PageImpl<>(content);
+
+        when(documentRepository.getAllDocumentWithNameAndStatusProjectionForUser(userId, pageable))
+                .thenReturn(expectedPage);
 
         documentService.getAllDocumentForUser(page, size, userId, sortingType);
 
