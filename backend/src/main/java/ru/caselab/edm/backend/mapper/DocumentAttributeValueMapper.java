@@ -13,7 +13,6 @@ import java.util.List;
 public interface DocumentAttributeValueMapper {
 
     @Mapping(target = "attributeId", source = "attribute")
-    @Mapping(target = "documentId", source = "documentVersion")
     DocumentAttributeValueDTO toDTO(DocumentAttributeValue documentAttributeValue);
 
     DocumentAttributeValue toEntity(DocumentAttributeValueDTO documentAttributeValueDTO);
