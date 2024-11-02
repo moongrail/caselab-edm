@@ -178,6 +178,8 @@ public class DocumentServiceImpl implements DocumentService {
         }
         User user = userOptional.get();
         DocumentVersion documentVersion = documentVersionOptional.get();
+        //проверка можно ли такой документ отправить на подпись
+        documentVersion.getState().sendForSign(documentVersion);
         if (!documentVersion.getDocument().getUser().getId().equals(authenticatedUser.getId())) {
             throw new DocumentForbiddenAccess("You don't have access to this document with id = %d".formatted(documentVersionId));
         }

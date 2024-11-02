@@ -17,6 +17,7 @@ import ru.caselab.edm.backend.repository.DocumentVersionRepository;
 import ru.caselab.edm.backend.service.DocumentAttributeValueService;
 import ru.caselab.edm.backend.service.DocumentVersionService;
 import ru.caselab.edm.backend.service.MinioService;
+import ru.caselab.edm.backend.state.DocumentStatus;
 
 import java.util.Comparator;
 import java.util.List;
@@ -60,6 +61,7 @@ public class DocumentVersionServiceImpl implements DocumentVersionService {
         DocumentVersion newDocumentVersion = new DocumentVersion();
         newDocumentVersion.setDocumentName(document.getDocumentName());
         newDocumentVersion.setDocument(newDocument);
+        newDocumentVersion.setState(DocumentStatus.DRAFT);
 
         MinioSaveDto saveDto = minioDocumentMapper.map(document, userId);
         minioService.saveObject(saveDto);

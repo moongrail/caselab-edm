@@ -17,7 +17,8 @@
                 updated_at TIMESTAMP,
                 content_url TEXT
             );
-
+            ALTER TABLE document_version
+                ADD COLUMN state VARCHAR(50);
             CREATE SEQUENCE IF NOT EXISTS document_version_sequence START WITH 1 INCREMENT BY 1;
         </sql>
     </changeSet>
