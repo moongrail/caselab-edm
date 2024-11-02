@@ -6,4 +6,5 @@ public class DocumentStateFactory {
             case DRAFT -> new DraftDocumentState();
             default -> throw new IllegalArgumentException("Unknown state: " + status);
         };
+    }
 }
