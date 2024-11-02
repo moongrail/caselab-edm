@@ -12,6 +12,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -26,14 +27,28 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import ru.caselab.edm.backend.dto.*;
+import ru.caselab.edm.backend.dto.ApprovementProcessCreateDTO;
+import ru.caselab.edm.backend.dto.ApprovementProcessDTO;
+import ru.caselab.edm.backend.dto.ApprovementProcessItemDTO;
+import ru.caselab.edm.backend.dto.DocumentCreateDTO;
+import ru.caselab.edm.backend.dto.DocumentDTO;
+import ru.caselab.edm.backend.dto.DocumentOutputAllDocumentsDTO;
+import ru.caselab.edm.backend.dto.DocumentPageDTO;
+import ru.caselab.edm.backend.dto.DocumentUpdateDTO;
+import ru.caselab.edm.backend.dto.DocumentVersionDTO;
+import ru.caselab.edm.backend.dto.SignatureCreateDTO;
+import ru.caselab.edm.backend.entity.Document;
+import ru.caselab.edm.backend.entity.DocumentVersion;
 import ru.caselab.edm.backend.entity.UserInfoDetails;
+import ru.caselab.edm.backend.enums.DocumentSortingType;
 import ru.caselab.edm.backend.mapper.DocumentMapper;
 import ru.caselab.edm.backend.mapper.DocumentVersionMapper;
 import ru.caselab.edm.backend.service.ApprovementService;
 import ru.caselab.edm.backend.service.DocumentService;
+import ru.caselab.edm.backend.service.DocumentVersionService;
 import ru.caselab.edm.backend.service.SignatureService;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -45,6 +60,7 @@ import java.util.UUID;
 public class DocumentController {
 
     private final DocumentService documentService;
+    private final DocumentVersionService documentVersionService;
     private final DocumentMapper documentMapper;
     private final SignatureService signatureService;
     private final DocumentVersionMapper documentVersionMapper;
@@ -65,12 +81,12 @@ public class DocumentController {
     public ResponseEntity<ApprovementProcessDTO> startApprovement(
             @Valid @RequestBody ApprovementProcessCreateDTO processCreateDTO,
             @AuthenticationPrincipal UserInfoDetails authenticatedUser
-    ){
+    ) {
         return new ResponseEntity<>(approvementService.createApprovementProcess(processCreateDTO, authenticatedUser), HttpStatus.OK);
     }
 
 
-   @Operation(summary = "Sign document with given id")
+    @Operation(summary = "Sign document with given id")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Document was successfully signed",
                     content = @Content),
@@ -117,35 +133,60 @@ public class DocumentController {
     })
     @PostMapping()
     @ResponseStatus(HttpStatus.CREATED)
-    public DocumentVersionDTO createDocument(@Valid @RequestBody DocumentCreateDTO documentCreateDTO) {
-        return documentVersionMapper.toDto(documentService.saveDocument(documentCreateDTO));
+    public DocumentDTO createDocument(@Valid @RequestBody DocumentCreateDTO documentCreateDTO,
+                                      @AuthenticationPrincipal UserInfoDetails user) {
+        return documentMapper.toDto(documentService.saveDocument(documentCreateDTO, user.getId()));
     }
 
-    @Operation(summary = "Returning all documents of the current user")
+    @Operation(summary = "Returning last version all documents of the current user")
     @ApiResponse(responseCode = "200", description = "Documents of the current user were successfully returned",
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = DocumentPageDTO.class)))
     @GetMapping()
     @ResponseStatus(HttpStatus.OK)
-    public DocumentPageDTO getAllDocuments(@RequestParam(name = "page", defaultValue = "0") @Min(value = 0) int page,
-                                           @RequestParam(name = "size", defaultValue = "10") @Min(value = 1) @Max(value = 100) int size,
-                                           @AuthenticationPrincipal UserInfoDetails user) {
-        return documentMapper.toDtoPage(documentService.getAllDocumentForUser(page, size, user.getId()));
+    public Page<DocumentOutputAllDocumentsDTO> getAllDocuments(@RequestParam(name = "page", defaultValue = "0")
+                                                               @Min(value = 0) int page,
+                                                               @RequestParam(name = "size", defaultValue = "10")
+                                                               @Min(value = 1) @Max(value = 100) int size,
+                                                               @RequestParam(name = "sort_type", defaultValue = "WITHOUT")
+                                                               DocumentSortingType sortingType,
+                                                               @AuthenticationPrincipal UserInfoDetails user) {
+        return documentService.getAllDocumentForUser(page, size, user.getId(), sortingType);
     }
 
-    @Operation(summary = "Returning document of the current user by id")
+    @Operation(summary = "Returning last version document of the current user by id")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Document of the current user was successfully returned",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = DocumentDTO.class))),
             @ApiResponse(responseCode = "403", description = "Access to the document is forbidden",
                     content = @Content)
     })
-    @GetMapping("/{id}")
+    @GetMapping("/{id}/versions/last")
     @ResponseStatus(HttpStatus.OK)
-    public DocumentDTO getDocumentById(
+    public DocumentVersionDTO getLastVersionDocumentById(
             @Parameter(description = "Document id", required = true, example = "1")
             @PathVariable Long id, @AuthenticationPrincipal UserInfoDetails user
     ) {
-        return documentMapper.toDto(documentService.getDocumentForUser(id, user.getId()));
+        DocumentVersion documentForUser = documentService.getLastVersionDocumentForUser(id, user.getId());
+
+        return documentVersionMapper.toDto(documentForUser);
+    }
+
+    @Operation(summary = "Returning all version document of the current user by id")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Document of the current user was successfully returned",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = DocumentDTO.class))),
+            @ApiResponse(responseCode = "403", description = "Access to the document is forbidden",
+                    content = @Content)
+    })
+    @GetMapping("/{id}/versions")
+    @ResponseStatus(HttpStatus.OK)
+    public List<DocumentVersionDTO> getAllVersionDocumentById(
+            @Parameter(description = "Document id", required = true, example = "1")
+            @PathVariable Long id, @AuthenticationPrincipal UserInfoDetails user
+    ) {
+        List<DocumentVersion> documentForUser = documentService.getAllVersionDocumentForUser(id, user.getId());
+
+        return documentVersionMapper.toDto(documentForUser);
     }
 
     @Operation(summary = "Updating document fields")
@@ -156,11 +197,12 @@ public class DocumentController {
     })
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public DocumentVersionDTO updateDocument(
+    public DocumentDTO updateDocument(
             @Parameter(description = "Document id", required = true, example = "1")
             @PathVariable Long id,
+            @AuthenticationPrincipal UserInfoDetails user,
             @RequestBody @Valid DocumentUpdateDTO updateDocument) {
-        return documentVersionMapper.toDto(documentService.updateDocument(id, updateDocument));
+        return documentMapper.toDto(documentService.updateDocument(id, updateDocument, user.getId()));
     }
 
     @Operation(summary = "Deleting document")
