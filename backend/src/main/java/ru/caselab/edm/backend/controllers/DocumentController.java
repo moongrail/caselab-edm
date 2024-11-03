@@ -32,6 +32,7 @@ import ru.caselab.edm.backend.mapper.DocumentMapper;
 import ru.caselab.edm.backend.mapper.DocumentVersionMapper;
 import ru.caselab.edm.backend.service.ApprovementService;
 import ru.caselab.edm.backend.service.DocumentService;
+import ru.caselab.edm.backend.service.MinioService;
 import ru.caselab.edm.backend.service.SignatureService;
 
 import java.util.UUID;
@@ -49,6 +50,7 @@ public class DocumentController {
     private final SignatureService signatureService;
     private final DocumentVersionMapper documentVersionMapper;
     private final ApprovementService approvementService;
+    private final MinioService minioService;
 
     @Operation(
             summary = "Start approval process for current document version"
@@ -171,5 +173,21 @@ public class DocumentController {
             @Parameter(description = "Document id", required = true, example = "1")
             @PathVariable Long id) {
         documentService.deleteDocument(id);
+    }
+
+    @Operation(
+            summary = "Get a link to download the document",
+            description = """
+                The method requires the value of the contentUrl field of the document for which the download link will be returned.
+                Note: The link is only valid for 15 minutes. After the time has passed, a new one must be generated!
+                """
+    )
+    @ApiResponse(responseCode = "200", description = "Download link was successfully returned", content = @Content)
+    @RequestMapping("/download/{url}")
+    @ResponseStatus(HttpStatus.OK)
+    public String downloadDocument(
+            @Parameter(description = "The value of the contentUrl field of the document", example = "")
+            @PathVariable("url") String url) {
+        return minioService.generateTemporaryUrlToObject(url);
     }
 }

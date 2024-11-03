@@ -86,13 +86,11 @@ public class UserServiceTests {
         UserPageDTO userPageDTO = new UserPageDTO(0, 10, 1, 1,Collections.singletonList(userDTO));
 
         when(userRepository.findAll(PageRequest.of(0, 10))).thenReturn(users);
-        //when(userMapper.toDTO(any(User.class))).thenReturn(userDTO);
         when(userMapper.toPageDTO(any(Page.class))).thenReturn(userPageDTO);
 
         UserPageDTO result = userService.getAllUsers(0, 10);
 
         verify(userRepository, times(1)).findAll(PageRequest.of(0, 10));
-        //verify(userMapper, times(1)).toDTO(any(User.class));
         verify(userMapper, times(1)).toPageDTO(any(Page.class));
         assertEquals(1, result.totalElements());
         assertEquals(userDTO, result.content().get(0));
