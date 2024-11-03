@@ -1,4 +1,4 @@
-package ru.caselab.edm.backend.security.service;
+package ru.caselab.edm.backend.security.service.impl;
 
 import org.springframework.stereotype.Service;
 import ru.caselab.edm.backend.entity.RefreshToken;
@@ -7,6 +7,7 @@ import ru.caselab.edm.backend.exceptions.ExpiredRefreshTokenException;
 import ru.caselab.edm.backend.exceptions.ResourceNotFoundException;
 import ru.caselab.edm.backend.repository.RefreshTokenRepository;
 import ru.caselab.edm.backend.repository.UserRepository;
+import ru.caselab.edm.backend.security.service.RefreshTokenService;
 
 import java.time.Instant;
 import java.util.UUID;

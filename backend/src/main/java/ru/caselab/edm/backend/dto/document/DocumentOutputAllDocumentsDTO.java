@@ -14,14 +14,20 @@ import java.time.Instant;
 @NoArgsConstructor
 public class DocumentOutputAllDocumentsDTO {
 
-    @Schema(description = "Last name author document")
-    private String lastName;
+    @Schema(description = "Document ID")
+    private Long id;
+
+    @Schema(description = "Login author document")
+    private String author;
 
     @Schema(description = "Timestamp of document creation")
     private Instant createdAt;
 
     @Schema(description = "Document name")
     private String documentName;
+
+    @Schema(description = "Content URL")
+    private String contentUrl;
 
     private ApprovementProcessStatus status;
 }

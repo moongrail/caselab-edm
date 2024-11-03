@@ -4,6 +4,8 @@ package ru.caselab.edm.backend.utils;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.UUID;
@@ -20,7 +22,14 @@ public final class MinioObjectNameFormatterUtil {
         String nameWithoutDate = removeExistingDatePrefix(rawName);
         String currentTime = getCurrentTimeAsPrefix();
 
-        return concatString(userId.toString(), currentTime, nameWithoutDate);
+        String objectName = concatString(userId.toString(), currentTime, nameWithoutDate);
+        try {
+            String encodedObjectName = URLEncoder.encode(objectName, "UTF-8");
+            return encodedObjectName.replace("%", "_PERCENT_");
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
+        }
+
     }
 
     private static String removeExistingDatePrefix(String name) {

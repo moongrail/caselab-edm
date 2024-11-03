@@ -20,6 +20,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.time.Duration;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @Slf4j
@@ -102,7 +104,7 @@ public class MinioServiceImpl implements MinioService {
                 .method(Method.GET)
                 .bucket(bucketName)
                 .object(objectName)
-                .expiry(DEFAULT_DURATION_MINUTES)
+                .expiry(15, TimeUnit.MINUTES)
                 .build();
 
         return minioClient.getPresignedObjectUrl(getPresignedObjectUrlArgs);

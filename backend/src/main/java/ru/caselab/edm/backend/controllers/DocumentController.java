@@ -222,11 +222,12 @@ public class DocumentController {
                 """
     )
     @ApiResponse(responseCode = "200", description = "Download link was successfully returned", content = @Content)
-    @RequestMapping("/download/{url}")
+    @GetMapping("/download/{url}")
     @ResponseStatus(HttpStatus.OK)
     public String downloadDocument(
             @Parameter(description = "The value of the contentUrl field of the document", example = "")
             @PathVariable("url") String url) {
         return minioService.generateTemporaryUrlToObject(url);
     }
+
 }

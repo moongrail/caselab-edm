@@ -1,14 +1,13 @@
-package ru.caselab.edm.backend.dto;
+package ru.caselab.edm.backend.dto.attributevalue;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data
-public class DocumentAttributeValueCreateDTO {
+public class DocumentAttributeValueDTO {
 
     @NotNull
     private Long attributeId;
-    @NotNull
-    private Long documentId;
+
     private String value;
 }

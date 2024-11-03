@@ -1,9 +1,9 @@
-package ru.caselab.edm.backend.mapper.impl;
+package ru.caselab.edm.backend.mapper.documentversion.impl;
 
 import jakarta.persistence.OneToMany;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import ru.caselab.edm.backend.dto.DocumentAttributeValueDTO;
+import ru.caselab.edm.backend.dto.attributevalue.DocumentAttributeValueDTO;
 import ru.caselab.edm.backend.dto.documentversion.DocumentVersionDTO;
 import ru.caselab.edm.backend.entity.ApprovementProcess;
 import ru.caselab.edm.backend.entity.ApprovementProcessItem;

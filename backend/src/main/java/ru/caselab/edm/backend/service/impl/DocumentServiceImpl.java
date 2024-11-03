@@ -84,8 +84,7 @@ public class DocumentServiceImpl implements DocumentService {
 
     @Override
     public DocumentVersion getLastVersionDocumentForUser(long id, UUID userId) {
-        log.info("Get document with id: {} for user: {}",
-                id, userId);
+        log.info("Get document with id: {} for user: {}", id, userId);
         Document document = documentRepository.getDocumentForUser(id, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Document not found"));
         log.info("Get last version document");

@@ -3,7 +3,7 @@ package ru.caselab.edm.backend.dto.documentversion;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
-import ru.caselab.edm.backend.dto.document.AttributeValuetoCreateDocumentDTO;
+import ru.caselab.edm.backend.dto.attributevalue.AttributeValuetoCreateDocumentDTO;
 import ru.caselab.edm.backend.entity.DocumentAttributeValue;
 
 import java.util.List;

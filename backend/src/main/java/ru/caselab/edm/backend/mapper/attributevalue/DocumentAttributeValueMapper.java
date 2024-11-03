@@ -1,8 +1,8 @@
-package ru.caselab.edm.backend.mapper;
+package ru.caselab.edm.backend.mapper.attributevalue;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import ru.caselab.edm.backend.dto.DocumentAttributeValueDTO;
+import ru.caselab.edm.backend.dto.attributevalue.DocumentAttributeValueDTO;
 import ru.caselab.edm.backend.entity.Attribute;
 import ru.caselab.edm.backend.entity.DocumentAttributeValue;
 import ru.caselab.edm.backend.entity.DocumentVersion;

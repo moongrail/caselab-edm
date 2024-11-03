@@ -2,7 +2,7 @@ package ru.caselab.edm.backend.dto.documentversion;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-import ru.caselab.edm.backend.dto.DocumentAttributeValueDTO;
+import ru.caselab.edm.backend.dto.attributevalue.DocumentAttributeValueDTO;
 
 import java.time.Instant;
 import java.util.List;

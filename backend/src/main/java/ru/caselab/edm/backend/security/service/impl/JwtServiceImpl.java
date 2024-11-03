@@ -1,4 +1,4 @@
-package ru.caselab.edm.backend.security.service;
+package ru.caselab.edm.backend.security.service.impl;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtParser;
@@ -11,6 +11,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import ru.caselab.edm.backend.exceptions.ExpiredJwtTokenException;
+import ru.caselab.edm.backend.security.service.JwtService;
 
 import java.security.Key;
 import java.util.Date;

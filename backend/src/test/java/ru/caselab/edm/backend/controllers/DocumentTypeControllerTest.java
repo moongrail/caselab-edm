@@ -22,7 +22,7 @@ import ru.caselab.edm.backend.entity.DocumentType;
 import ru.caselab.edm.backend.repository.RoleRepository;
 import ru.caselab.edm.backend.repository.UserRepository;
 import ru.caselab.edm.backend.security.details.UserDetailsServiceImpl;
-import ru.caselab.edm.backend.security.service.JwtServiceImpl;
+import ru.caselab.edm.backend.security.service.impl.JwtServiceImpl;
 import ru.caselab.edm.backend.service.DocumentTypeService;
 
 import java.time.LocalDateTime;

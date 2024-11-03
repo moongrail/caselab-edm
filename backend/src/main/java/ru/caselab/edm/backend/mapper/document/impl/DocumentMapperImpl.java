@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import ru.caselab.edm.backend.dto.document.DocumentDTO;
 import ru.caselab.edm.backend.entity.Document;
-import ru.caselab.edm.backend.mapper.DocumentAttributeValueMapper;
+import ru.caselab.edm.backend.mapper.attributevalue.DocumentAttributeValueMapper;
 import ru.caselab.edm.backend.mapper.document.DocumentMapper;
 
 import java.util.List;
