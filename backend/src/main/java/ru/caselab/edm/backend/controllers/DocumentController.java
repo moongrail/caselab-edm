@@ -133,9 +133,9 @@ public class DocumentController {
     })
     @PostMapping()
     @ResponseStatus(HttpStatus.CREATED)
-    public DocumentDTO createDocument(@Valid @RequestBody DocumentCreateDTO documentCreateDTO,
+    public DocumentVersionDTO createDocument(@Valid @RequestBody DocumentCreateDTO documentCreateDTO,
                                       @AuthenticationPrincipal UserInfoDetails user) {
-        return documentMapper.toDto(documentService.saveDocument(documentCreateDTO, user.getId()));
+        return documentVersionMapper.toDto(documentService.saveDocument(documentCreateDTO, user.getId()));
     }
 
     @Operation(summary = "Returning last version all documents of the current user")
@@ -197,12 +197,12 @@ public class DocumentController {
     })
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public DocumentDTO updateDocument(
+    public DocumentVersionDTO updateDocument(
             @Parameter(description = "Document id", required = true, example = "1")
             @PathVariable Long id,
             @AuthenticationPrincipal UserInfoDetails user,
             @RequestBody @Valid DocumentUpdateDTO updateDocument) {
-        return documentMapper.toDto(documentService.updateDocument(id, updateDocument, user.getId()));
+        return documentVersionMapper.toDto(documentService.updateDocument(id, updateDocument, user.getId()));
     }
 
     @Operation(summary = "Deleting document")
