@@ -3,28 +3,50 @@ package ru.caselab.edm.backend.state;
 import ru.caselab.edm.backend.entity.ApprovementProcess;
 import ru.caselab.edm.backend.entity.ApprovementProcessItem;
 import ru.caselab.edm.backend.entity.DocumentVersion;
-import ru.caselab.edm.backend.enums.ApprovementProcessStatus;
 import ru.caselab.edm.backend.exceptions.InvalidDocumentStateException;
 
+import java.util.EnumMap;
+import java.util.Map;
+import java.util.Set;
 
 import static ru.caselab.edm.backend.enums.ApprovementProcessStatus.PUBLISHED_FOR_VOTING;
 
 
 public class DocumentBaseState implements DocumentState {
+
+    private final Map<DocumentStatus, Set<DocumentStatus>> allowedTransitions = new EnumMap<>(DocumentStatus.class);
+
+    public DocumentBaseState() {
+        allowedTransitions.put(DocumentStatus.DRAFT, Set.of(DocumentStatus.AUTHOR_SIGNED, DocumentStatus.PENDING_AUTHOR_SIGN, DocumentStatus.IN_VOTING, DocumentStatus.DELETED,DocumentStatus.REWORK_REQUIRED));
+        allowedTransitions.put(DocumentStatus.PENDING_CONTRACTOR_SIGN, Set.of(DocumentStatus.APPROVED, DocumentStatus.REJECTED, DocumentStatus.REWORK_REQUIRED));
+        allowedTransitions.put(DocumentStatus.AUTHOR_SIGNED, Set.of(DocumentStatus.PENDING_CONTRACTOR_SIGN));
+        allowedTransitions.put(DocumentStatus.REWORK_REQUIRED, Set.of(DocumentStatus.DELETED,DocumentStatus.REWORK_REQUIRED));
+        allowedTransitions.put(DocumentStatus.APPROVED, Set.of(DocumentStatus.DELETED));
+        allowedTransitions.put(DocumentStatus.REJECTED, Set.of(DocumentStatus.DELETED));
+        allowedTransitions.put(DocumentStatus.PENDING_AUTHOR_SIGN, Set.of(DocumentStatus.AUTHOR_SIGNED));
+    }
+
+
+    private void changeState(DocumentVersion version, DocumentStatus newStatus) {
+        DocumentStatus currentStatus = version.getStatus();
+        if (allowedTransitions.getOrDefault(currentStatus, Set.of()).contains(newStatus)) {
+            version.setState(newStatus);
+        } else {
+            throw new InvalidDocumentStateException("Transition from " + currentStatus + " to " + newStatus + " is not allowed.");
+        }
+    }
+
+
+
     @Override
     public void signAuthor(DocumentVersion version) {
         if(isVotingDocument(version)){
             ApprovementProcess process = version.getApprovementProcesses().get(0);
-            switch (process.getStatus()){
-                case PUBLISHED_FOR_VOTING -> process.setStatus(PUBLISHED_FOR_VOTING);
-                default -> throw new InvalidDocumentStateException("Action - sign document during the voting is not allowed in the current state.");
+            if (process.getStatus()!=PUBLISHED_FOR_VOTING){
+                throw new InvalidDocumentStateException("Action - sign document during the voting is not allowed in the current state.");
             }
         }else {
-            DocumentStatus status = version.getStatus();
-            switch (status) {
-                case PENDING_AUTHOR_SIGN -> version.setState(DocumentStatus.AUTHOR_SIGNED);
-                default -> throw new InvalidDocumentStateException("Action - sign by Author is not allowed in the current state.");
-            }
+            changeState(version, DocumentStatus.AUTHOR_SIGNED);
         }
     }
 
@@ -32,49 +54,34 @@ public class DocumentBaseState implements DocumentState {
     public void signContractor(ApprovementProcessItem item) {
         ApprovementProcess process = item.getApprovementProcess();
         if(process!=null){
-            switch (process.getStatus()){
-                case PUBLISHED_FOR_VOTING -> process.setStatus(PUBLISHED_FOR_VOTING);
-                default -> throw new InvalidDocumentStateException("Action - sign document during the voting is not allowed in the current state.");
+            if (process.getStatus()!=PUBLISHED_FOR_VOTING){
+                 throw new InvalidDocumentStateException("Action - sign document during the voting is not allowed in the current state.");
             }
         } else {
-            DocumentVersion version = item.getDocumentVersion();
-            DocumentStatus status = version.getStatus();
-            switch (status) {
-                case PENDING_CONTRACTOR_SIGN -> {
+            DocumentStatus targetStatus;
                     switch (item.getStatus()) {
-                        case APPROVED -> version.setState(DocumentStatus.APPROVED);
-                        case REJECTED -> version.setState(DocumentStatus.REJECTED);
-                        case REWORK_REQUIRED -> version.setState(DocumentStatus.REWORK_REQUIRED);
+                        case APPROVED -> targetStatus = DocumentStatus.APPROVED;
+                        case REJECTED -> targetStatus = DocumentStatus.REJECTED;
+                        case REWORK_REQUIRED -> targetStatus = DocumentStatus.REWORK_REQUIRED;
+                        default -> throw new InvalidDocumentStateException("Invalid status for contractor sign action.");
                     }
+            changeState(item.getDocumentVersion(), targetStatus);
                 }
-                default ->
-                        throw new InvalidDocumentStateException("Action - sign by Contractor is not allowed in the current state.");
-            }
+
         }
-    }
+
 
     @Override
     public void sendForSign(DocumentVersion version) {
-        DocumentStatus status = version.getStatus();
-        switch (status){
-            case DRAFT -> version.setState(DocumentStatus.PENDING_AUTHOR_SIGN);
-            case AUTHOR_SIGNED -> version.setState(DocumentStatus.PENDING_CONTRACTOR_SIGN);
-            default ->  throw new InvalidDocumentStateException("Action - send for sign is not allowed in the current state.");
-        }
+        DocumentStatus newStatus = (version.getStatus() == DocumentStatus.DRAFT)
+                ? DocumentStatus.PENDING_AUTHOR_SIGN
+                : DocumentStatus.PENDING_CONTRACTOR_SIGN;
+        changeState(version, newStatus);
     }
 
     @Override
     public void publishForVoting(DocumentVersion version) {
-            switch (version.getStatus()){
-                case DRAFT -> {
-                    version.setState(DocumentStatus.IN_VOTING);
-                }
-                default ->  throw new InvalidDocumentStateException("Action - publish for voting is not allowed in the current state.");
-            }
-    }
-
-    @Override
-    public void completeVoting(DocumentVersion version) {
+        changeState(version,DocumentStatus.IN_VOTING);
 
     }
 
@@ -82,27 +89,15 @@ public class DocumentBaseState implements DocumentState {
         return version.getApprovementProcesses()!=null && !version.getApprovementProcesses().isEmpty();
     }
 
-    @Override
-    public DocumentStatus getStatus(DocumentVersion version) {
-        return version.getStatus();
-    }
 
     @Override
     public void delete(DocumentVersion version) {
-        DocumentStatus status = version.getStatus();
-        switch (status){
-            case DRAFT,REJECTED,APPROVED,REWORK_REQUIRED -> version.setState(DocumentStatus.DELETED);
-            default ->  throw new InvalidDocumentStateException("Action - send for sign is not allowed in the current state.");
-        }
+        changeState(version, DocumentStatus.DELETED);
     }
 
     @Override
     public void modified(DocumentVersion version) {
-        DocumentStatus status = version.getStatus();
-        switch (status){
-            case DRAFT, REWORK_REQUIRED -> version.setState(DocumentStatus.REWORK_REQUIRED);
-            default ->  throw new InvalidDocumentStateException("Action - modified is not allowed in the current state.");
-        }
+        changeState(version, DocumentStatus.REWORK_REQUIRED);
     }
 
 }

@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
+import ru.caselab.edm.backend.state.DocumentBaseState;
 import ru.caselab.edm.backend.state.DocumentState;
 import ru.caselab.edm.backend.state.DocumentStateFactory;
 import ru.caselab.edm.backend.state.DocumentStatus;
@@ -58,6 +59,6 @@ public class DocumentVersion {
         return state;
     }
     public DocumentState getState() {
-        return DocumentStateFactory.getState(state);
+        return new DocumentBaseState();
     }
 }

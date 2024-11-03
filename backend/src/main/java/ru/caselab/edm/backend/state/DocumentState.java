@@ -10,6 +10,4 @@ public interface DocumentState {
     void signContractor(ApprovementProcessItem item);
     void sendForSign(DocumentVersion version);
     void publishForVoting(DocumentVersion version);
-    void completeVoting(DocumentVersion version);
-    DocumentStatus getStatus(DocumentVersion version);
 }

@@ -81,7 +81,7 @@ public class VotingServiceImpl implements VotingService {
 
     private void setStatusForItems(List<ApprovementProcessItem> items){
         items.stream()
-                .filter(i -> i.getStatus() == null)
+                .filter(i -> i.getStatus() == ApprovementProcessItemStatus.PENDING_CONTRACTOR_SIGN)
                 .forEach(i -> {
                     i.setStatus(ApprovementProcessItemStatus.ABSTAINED);
                     itemRepository.save(i);
