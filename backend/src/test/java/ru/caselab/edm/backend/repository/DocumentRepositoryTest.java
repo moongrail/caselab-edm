@@ -14,6 +14,7 @@ import ru.caselab.edm.backend.dto.document.DocumentOutputAllDocumentsDTO;
 import ru.caselab.edm.backend.entity.Document;
 import ru.caselab.edm.backend.enums.ApprovementProcessStatus;
 
+
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
@@ -48,9 +49,9 @@ class DocumentRepositoryTest {
                     (4, 4, 'document_name_test4', '2024-01-15'::TIMESTAMP AT TIME ZONE 'UTC', '2024-01-15', 'test_url4'),
                     (5, 1, 'document_name_test1', '2024-01-16'::TIMESTAMP AT TIME ZONE 'UTC', '2024-01-15', 'test_url');
                 INSERT INTO approvement_process(id, document_version_id, status, deadline, agreement_procent) VALUES
-                    (1, 1, 'NOTACCEPTED', '2024-01-15', 1.00),
-                    (2, 3, 'NOTACCEPTED', '2024-01-15', 1.00),
-                    (3, 2, 'ACCEPTED', '2024-01-15', 1.00);
+                    (1, 1, 'VOTING_REJECTED', '2024-01-15', 1.00),
+                    (2, 3, 'VOTING_REJECTED', '2024-01-15', 1.00),
+                    (3, 2, 'VOTING_APPROVED', '2024-01-15', 1.00);
                 INSERT INTO approvment_process_item (id, app_procc_id, user_id, created_at, status, document_version_id) VALUES
                     (1, 1, 'c5df47fe-f4d2-45c2-8084-e546c85a7eba', '2024-01-15', 'test', 3),
                     (2, 2, 'c5df47fe-f4d2-45c2-8084-e646c85a7eba', '2024-01-15', 'test1', 3),
@@ -81,18 +82,21 @@ class DocumentRepositoryTest {
         Pageable pageable = PageRequest.of(0, 5, Sort.by("status"));
 
         List<DocumentOutputAllDocumentsDTO> expected = List.of(
-                new DocumentOutputAllDocumentsDTO("Ivanov",
+                new DocumentOutputAllDocumentsDTO(1L, "Ivanov",
                         LocalDateTime.parse("2024-01-15T00:00:00").atZone(ZoneId.systemDefault()).toInstant(),
                         "document_name_test2",
-                        ApprovementProcessStatus.ACCEPTED),
-                new DocumentOutputAllDocumentsDTO("Ivanov",
+                        "url",
+                        ApprovementProcessStatus.VOTING_APPROVED),
+                new DocumentOutputAllDocumentsDTO(2L, "Ivanov",
                         LocalDateTime.parse("2024-01-15T00:00:00").atZone(ZoneId.systemDefault()).toInstant(),
                         "document_name_test1",
-                        ApprovementProcessStatus.NOTACCEPTED),
-                new DocumentOutputAllDocumentsDTO("Ivanov",
+                        "url",
+                        ApprovementProcessStatus.VOTING_REJECTED),
+                new DocumentOutputAllDocumentsDTO(3L, "Ivanov",
                         LocalDateTime.parse("2024-01-15T00:00:00").atZone(ZoneId.systemDefault()).toInstant(),
                         "document_name_test3",
-                        ApprovementProcessStatus.NOTACCEPTED)
+                        "url",
+                        ApprovementProcessStatus.VOTING_REJECTED)
         );
 
         Page<DocumentOutputAllDocumentsDTO> actual2 = repository

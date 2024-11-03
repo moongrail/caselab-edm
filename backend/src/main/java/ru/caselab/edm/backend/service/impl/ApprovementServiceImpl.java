@@ -19,11 +19,12 @@ import ru.caselab.edm.backend.repository.UserRepository;
 import ru.caselab.edm.backend.service.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import static ru.caselab.edm.backend.enums.ApprovementProcessStatus.INPROCESS;
+import static ru.caselab.edm.backend.enums.ApprovementProcessStatus.PUBLISHED_FOR_VOTING;
 
 @Service
 @RequiredArgsConstructor
@@ -49,13 +50,20 @@ public class ApprovementServiceImpl implements ApprovementService {
         if (!documentVersion.getDocument().getUser().getId().equals(authenticatedUser.getId())) {
             throw new DocumentForbiddenAccess("You don't have access to this document with id = %d".formatted(createProcess.getDocumentVersionId()));
         }
+        documentVersion.getState().publishForVoting(documentVersion);
         ApprovementProcess process = buildApprovementProcess(createProcess,documentVersion);
-
         List<ApprovementProcessItem> processItems = createProcess.getUsersIds().stream().map(u->createItem(u,documentVersion,process,authenticatedUser)).toList();
         process.getApprovementProcessItems().clear();
         process.getApprovementProcessItems().addAll(processItems);
+        documentVersion.setApprovementProcesses(
+                documentVersion.getApprovementProcesses() != null
+                        ? documentVersion.getApprovementProcesses()
+                        : new ArrayList<>()
+        );
+        documentVersion.getApprovementProcesses().add(process);
+        //проверка можем ли мы опубликовать документ на голосование
         processRepository.save(process);
-       votingService.scheduleVotingJob(process.getId(), process.getDeadline());
+        votingService.scheduleVotingJob(process.getId(), process.getDeadline());
 
         return processMapper.toDTO(process);
     }
@@ -69,7 +77,7 @@ public class ApprovementServiceImpl implements ApprovementService {
         ApprovementProcessItem approvementProcessItem = new ApprovementProcessItem();
         approvementProcessItem.setUser(user);
         approvementProcessItem.setDocumentVersion(documentVersion);
-        approvementProcessItem.setStatus(ApprovementProcessItemStatus.IN_PROGRESS);
+        approvementProcessItem.setStatus(ApprovementProcessItemStatus.PENDING_CONTRACTOR_SIGN);
         approvementProcessItem.setCreatedAt(LocalDateTime.now());
         approvementProcessItem.setApprovementProcess(process);
         itemRepository.save(approvementProcessItem);
@@ -79,10 +87,11 @@ public class ApprovementServiceImpl implements ApprovementService {
 
     private ApprovementProcess buildApprovementProcess(ApprovementProcessCreateDTO createProcess,DocumentVersion version) {
         ApprovementProcess process = new ApprovementProcess();
-        process.setAgreementProcent(createProcess.getAgreementPercent());
-        process.setStatus(INPROCESS);
+        process.setAgreementProcent(createProcess.getAgreementProcent());
+        process.setStatus(PUBLISHED_FOR_VOTING);
         process.setDocumentVersion(version);
         process.setDeadline(createProcess.getDeadline());
+
 
         return  processRepository.save(process);
     }

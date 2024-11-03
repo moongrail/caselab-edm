@@ -20,8 +20,7 @@ import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.List;
 
-import static ru.caselab.edm.backend.enums.ApprovementProcessStatus.ACCEPTED;
-import static ru.caselab.edm.backend.enums.ApprovementProcessStatus.NOTACCEPTED;
+import static ru.caselab.edm.backend.enums.ApprovementProcessStatus.*;
 
 @Service
 @RequiredArgsConstructor
@@ -65,21 +64,32 @@ public class VotingServiceImpl implements VotingService {
     public void collectVotingResults(Long processId) {
         log.info("The job for the process {} was triggered", processId);
         ApprovementProcess process = findApprovementProcess(processId);
+        process.setStatus(VOTING_COMPLETED);
         float requiredAgreementPercent = process.getAgreementProcent();
         List<ApprovementProcessItem> items = findItemsByProcess(process);
         if (items.isEmpty()) {
             log.warn("No items found for this process.");
             throw new ResourceNotFoundException("No items found for this process.");
         }
+        setStatusForItems(items);
         float actualAgreementPercent =(float) calculateAgreementVoices(items) / items.size() * 100;
-        if(actualAgreementPercent >=  requiredAgreementPercent) {process.setStatus(ACCEPTED);}
-        else process.setStatus(NOTACCEPTED);
+        if( actualAgreementPercent >=  requiredAgreementPercent) {process.setStatus(VOTING_APPROVED);}
+        else process.setStatus(VOTING_REJECTED);
         log.info("Result for approval process {}: {}", processId, process.getStatus());
         processRepository.save(process);
     }
 
+    private void setStatusForItems(List<ApprovementProcessItem> items){
+        items.stream()
+                .filter(i -> i.getStatus() == ApprovementProcessItemStatus.PENDING_CONTRACTOR_SIGN)
+                .forEach(i -> {
+                    i.setStatus(ApprovementProcessItemStatus.ABSTAINED);
+                    itemRepository.save(i);
+                });
+    }
+
     private Long calculateAgreementVoices( List<ApprovementProcessItem> items){
-        return items.stream().filter(i-> i.getStatus()== ApprovementProcessItemStatus.AGREE).count();
+        return items.stream().filter(i-> i.getStatus()== ApprovementProcessItemStatus.APPROVED).count();
     }
 
     private ApprovementProcess findApprovementProcess(Long processId) {

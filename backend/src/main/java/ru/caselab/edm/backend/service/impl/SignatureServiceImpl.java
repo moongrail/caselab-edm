@@ -34,12 +34,16 @@ public class SignatureServiceImpl implements SignatureService {
         if (documentVersionOptional.isEmpty())
             throw new ResourceNotFoundException("Document version not found with id = %d".formatted(documentVersionId));
 
+        DocumentVersion version = documentVersionOptional.get();
+
 
         Optional<User> userOptional = userRepository.findById(createDTO.getUserId());
         if (userOptional.isEmpty())
             throw new ResourceNotFoundException("User not found with id = %s".formatted(createDTO.getUserId()));
 
         User user = userOptional.get();
+
+
 
         Optional<ApprovementProcessItem> approvementProcessItemOptional = approvementItemRepository.findByDocumentVersionIdAndUserId(documentVersionId, user.getId());
 
@@ -49,6 +53,16 @@ public class SignatureServiceImpl implements SignatureService {
         ApprovementProcessItem approvementProcessItem = approvementProcessItemOptional.get();
         approvementProcessItem.setStatus(ApprovementProcessItemStatus.valueOf(createDTO.getStatus()));
 
+        //Изменение статуса версии документа после подписи
+        if(isAuthorSign(version,user.getId())){
+            //проверка что документ в данном состоянии может подписать автор
+            version.getState().signAuthor(version);
+        }else{
+            //проверка что документ в данном состоянии может подписать контрагент
+            version.getState().signContractor(approvementProcessItem);
+
+        }
+
         Signature signature = new Signature();
         signature.setCreatedAt(LocalDateTime.now());
         signature.setApprovementProcessItem(approvementProcessItem);
@@ -56,6 +70,10 @@ public class SignatureServiceImpl implements SignatureService {
 
         approvementItemRepository.save(approvementProcessItem);
         signatureRepository.save(signature);
+    }
+
+    private boolean isAuthorSign(DocumentVersion version, UUID userId){
+        return version.getDocument().getUser().getId().equals(userId);
     }
 
     private String hash(UUID userId, Long documentVersionId) {

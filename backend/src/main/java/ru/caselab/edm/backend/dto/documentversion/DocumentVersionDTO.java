@@ -2,6 +2,7 @@ package ru.caselab.edm.backend.dto.documentversion;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import ru.caselab.edm.backend.state.DocumentStatus;
 import ru.caselab.edm.backend.dto.attributevalue.DocumentAttributeValueDTO;
 
 import java.time.Instant;
@@ -21,6 +22,9 @@ public class DocumentVersionDTO {
 
     @Schema(description = "Content url", example = "")
     private String contentUrl;
+
+    @Schema(description = "State of current document", example = "DRAFT")
+    private DocumentStatus state;
 
     @Schema(description = "Id of the document whose version is the current document version", example = "1")
     private Long documentId;

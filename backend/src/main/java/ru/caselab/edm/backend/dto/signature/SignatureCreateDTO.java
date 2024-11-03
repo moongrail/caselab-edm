@@ -23,8 +23,8 @@ public class SignatureCreateDTO {
 
     @JsonProperty("status")
     @NotNull
-    @Pattern(regexp = "AGREE|NOTAGREE", message = "Status must be either AGREE or NOTAGREE")
-    @Schema(description = "Status of sign (does user agree/not agree)", example = "AGREE")
+    @Pattern(regexp = "APPROVED|REJECTED|REWORK_REQUIRED", message = "Status must be either APPROVED or REJECTED or REWORK_REQUIRED")
+    @Schema(description = "Status of sign (does user approved/rejected/rework_required", example = "APPROVED")
     private String status;
 
 }

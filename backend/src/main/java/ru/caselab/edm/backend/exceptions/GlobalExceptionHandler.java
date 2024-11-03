@@ -22,6 +22,10 @@ public class GlobalExceptionHandler {
         log.error(ex.getMessage(), ex);
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
+    @ExceptionHandler(InvalidDocumentStateException.class)
+    ResponseEntity<String> handlerInvalidDocumentStateException(InvalidDocumentStateException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.CONFLICT);
+    }
 
     @ExceptionHandler(UserAlreadyExistsException.class)
     ResponseEntity<String> handleUserAlreadyExistsException(UserAlreadyExistsException ex) {
