@@ -10,10 +10,6 @@ public enum DocumentStatus
         REJECTED,
         APPROVED,
         REWORK_REQUIRED,
-
-        PUBLISHED_FOR_VOTING,    // Опубликован на голосование
-        VOTING_COMPLETED,        // Голосование завершено
-        VOTING_APPROVED,         // Одобрен по итогам голосования
-        VOTING_REJECTED
+        IN_VOTING
 
 }
