@@ -44,14 +44,7 @@ public class SignatureServiceImpl implements SignatureService {
 
         User user = userOptional.get();
 
-        if(isAuthorSign(version,user.getId())){
-            //проверка что документ в данном состоянии может подписать автор
-            version.getState().signAuthor(version);
-        }else{
-            //проверка что документ в данном состоянии может подписать контрагент
-            version.getState().signContractor(version);
 
-        }
 
         Optional<ApprovementProcessItem> approvementProcessItemOptional = approvementItemRepository.findByDocumentVersionIdAndUserId(documentVersionId, user.getId());
 
@@ -61,7 +54,15 @@ public class SignatureServiceImpl implements SignatureService {
         ApprovementProcessItem approvementProcessItem = approvementProcessItemOptional.get();
         approvementProcessItem.setStatus(ApprovementProcessItemStatus.valueOf(createDTO.getStatus()));
 
+        //Изменение статуса версии документа после подписи
+        if(isAuthorSign(version,user.getId())){
+            //проверка что документ в данном состоянии может подписать автор
+            version.getState().signAuthor(version);
+        }else{
+            //проверка что документ в данном состоянии может подписать контрагент
+            version.getState().signContractor(approvementProcessItem);
 
+        }
 
         Signature signature = new Signature();
         signature.setCreatedAt(LocalDateTime.now());

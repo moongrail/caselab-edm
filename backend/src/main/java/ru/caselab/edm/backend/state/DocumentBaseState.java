@@ -1,9 +1,9 @@
 package ru.caselab.edm.backend.state;
 
+import ru.caselab.edm.backend.entity.ApprovementProcessItem;
 import ru.caselab.edm.backend.entity.DocumentVersion;
 import ru.caselab.edm.backend.exceptions.InvalidDocumentStateException;
 
-import java.util.UUID;
 
 public class DocumentBaseState implements DocumentState {
     @Override
@@ -16,10 +16,17 @@ public class DocumentBaseState implements DocumentState {
     }
 
     @Override
-    public void signContractor(DocumentVersion version) {
+    public void signContractor(ApprovementProcessItem item) {
+        DocumentVersion version = item.getDocumentVersion();
         DocumentStatus status = version.getStatus();
         switch (status){
-            case PENDING_CONTRACTOR_SIGN -> version.setState(DocumentStatus.CONTRACTOR_SIGNED);
+            case PENDING_CONTRACTOR_SIGN -> {
+                switch (item.getStatus()){
+                    case APPROVED -> version.setState(DocumentStatus.APPROVED);
+                    case REJECTED -> version.setState(DocumentStatus.REJECTED);
+                    case REWORK_REQUIRED -> version.setState(DocumentStatus.REWORK_REQUIRED);
+                }
+            }
             default ->  throw new InvalidDocumentStateException("Action - sign by Contractor is not allowed in the current state.");
         }
     }
@@ -50,10 +57,11 @@ public class DocumentBaseState implements DocumentState {
 
     @Override
     public void modified(DocumentVersion version) {
-        throw new InvalidDocumentStateException("Action - modified is not allowed in the current state.");
+        DocumentStatus status = version.getStatus();
+        switch (status){
+            case DRAFT, REWORK_REQUIRED -> version.setState(DocumentStatus.REWORK_REQUIRED);
+            default ->  throw new InvalidDocumentStateException("Action - modified is not allowed in the current state.");
+        }
     }
 
-    private boolean isAuthorSign(DocumentVersion version, UUID userId){
-        return version.getDocument().getUser().getId().equals(userId);
-    }
 }

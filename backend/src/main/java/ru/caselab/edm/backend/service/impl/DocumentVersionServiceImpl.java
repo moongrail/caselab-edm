@@ -87,6 +87,9 @@ public class DocumentVersionServiceImpl implements DocumentVersionService {
                 .orElseThrow();
         updatingDocumentVersion.setDocument(existingDocument);
 
+        //Проверка можно ли модифицировать документ
+        exsistingVersion.getState().modified(exsistingVersion);
+
         if (document.getDocumentName() != null) {
             updatingDocumentVersion.setDocumentName(document.getDocumentName());
         } else {
@@ -102,7 +105,7 @@ public class DocumentVersionServiceImpl implements DocumentVersionService {
         } else {
             updatingDocumentVersion.setContentUrl(exsistingVersion.getContentUrl());
         }
-
+        updatingDocumentVersion.setState(DocumentStatus.DRAFT);
         documentVersionRepository.saveAndFlush(updatingDocumentVersion);
 
         List<DocumentAttributeValue> documentAttributeValueList =

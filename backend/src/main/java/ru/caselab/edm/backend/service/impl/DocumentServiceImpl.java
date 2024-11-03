@@ -159,9 +159,6 @@ public class DocumentServiceImpl implements DocumentService {
             throw new WrongDateException("The creation date cannot be later than the update date");
         }
     }
-    private boolean isAuthorSign(DocumentVersion version, UUID userId){
-        return version.getDocument().getUser().getId().equals(userId);
-    }
 
     @Transactional
     @Override
