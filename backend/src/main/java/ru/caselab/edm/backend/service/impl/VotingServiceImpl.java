@@ -71,11 +71,21 @@ public class VotingServiceImpl implements VotingService {
             log.warn("No items found for this process.");
             throw new ResourceNotFoundException("No items found for this process.");
         }
+        setStatusForItems(items);
         float actualAgreementPercent =(float) calculateAgreementVoices(items) / items.size() * 100;
         if( actualAgreementPercent >=  requiredAgreementPercent) {process.setStatus(VOTING_APPROVED);}
         else process.setStatus(VOTING_REJECTED);
         log.info("Result for approval process {}: {}", processId, process.getStatus());
         processRepository.save(process);
+    }
+
+    private void setStatusForItems(List<ApprovementProcessItem> items){
+        items.stream()
+                .filter(i -> i.getStatus() == null)
+                .forEach(i -> {
+                    i.setStatus(ApprovementProcessItemStatus.ABSTAINED);
+                    itemRepository.save(i);
+                });
     }
 
     private Long calculateAgreementVoices( List<ApprovementProcessItem> items){

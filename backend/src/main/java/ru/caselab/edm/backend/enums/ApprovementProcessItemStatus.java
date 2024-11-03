@@ -6,4 +6,5 @@ public enum ApprovementProcessItemStatus {
     PENDING_CONTRACTOR_SIGN,
     PENDING_AUTHOR_SIGN,
     REWORK_REQUIRED,
+    ABSTAINED
 }
