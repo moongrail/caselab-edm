@@ -8,7 +8,6 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import ru.caselab.edm.backend.state.DocumentBaseState;
 import ru.caselab.edm.backend.state.DocumentState;
-import ru.caselab.edm.backend.state.DocumentStateFactory;
 import ru.caselab.edm.backend.state.DocumentStatus;
 
 import java.time.Instant;
