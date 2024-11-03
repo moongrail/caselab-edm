@@ -79,7 +79,7 @@ public class VotingServiceImpl implements VotingService {
     }
 
     private Long calculateAgreementVoices( List<ApprovementProcessItem> items){
-        return items.stream().filter(i-> i.getStatus()== ApprovementProcessItemStatus.AGREE).count();
+        return items.stream().filter(i-> i.getStatus()== ApprovementProcessItemStatus.APPROVED).count();
     }
 
     private ApprovementProcess findApprovementProcess(Long processId) {

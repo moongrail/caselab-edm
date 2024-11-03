@@ -4,6 +4,7 @@ public enum DocumentStatus
 {
         DRAFT,
         AUTHOR_SIGNED,
+        PENDING_AUTHOR_SIGN,
         PENDING_CONTRACTOR_SIGN,
         CONTRACTOR_SIGNED,
         DELETED,

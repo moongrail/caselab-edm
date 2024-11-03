@@ -69,7 +69,7 @@ public class ApprovementServiceImpl implements ApprovementService {
         ApprovementProcessItem approvementProcessItem = new ApprovementProcessItem();
         approvementProcessItem.setUser(user);
         approvementProcessItem.setDocumentVersion(documentVersion);
-        approvementProcessItem.setStatus(ApprovementProcessItemStatus.IN_PROGRESS);
+        approvementProcessItem.setStatus(ApprovementProcessItemStatus.PENDING_CONTRACTOR_SIGN);
         approvementProcessItem.setCreatedAt(LocalDateTime.now());
         approvementProcessItem.setApprovementProcess(process);
         itemRepository.save(approvementProcessItem);

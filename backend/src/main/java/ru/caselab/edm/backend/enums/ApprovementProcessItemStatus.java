@@ -1,7 +1,9 @@
 package ru.caselab.edm.backend.enums;
 
 public enum ApprovementProcessItemStatus {
-    AGREE,
-    NOTAGREE,
-    IN_PROGRESS
+    APPROVED,
+    REJECTED,
+    PENDING_CONTRACTOR_SIGN,
+    PENDING_AUTHOR_SIGN,
+    REWORK_REQUIRED,
 }

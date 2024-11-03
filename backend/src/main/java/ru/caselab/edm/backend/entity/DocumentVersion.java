@@ -54,6 +54,9 @@ public class DocumentVersion {
     @Enumerated(EnumType.STRING)
     private DocumentStatus state;
 
+    public DocumentStatus getStatus() {
+        return state;
+    }
     public DocumentState getState() {
         return DocumentStateFactory.getState(state);
     }
