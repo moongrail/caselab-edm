@@ -1,10 +1,10 @@
 package ru.caselab.edm.backend.service;
 
 import org.springframework.data.domain.Page;
-import ru.caselab.edm.backend.dto.ApprovementProcessItemDTO;
-import ru.caselab.edm.backend.dto.DocumentCreateDTO;
-import ru.caselab.edm.backend.dto.DocumentOutputAllDocumentsDTO;
-import ru.caselab.edm.backend.dto.DocumentUpdateDTO;
+import ru.caselab.edm.backend.dto.approvementprocessitem.ApprovementProcessItemDTO;
+import ru.caselab.edm.backend.dto.document.DocumentCreateDTO;
+import ru.caselab.edm.backend.dto.document.DocumentOutputAllDocumentsDTO;
+import ru.caselab.edm.backend.dto.document.DocumentUpdateDTO;
 import ru.caselab.edm.backend.entity.Document;
 import ru.caselab.edm.backend.entity.DocumentVersion;
 import ru.caselab.edm.backend.entity.UserInfoDetails;

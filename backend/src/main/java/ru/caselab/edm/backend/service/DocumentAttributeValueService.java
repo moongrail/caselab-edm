@@ -1,6 +1,6 @@
 package ru.caselab.edm.backend.service;
 
-import ru.caselab.edm.backend.dto.AttributeValuetoCreateDocumentDTO;
+import ru.caselab.edm.backend.dto.document.AttributeValuetoCreateDocumentDTO;
 import ru.caselab.edm.backend.dto.DocumentAttributeValueDTO;
 import ru.caselab.edm.backend.dto.DocumentAttributeValueUpdateDTO;
 import ru.caselab.edm.backend.entity.Document;

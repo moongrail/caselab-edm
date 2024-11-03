@@ -9,7 +9,7 @@ import io.minio.http.Method;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.caselab.edm.backend.configurations.props.MinioConfigProperties;
-import ru.caselab.edm.backend.dto.MinioSaveDto;
+import ru.caselab.edm.backend.dto.minio.MinioSaveDto;
 import ru.caselab.edm.backend.exceptions.ContentTypeDetectionException;
 import ru.caselab.edm.backend.exceptions.MinioServiceException;
 import ru.caselab.edm.backend.service.MinioService;

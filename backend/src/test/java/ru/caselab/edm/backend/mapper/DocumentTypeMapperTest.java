@@ -1,12 +1,12 @@
 package ru.caselab.edm.backend.mapper;
 
-import io.jsonwebtoken.lang.Collections;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
-import ru.caselab.edm.backend.dto.DocumentTypeDTO;
+import ru.caselab.edm.backend.dto.documenttype.DocumentTypeDTO;
 import ru.caselab.edm.backend.entity.Attribute;
 import ru.caselab.edm.backend.entity.DocumentType;
+import ru.caselab.edm.backend.mapper.documenttype.DocumentTypeMapper;
 
 import java.util.HashSet;
 import java.util.List;

@@ -1,6 +1,12 @@
 package ru.caselab.edm.backend.service;
 
-import ru.caselab.edm.backend.dto.*;
+import ru.caselab.edm.backend.dto.auth.JwtDTO;
+import ru.caselab.edm.backend.dto.auth.LoginUserDTO;
+import ru.caselab.edm.backend.dto.user.CreateUserDTO;
+import ru.caselab.edm.backend.dto.user.UpdatePasswordDTO;
+import ru.caselab.edm.backend.dto.user.UpdateUserDTO;
+import ru.caselab.edm.backend.dto.user.UserDTO;
+import ru.caselab.edm.backend.dto.user.UserPageDTO;
 
 import java.util.UUID;
 

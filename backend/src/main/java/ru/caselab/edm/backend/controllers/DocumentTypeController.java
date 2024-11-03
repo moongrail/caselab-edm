@@ -23,9 +23,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import ru.caselab.edm.backend.dto.DocumentTypeCreateDTO;
-import ru.caselab.edm.backend.dto.DocumentTypeDTO;
-import ru.caselab.edm.backend.dto.DocumentTypeUpdateDTO;
+import ru.caselab.edm.backend.dto.documenttype.DocumentTypeCreateDTO;
+import ru.caselab.edm.backend.dto.documenttype.DocumentTypeDTO;
+import ru.caselab.edm.backend.dto.documenttype.DocumentTypeUpdateDTO;
 import ru.caselab.edm.backend.service.DocumentTypeService;
 
 @RequiredArgsConstructor

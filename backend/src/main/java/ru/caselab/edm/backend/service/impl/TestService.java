@@ -2,8 +2,8 @@ package ru.caselab.edm.backend.service.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.caselab.edm.backend.dto.JwtDTO;
-import ru.caselab.edm.backend.dto.LoginUserDTO;
+import ru.caselab.edm.backend.dto.auth.JwtDTO;
+import ru.caselab.edm.backend.dto.auth.LoginUserDTO;
 import ru.caselab.edm.backend.entity.User;
 import ru.caselab.edm.backend.entity.UserInfoDetails;
 import ru.caselab.edm.backend.repository.UserRepository;

@@ -21,9 +21,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import ru.caselab.edm.backend.dto.AttributeCreateDTO;
-import ru.caselab.edm.backend.dto.AttributeDTO;
-import ru.caselab.edm.backend.dto.AttributeUpdateDTO;
+import ru.caselab.edm.backend.dto.attribute.AttributeCreateDTO;
+import ru.caselab.edm.backend.dto.attribute.AttributeDTO;
+import ru.caselab.edm.backend.dto.attribute.AttributeUpdateDTO;
 import ru.caselab.edm.backend.service.AttributeService;
 
 @RestController

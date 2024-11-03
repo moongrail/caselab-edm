@@ -4,12 +4,12 @@ import jakarta.persistence.OneToMany;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import ru.caselab.edm.backend.dto.DocumentAttributeValueDTO;
-import ru.caselab.edm.backend.dto.DocumentVersionDTO;
+import ru.caselab.edm.backend.dto.documentversion.DocumentVersionDTO;
 import ru.caselab.edm.backend.entity.ApprovementProcess;
 import ru.caselab.edm.backend.entity.ApprovementProcessItem;
 import ru.caselab.edm.backend.entity.DocumentAttributeValue;
 import ru.caselab.edm.backend.entity.DocumentVersion;
-import ru.caselab.edm.backend.mapper.DocumentVersionMapper;
+import ru.caselab.edm.backend.mapper.documentversion.DocumentVersionMapper;
 
 import java.util.ArrayList;
 import java.util.List;

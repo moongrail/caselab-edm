@@ -12,7 +12,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ru.caselab.edm.backend.configurations.props.MinioConfigProperties;
-import ru.caselab.edm.backend.dto.MinioSaveDto;
+import ru.caselab.edm.backend.dto.minio.MinioSaveDto;
 import ru.caselab.edm.backend.exceptions.MinioServiceException;
 import ru.caselab.edm.backend.service.helpers.InputStreamContentTypeDetector;
 import ru.caselab.edm.backend.service.impl.MinioServiceImpl;
