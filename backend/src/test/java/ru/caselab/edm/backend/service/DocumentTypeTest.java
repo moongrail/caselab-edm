@@ -1,4 +1,4 @@
-package ru.caselab.edm.backend.service.Impl;
+package ru.caselab.edm.backend.service;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -27,7 +27,7 @@ import java.time.Month;
 import java.util.*;
 
 @ExtendWith(MockitoExtension.class)
-class DocumentTypeImplTest {
+class DocumentTypeTest {
     public static final LocalDateTime NOW = LocalDateTime
             .of(2024, Month.FEBRUARY, 22, 9, 49, 19, 275039200);
     @Mock

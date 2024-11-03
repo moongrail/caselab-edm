@@ -10,27 +10,31 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import ru.caselab.edm.backend.dto.DocumentCreateDTO;
+import ru.caselab.edm.backend.dto.DocumentOutputAllDocumentsDTO;
 import ru.caselab.edm.backend.dto.DocumentUpdateDTO;
-import ru.caselab.edm.backend.dto.MinioSaveDto;
 import ru.caselab.edm.backend.entity.Document;
 import ru.caselab.edm.backend.entity.DocumentType;
 import ru.caselab.edm.backend.entity.DocumentVersion;
 import ru.caselab.edm.backend.entity.User;
+import ru.caselab.edm.backend.enums.DocumentSortingType;
 import ru.caselab.edm.backend.exceptions.ResourceNotFoundException;
-import ru.caselab.edm.backend.mapper.MinioDocumentMapper;
 import ru.caselab.edm.backend.repository.DocumentRepository;
 import ru.caselab.edm.backend.repository.DocumentTypeRepository;
 import ru.caselab.edm.backend.repository.DocumentVersionRepository;
 import ru.caselab.edm.backend.repository.UserRepository;
 import ru.caselab.edm.backend.service.impl.DocumentServiceImpl;
+import ru.caselab.edm.backend.service.impl.DocumentVersionServiceImpl;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -52,15 +56,18 @@ class DocumentServiceTests {
     @Mock
     private DocumentVersionRepository documentVersionRepository;
 
-    @Mock
-    private MinioDocumentMapper minioDocumentMapper;
-    @Mock
-    private MinioService minioService;
-
     @InjectMocks
     private DocumentServiceImpl documentService;
+    @Mock
+    private DocumentVersionServiceImpl documentVersionService;
 
     private Document document;
+    private DocumentVersion documentVersion;
+
+    private final UUID userId = UUID.fromString("48bbbd31-45c0-43c5-b989-c1c14a8c3b8b");
+    private final long documentId = 123L;
+    private final int page = 0;
+    private final int size = 10;
 
     @BeforeEach
     void setUp() {
@@ -85,7 +92,7 @@ class DocumentServiceTests {
         document.setUser(user);
         document.setDocumentType(documentType);
 
-        DocumentVersion documentVersion = new DocumentVersion();
+        documentVersion = new DocumentVersion();
         documentVersion.setId(1L);
         documentVersion.setDocumentName("New Document");
         documentVersion.setDocument(document);
@@ -100,6 +107,119 @@ class DocumentServiceTests {
     }
 
     @Test
+    void getAllDocumentForUserWithoutSorting() {
+        PageRequest pageable = PageRequest.of(page, size);
+
+        List<DocumentOutputAllDocumentsDTO> content = List.of(new DocumentOutputAllDocumentsDTO());
+        Page<DocumentOutputAllDocumentsDTO> expectedPage = new PageImpl<>(content);
+
+        DocumentSortingType sortingType = DocumentSortingType.WITHOUT;
+
+        when(documentRepository.getAllDocumentWithNameAndStatusProjectionForUser(userId, pageable))
+                .thenReturn(expectedPage);
+        documentService.getAllDocumentForUser(page, size, userId, sortingType);
+
+        verify(documentRepository).getAllDocumentWithNameAndStatusProjectionForUser(
+                userId,
+                pageable);
+    }
+
+    @Test
+    void getAllDocumentForUserWithSorting() {
+        DocumentSortingType sortingType = DocumentSortingType.DOCUMENT_NAME_ASC;
+
+        PageRequest pageable = PageRequest.of(page, size);
+        pageable = pageable.withSort(Sort.by(sortingType.getDirection(), sortingType.getFieldName()));
+
+        List<DocumentOutputAllDocumentsDTO> content = List.of(new DocumentOutputAllDocumentsDTO());
+        Page<DocumentOutputAllDocumentsDTO> expectedPage = new PageImpl<>(content);
+
+        when(documentRepository.getAllDocumentWithNameAndStatusProjectionForUser(userId, pageable))
+                .thenReturn(expectedPage);
+
+        documentService.getAllDocumentForUser(page, size, userId, sortingType);
+
+        verify(documentRepository).getAllDocumentWithNameAndStatusProjectionForUser(
+                userId,
+                pageable);
+    }
+
+    @Test
+    void getLastVersionDocumentForUser_Success() {
+        Document document = new Document();
+        DocumentVersion version1 = new DocumentVersion();
+        version1.setId(1L);
+        version1.setDocumentName("version1");
+        version1.setCreatedAt(Instant.now());
+
+        DocumentVersion version2 = new DocumentVersion();
+        version2.setId(2L);
+        version2.setDocumentName("version2");
+        version2.setCreatedAt(Instant.now());
+
+        List<DocumentVersion> documentVersionList = new ArrayList<>();
+        documentVersionList.add(version1);
+        documentVersionList.add(version2);
+
+        document.setDocumentVersion(documentVersionList);
+
+        when(documentRepository.getDocumentForUser(documentId, userId)).thenReturn(Optional.of(document));
+
+        DocumentVersion result = documentService.getLastVersionDocumentForUser(documentId, userId);
+
+        assertEquals(result, version2);
+    }
+
+    @Test
+    void getLastVersionDocumentForUser_DocumentNotFound() {
+        when(documentRepository.getDocumentForUser(documentId, userId)).thenReturn(Optional.empty());
+
+        Exception exception = assertThrows(ResourceNotFoundException.class,
+                () -> documentService.getLastVersionDocumentForUser(documentId, userId));
+
+        String expectedMessage = "Document not found";
+        String actualMessage = exception.getMessage();
+
+        assertTrue(actualMessage.contains(expectedMessage));
+    }
+
+    @Test
+    void getAllVersionDocumentForUserSuccess() {
+        Document document = new Document();
+        DocumentVersion version1 = new DocumentVersion();
+        version1.setId(1L);
+        version1.setDocumentName("version1");
+        version1.setCreatedAt(Instant.now());
+
+        DocumentVersion version2 = new DocumentVersion();
+        version2.setId(2L);
+        version2.setDocumentName("version2");
+        version2.setCreatedAt(Instant.now());
+
+        List<DocumentVersion> documentVersionList = new ArrayList<>();
+        documentVersionList.add(version1);
+        documentVersionList.add(version2);
+
+        document.setDocumentVersion(documentVersionList);
+
+        when(documentRepository.getDocumentForUser(documentId, userId)).thenReturn(Optional.of(document));
+
+        List<DocumentVersion> result = documentService.getAllVersionDocumentForUser(documentId, userId);
+
+        assertEquals(documentVersionList, result);
+    }
+
+    @Test
+    void getAllVersionDocumentForUserDocumentNotFound() {
+        when(documentRepository.getDocumentForUser(documentId, userId)).thenReturn(Optional.empty());
+
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
+                () -> documentService.getAllVersionDocumentForUser(documentId, userId));
+
+        assertEquals("Document not found", exception.getMessage());
+    }
+
+    @Test
     @DisplayName("Get All Documents")
     void getAllDocuments() {
         Page<Document> expectedPage = new PageImpl<>(Collections.singletonList(document));
@@ -111,64 +231,6 @@ class DocumentServiceTests {
         assertEquals(expectedPage.getContent(), actualPage.getContent());
         verify(documentRepository).findAll(PageRequest.of(0, 10));
     }
-
-    @Test
-    @DisplayName("Get All Documents for User")
-    void getAllDocumentForUser() {
-        Page<Document> expectedPage = new PageImpl<>(Collections.singletonList(document));
-
-        Mockito.when(documentRepository.getAllDocumentForUser(
-                        UUID.fromString("48bbbd31-45c0-43c5-b989-c1c14a8c3b8b"),
-                        PageRequest.of(0, 10)))
-                .thenReturn(expectedPage);
-
-        Page<Document> actualPage = documentService.getAllDocumentForUser(0,
-                10,
-                UUID.fromString("48bbbd31-45c0-43c5-b989-c1c14a8c3b8b"));
-
-        assertEquals(expectedPage.getTotalElements(), actualPage.getTotalElements());
-        assertEquals(expectedPage.getContent(), actualPage.getContent());
-        verify(documentRepository).getAllDocumentForUser(
-                UUID.fromString("48bbbd31-45c0-43c5-b989-c1c14a8c3b8b"),
-                PageRequest.of(0, 10));
-    }
-
-    @Test
-    @DisplayName("Get Document For User Success")
-    void getDocumentForUserSuccess() {
-        Mockito.when(documentRepository.getDocumentForUser(
-                1L,
-                UUID.fromString("48bbbd31-45c0-43c5-b989-c1c14a8c3b8b"))
-        ).thenReturn(Optional.of(document));
-
-        assertEquals(document.getId(), documentService.getDocumentForUser(
-                1L,
-                UUID.fromString("48bbbd31-45c0-43c5-b989-c1c14a8c3b8b")).getId());
-        assertEquals(document.getUser(), documentService.getDocumentForUser(
-                1L,
-                UUID.fromString("48bbbd31-45c0-43c5-b989-c1c14a8c3b8b")).getUser());
-        assertEquals(document.getDocumentType(), documentService.getDocumentForUser(
-                1L,
-                UUID.fromString("48bbbd31-45c0-43c5-b989-c1c14a8c3b8b")).getDocumentType());
-    }
-
-    @Test
-    @DisplayName("Document for User not found")
-    void getDocumentForUser_NotFound() {
-        Mockito.when(documentRepository.getDocumentForUser(
-                        1L,
-                        UUID.fromString("48bbbd31-45c0-43c5-b989-c1c14a8c3b8b")))
-                .thenReturn(Optional.empty());
-
-        assertThrows(ResourceNotFoundException.class, () -> documentService.getDocumentForUser(
-                1L,
-                UUID.fromString("48bbbd31-45c0-43c5-b989-c1c14a8c3b8b")));
-
-        verify(documentRepository).getDocumentForUser(
-                1L,
-                UUID.fromString("48bbbd31-45c0-43c5-b989-c1c14a8c3b8b"));
-    }
-
 
     @Test
     @DisplayName("Get Document success")
@@ -196,62 +258,68 @@ class DocumentServiceTests {
     @Test
     @DisplayName("Save correct Document")
     void saveDocument_Success() {
+        User user1 = new User();
+
+        UUID userId = UUID.fromString("48bbbd31-45c0-43c5-b989-c1c14a8c3b8b");
+
+        DocumentType documentType1 = new DocumentType();
+        Long documentTypeId = 1L;
+
+        Document document1 = new Document();
+        document1.setUser(user1);
+        document1.setDocumentType(documentType1);
+
+        Document savedDocument = new Document();
+        savedDocument.setId(1L);
+        savedDocument.setUser(user1);
+        savedDocument.setDocumentType(documentType1);
+
+        DocumentVersion documentVersion1 = new DocumentVersion();
+
         DocumentCreateDTO documentCreateDTO = new DocumentCreateDTO();
-        documentCreateDTO.setName("New Document");
-        documentCreateDTO.setUserId(UUID.randomUUID());
-        documentCreateDTO.setDocumentTypeId(1L);
+        documentCreateDTO.setDocumentTypeId(documentTypeId);
 
-        when(userRepository.findById(any())).thenReturn(Optional.of(document.getUser()));
-        when(minioDocumentMapper.map(documentCreateDTO)).thenReturn(new MinioSaveDto("test", new byte[0]));
-        when(documentTypeRepository.findById(any())).thenReturn(Optional.of(document.getDocumentType()));
+        Mockito.when(documentTypeRepository.findById(documentTypeId))
+                .thenReturn(Optional.of(documentType1));
 
-        when(documentRepository.save(any(Document.class))).thenReturn(document);
+        Mockito.when(userRepository.findById(userId)).thenReturn(Optional.of(user1));
 
-        Document savedDocument = documentService.saveDocument(documentCreateDTO).getDocument();
+        Mockito.when(documentRepository.save(document1)).thenReturn(savedDocument);
 
-        assertEquals(document.getId(), savedDocument.getId(), "Saved Document ID should match");
+        Mockito.when(documentVersionService.saveDocumentVersion(documentCreateDTO,
+                savedDocument, userId)).thenReturn(documentVersion1);
 
-        verify(documentRepository).save(any(Document.class));
-    }
+        Long result = documentService.saveDocument(documentCreateDTO, userId).getId();
 
-
-    @Test
-    @DisplayName("Update correct Document")
-    void updateDocument_Success() {
-        when(documentRepository.findById(1L)).thenReturn(Optional.of(document));
-
-        DocumentUpdateDTO updateDTO = new DocumentUpdateDTO();
-        updateDTO.setCreationDate(LocalDateTime.now().minusDays(1));
-        updateDTO.setUserId(UUID.randomUUID());
-        updateDTO.setDocumentTypeId(1L);
-
-        when(documentVersionRepository.findById(any())).thenReturn(Optional.of(DocumentVersion.builder()
-                .id(1L)
-                .documentName("name")
-                .build()));
-        when(userRepository.findById(any())).thenReturn(Optional.of(document.getUser()));
-        when(documentTypeRepository.findById(any())).thenReturn(Optional.of(document.getDocumentType()));
-
-        when(documentRepository.save(any(Document.class))).thenReturn(document);
-
-        Document updatedDoc = documentService.updateDocument(1L, updateDTO).getDocument();
-
-
-        verify(documentRepository).findById(1L);
-        verify(documentRepository).save(any(Document.class));
+        assertEquals(documentVersion1.getId(), result);
     }
 
     @Test
-    @DisplayName("Update Document not found")
-    void updateDocument_NotFound() {
-        when(documentRepository.findById(1L)).thenReturn(Optional.empty());
+    void updateDocumentSuccess() {
+        DocumentUpdateDTO documentUpdateDTO = new DocumentUpdateDTO();
+
+        Document existingDocument = new Document();
+        User user = new User();
+
+        DocumentVersion documentVersion = new DocumentVersion();
 
 
-        assertThrows(ResourceNotFoundException.class, () ->
-                documentService.updateDocument(1L, new DocumentUpdateDTO())
-        );
 
-        verify(documentRepository).findById(1L);
+        when(documentRepository.findById(documentId)).thenReturn(Optional.of(existingDocument));
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+
+        when(documentRepository.save(existingDocument)).thenReturn(existingDocument);
+
+        when(documentVersionService.updateDocumentVersion(any(), any(), any())).thenReturn(documentVersion);
+
+        DocumentVersion updatedDocument = documentService.updateDocument(documentId, documentUpdateDTO, userId);
+
+        verify(documentRepository).findById(documentId);
+        verify(userRepository).findById(userId);
+        verify(documentRepository).save(any());
+        verify(documentVersionService).updateDocumentVersion(documentUpdateDTO, existingDocument, userId);
+
+        assertEquals(updatedDocument, documentVersion);
     }
 
     @Test

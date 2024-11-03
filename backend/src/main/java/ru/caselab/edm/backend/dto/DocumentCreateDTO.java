@@ -1,6 +1,7 @@
 package ru.caselab.edm.backend.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -8,7 +9,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.UUID;
+import java.util.List;
 
 @Data
 @Getter
@@ -20,17 +21,15 @@ public class DocumentCreateDTO {
     @NotNull
     private Long documentTypeId;
 
-    @JsonProperty("userId")
-    @NotNull
-    private UUID userId;
-
-    private long attributeId;
-
     @JsonProperty("name")
+    @Schema(description = "Document name", example = "Spongebob best episodes")
     @NotBlank
-    private String name;
+    private String documentName;
 
     @JsonProperty("data")
-    @NotNull
+    @Schema(description = "Content url", example = "")
     private String data;
+
+    @Schema(description = "Value attributes")
+    private List<AttributeValuetoCreateDocumentDTO> attributeValues;
 }

@@ -4,6 +4,7 @@ import org.springframework.data.domain.Page;
 import ru.caselab.edm.backend.dto.AttributeCreateDTO;
 import ru.caselab.edm.backend.dto.AttributeDTO;
 import ru.caselab.edm.backend.dto.AttributeUpdateDTO;
+import ru.caselab.edm.backend.entity.Attribute;
 import ru.caselab.edm.backend.mapper.AttributeMapper;
 
 
@@ -17,6 +18,7 @@ public interface AttributeService {
     Page<AttributeDTO> getAllAttributes(int page, int size);
 
     AttributeDTO getAttributeById(Long id);
+    Attribute getAttributeEntityById(Long id);
 
     AttributeMapper getAttributeMapper();
 

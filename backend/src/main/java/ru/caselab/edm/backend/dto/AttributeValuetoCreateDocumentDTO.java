@@ -4,8 +4,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
+@Schema(description = "DTO for create attribute value when create document")
 @Data
-public class DocumentAttributeValueUpdateDTO {
+public class AttributeValuetoCreateDocumentDTO {
     @Schema(description = "Id attribute", example = "1L")
     @NotNull
     private Long attributeId;
