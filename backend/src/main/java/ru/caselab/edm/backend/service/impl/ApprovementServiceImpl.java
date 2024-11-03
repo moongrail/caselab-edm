@@ -87,7 +87,7 @@ public class ApprovementServiceImpl implements ApprovementService {
 
     private ApprovementProcess buildApprovementProcess(ApprovementProcessCreateDTO createProcess,DocumentVersion version) {
         ApprovementProcess process = new ApprovementProcess();
-        process.setAgreementProcent(createProcess.getAgreementPercent());
+        process.setAgreementProcent(createProcess.getAgreementProcent());
         process.setStatus(PUBLISHED_FOR_VOTING);
         process.setDocumentVersion(version);
         process.setDeadline(createProcess.getDeadline());
