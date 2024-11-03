@@ -1,7 +1,9 @@
 package ru.caselab.edm.backend.enums;
 
 public enum ApprovementProcessStatus {
-    ACCEPTED,
-    NOTACCEPTED,
-    INPROCESS
+    DRAFT,
+    PUBLISHED_FOR_VOTING,
+    VOTING_COMPLETED,
+    VOTING_APPROVED,
+    VOTING_REJECTED
 }

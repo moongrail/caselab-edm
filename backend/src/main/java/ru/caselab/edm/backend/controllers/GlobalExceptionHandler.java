@@ -10,16 +10,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import ru.caselab.edm.backend.exceptions.ApprovementProccessItemAlreadyExistsException;
-import ru.caselab.edm.backend.exceptions.DocumentForbiddenAccess;
-import ru.caselab.edm.backend.exceptions.DocumentTypeAlreadyExistsException;
-import ru.caselab.edm.backend.exceptions.ExpiredJwtTokenException;
-import ru.caselab.edm.backend.exceptions.ExpiredRefreshTokenException;
-import ru.caselab.edm.backend.exceptions.JwtUsernameException;
-import ru.caselab.edm.backend.exceptions.ResourceNotFoundException;
-import ru.caselab.edm.backend.exceptions.SignatureAlreadyExistsException;
-import ru.caselab.edm.backend.exceptions.UserAlreadyExistsException;
-import ru.caselab.edm.backend.exceptions.WrongDateException;
+import ru.caselab.edm.backend.exceptions.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -31,6 +22,10 @@ public class GlobalExceptionHandler {
     ResponseEntity<String> anyException(Exception ex) {
         log.error(ex.getMessage(), ex);
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+    @ExceptionHandler(InvalidDocumentStateException.class)
+    ResponseEntity<String> handlerInvalidDocumentStateException(InvalidDocumentStateException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.CONFLICT);
     }
 
     @ExceptionHandler(UserAlreadyExistsException.class)

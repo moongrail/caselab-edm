@@ -32,6 +32,7 @@ import ru.caselab.edm.backend.repository.DocumentVersionRepository;
 import ru.caselab.edm.backend.repository.UserRepository;
 import ru.caselab.edm.backend.service.DocumentService;
 import ru.caselab.edm.backend.service.DocumentVersionService;
+import ru.caselab.edm.backend.state.DocumentStatus;
 
 import java.time.LocalDateTime;
 import java.util.Comparator;
@@ -178,6 +179,9 @@ public class DocumentServiceImpl implements DocumentService {
         }
         User user = userOptional.get();
         DocumentVersion documentVersion = documentVersionOptional.get();
+        //проверка можно ли такой документ отправить на подпись
+        documentVersion.getState().sendForSign(documentVersion);
+
         if (!documentVersion.getDocument().getUser().getId().equals(authenticatedUser.getId())) {
             throw new DocumentForbiddenAccess("You don't have access to this document with id = %d".formatted(documentVersionId));
         }
@@ -187,7 +191,8 @@ public class DocumentServiceImpl implements DocumentService {
         ApprovementProcessItem approvementProcessItem = new ApprovementProcessItem();
         approvementProcessItem.setUser(user);
         approvementProcessItem.setDocumentVersion(documentVersion);
-        approvementProcessItem.setStatus(ApprovementProcessItemStatus.IN_PROGRESS);
+
+        approvementProcessItem.setStatus(documentVersion.getStatus()== DocumentStatus.PENDING_AUTHOR_SIGN? ApprovementProcessItemStatus.PENDING_AUTHOR_SIGN : ApprovementProcessItemStatus.PENDING_CONTRACTOR_SIGN);
         approvementProcessItem.setCreatedAt(LocalDateTime.now());
         approvementItemRepository.save(approvementProcessItem);
         eventPublisher.publishEvent(new DocumentSignRequestEvent(this, approvementProcessItem));
