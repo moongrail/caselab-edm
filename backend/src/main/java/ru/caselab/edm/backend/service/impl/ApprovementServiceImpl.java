@@ -50,6 +50,7 @@ public class ApprovementServiceImpl implements ApprovementService {
         if (!documentVersion.getDocument().getUser().getId().equals(authenticatedUser.getId())) {
             throw new DocumentForbiddenAccess("You don't have access to this document with id = %d".formatted(createProcess.getDocumentVersionId()));
         }
+        documentVersion.getState().publishForVoting(documentVersion);
         ApprovementProcess process = buildApprovementProcess(createProcess,documentVersion);
         List<ApprovementProcessItem> processItems = createProcess.getUsersIds().stream().map(u->createItem(u,documentVersion,process,authenticatedUser)).toList();
         process.getApprovementProcessItems().clear();
@@ -61,7 +62,6 @@ public class ApprovementServiceImpl implements ApprovementService {
         );
         documentVersion.getApprovementProcesses().add(process);
         //проверка можем ли мы опубликовать документ на голосование
-        documentVersion.getState().publishForVoting(documentVersion);
         processRepository.save(process);
         votingService.scheduleVotingJob(process.getId(), process.getDeadline());
 

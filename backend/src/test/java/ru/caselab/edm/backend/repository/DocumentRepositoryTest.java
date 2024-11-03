@@ -89,15 +89,15 @@ class DocumentRepositoryTest {
                 new DocumentOutputAllDocumentsDTO("Ivanov",
                         LocalDateTime.parse("2024-01-15T00:00:00").atZone(ZoneId.systemDefault()).toInstant(),
                         "document_name_test2",
-                        ApprovementProcessStatus.ACCEPTED),
+                        ApprovementProcessStatus.VOTING_APPROVED),
                 new DocumentOutputAllDocumentsDTO("Ivanov",
                         LocalDateTime.parse("2024-01-15T00:00:00").atZone(ZoneId.systemDefault()).toInstant(),
                         "document_name_test1",
-                        ApprovementProcessStatus.NOTACCEPTED),
+                        ApprovementProcessStatus.VOTING_REJECTED),
                 new DocumentOutputAllDocumentsDTO("Ivanov",
                         LocalDateTime.parse("2024-01-15T00:00:00").atZone(ZoneId.systemDefault()).toInstant(),
                         "document_name_test3",
-                        ApprovementProcessStatus.NOTACCEPTED)
+                        ApprovementProcessStatus.VOTING_REJECTED)
         );
 
         Page<DocumentOutputAllDocumentsDTO> actual2 = repository
