@@ -14,7 +14,7 @@ public class ApprovementProcessCreateDTO {
     @NotNull
     private LocalDateTime deadline;
 
-    private float agreementPercent;
+    private float agreementProcent;
     @NotNull
     private Set<UUID> usersIds;
 }
