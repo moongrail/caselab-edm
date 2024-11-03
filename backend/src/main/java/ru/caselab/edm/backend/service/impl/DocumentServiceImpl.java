@@ -111,7 +111,7 @@ public class DocumentServiceImpl implements DocumentService {
 
     @Transactional
     @Override
-    public Document saveDocument(DocumentCreateDTO document, UUID userId) {
+    public DocumentVersion saveDocument(DocumentCreateDTO document, UUID userId) {
         Long documentTypeId = document.getDocumentTypeId();
         Document newDocument = new Document();
         log.info("Creating document with name: {}", document.getDocumentName());
@@ -128,13 +128,13 @@ public class DocumentServiceImpl implements DocumentService {
         log.info("Save new document with id {}", newDocument.getId());
         Document saved = documentRepository.save(newDocument);
         log.info("Save document version document {}", document.getDocumentName());
-        documentVersionService.saveDocumentVersion(document, saved, userId);
-        return saved;
+        DocumentVersion documentVersion = documentVersionService.saveDocumentVersion(document, saved, userId);
+        return documentVersion;
     }
 
     @Transactional
     @Override
-    public Document updateDocument(long id, DocumentUpdateDTO document, UUID userId) {
+    public DocumentVersion updateDocument(long id, DocumentUpdateDTO document, UUID userId) {
         log.info("Updating document with id: {}", id);
         Document existingDocument = documentRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Document not found"));
@@ -148,9 +148,9 @@ public class DocumentServiceImpl implements DocumentService {
 
         existingDocument = documentRepository.save(existingDocument);
 
-        documentVersionService.updateDocumentVersion(document, existingDocument, userId);
+        DocumentVersion documentVersion = documentVersionService.updateDocumentVersion(document, existingDocument, userId);
         log.info("Document update successfully");
-        return existingDocument;
+        return documentVersion;
     }
 
     private void validateDate(DocumentVersion documentVersion) {

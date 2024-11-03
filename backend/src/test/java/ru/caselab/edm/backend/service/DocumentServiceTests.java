@@ -289,9 +289,9 @@ class DocumentServiceTests {
         Mockito.when(documentVersionService.saveDocumentVersion(documentCreateDTO,
                 savedDocument, userId)).thenReturn(documentVersion1);
 
-        Document saveDocument = documentService.saveDocument(documentCreateDTO, userId);
+        Long result = documentService.saveDocument(documentCreateDTO, userId).getId();
 
-        assertEquals(saveDocument.getId(), 1L, "Saved Document ID should match");
+        assertEquals(documentVersion1.getId(), result);
     }
 
     @Test
@@ -301,17 +301,25 @@ class DocumentServiceTests {
         Document existingDocument = new Document();
         User user = new User();
 
+        DocumentVersion documentVersion = new DocumentVersion();
+
+
+
         when(documentRepository.findById(documentId)).thenReturn(Optional.of(existingDocument));
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
         when(documentRepository.save(existingDocument)).thenReturn(existingDocument);
 
-        Document updatedDocument = documentService.updateDocument(documentId, documentUpdateDTO, userId);
+        when(documentVersionService.updateDocumentVersion(any(), any(), any())).thenReturn(documentVersion);
 
-        assertEquals(updatedDocument, existingDocument);
+        DocumentVersion updatedDocument = documentService.updateDocument(documentId, documentUpdateDTO, userId);
 
-        verify(documentRepository).save(existingDocument);
+        verify(documentRepository).findById(documentId);
+        verify(userRepository).findById(userId);
+        verify(documentRepository).save(any());
         verify(documentVersionService).updateDocumentVersion(documentUpdateDTO, existingDocument, userId);
+
+        assertEquals(updatedDocument, documentVersion);
     }
 
     @Test

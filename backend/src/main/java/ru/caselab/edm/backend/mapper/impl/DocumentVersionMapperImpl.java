@@ -22,7 +22,7 @@ public class DocumentVersionMapperImpl implements DocumentVersionMapper {
     public DocumentVersionDTO toDto(DocumentVersion documentVersion) {
         DocumentVersionDTO documentVersionDTO = new DocumentVersionDTO();
         documentVersionDTO.setId(documentVersion.getId());
-        documentVersionDTO.setDocumentId(documentVersion.getId());
+        documentVersionDTO.setDocumentId(documentVersion.getDocument().getId());
         documentVersionDTO.setDocumentName(documentVersion.getDocumentName());
         documentVersionDTO.setAttributeValues(toAttrDtos(documentVersion.getDocumentAttributeValue()));
         documentVersionDTO.setCreatedAt(documentVersion.getCreatedAt());
