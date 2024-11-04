@@ -56,6 +56,7 @@ public class UserController {
                     content = @Content)
     })
     @GetMapping
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<UserPageDTO> getAllUsers(
             @Parameter(description = "Page number starting from 0", example = "0")
             @RequestParam(value = "page", defaultValue = "0") int page,
@@ -76,6 +77,7 @@ public class UserController {
                     content = @Content)
     })
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<UserDTO> getUserById(
             @Parameter(description = "ID of the user to be retrieved", example = "123e4567-e89b-12d3-a456-426614174000")
             @PathVariable("id") UUID id) {
