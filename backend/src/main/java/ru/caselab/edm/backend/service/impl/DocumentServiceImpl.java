@@ -8,10 +8,10 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.caselab.edm.backend.dto.ApprovementProcessItemDTO;
-import ru.caselab.edm.backend.dto.DocumentCreateDTO;
-import ru.caselab.edm.backend.dto.DocumentOutputAllDocumentsDTO;
-import ru.caselab.edm.backend.dto.DocumentUpdateDTO;
+import ru.caselab.edm.backend.dto.approvementprocessitem.ApprovementProcessItemDTO;
+import ru.caselab.edm.backend.dto.document.DocumentCreateDTO;
+import ru.caselab.edm.backend.dto.document.DocumentOutputAllDocumentsDTO;
+import ru.caselab.edm.backend.dto.document.DocumentUpdateDTO;
 import ru.caselab.edm.backend.entity.ApprovementProcessItem;
 import ru.caselab.edm.backend.entity.Document;
 import ru.caselab.edm.backend.entity.DocumentVersion;
@@ -24,7 +24,7 @@ import ru.caselab.edm.backend.exceptions.ApprovementProccessItemAlreadyExistsExc
 import ru.caselab.edm.backend.exceptions.DocumentForbiddenAccess;
 import ru.caselab.edm.backend.exceptions.ResourceNotFoundException;
 import ru.caselab.edm.backend.exceptions.WrongDateException;
-import ru.caselab.edm.backend.mapper.ApprovementProccessItemMapper;
+import ru.caselab.edm.backend.mapper.approvementprocessitem.ApprovementProccessItemMapper;
 import ru.caselab.edm.backend.repository.ApprovementItemRepository;
 import ru.caselab.edm.backend.repository.DocumentRepository;
 import ru.caselab.edm.backend.repository.DocumentTypeRepository;
@@ -85,8 +85,7 @@ public class DocumentServiceImpl implements DocumentService {
 
     @Override
     public DocumentVersion getLastVersionDocumentForUser(long id, UUID userId) {
-        log.info("Get document with id: {} for user: {}",
-                id, userId);
+        log.info("Get document with id: {} for user: {}", id, userId);
         Document document = documentRepository.getDocumentForUser(id, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Document not found"));
         log.info("Get last version document");
@@ -168,31 +167,28 @@ public class DocumentServiceImpl implements DocumentService {
 
     @Transactional
     @Override
-    public ApprovementProcessItemDTO sendForSign(UUID userId, Long documentVersionId, UserInfoDetails authenticatedUser) {
-        Optional<DocumentVersion> documentVersionOptional = documentVersionRepository.findById(documentVersionId);
-        if (documentVersionOptional.isEmpty()) {
-            throw new ResourceNotFoundException("Document version not found with id = %d".formatted(documentVersionId));
-        }
+    public ApprovementProcessItemDTO sendForSign(UUID userId, Long documentId, UserInfoDetails authenticatedUser) {
         Optional<User> userOptional = userRepository.findById(userId);
         if (userOptional.isEmpty()) {
             throw new ResourceNotFoundException("User not found with id = %s".formatted(userId));
         }
         User user = userOptional.get();
-        DocumentVersion documentVersion = documentVersionOptional.get();
-        //проверка можно ли такой документ отправить на подпись
-        documentVersion.getState().sendForSign(documentVersion);
 
+        DocumentVersion documentVersion = getLastVersionDocumentForUser(documentId, authenticatedUser.getId());
         if (!documentVersion.getDocument().getUser().getId().equals(authenticatedUser.getId())) {
-            throw new DocumentForbiddenAccess("You don't have access to this document with id = %d".formatted(documentVersionId));
+            throw new DocumentForbiddenAccess("You don't have access to this document with id = %d".formatted(documentId));
         }
         if (approvementItemRepository.existsByDocumentVersionIdAndUserId(documentVersion.getId(), user.getId())) {
             throw new ApprovementProccessItemAlreadyExistsException("Provided document already sent to user");
         }
+        //проверка можно ли такой документ отправить на подпись
+        documentVersion.getState().sendForSign(documentVersion);
+
         ApprovementProcessItem approvementProcessItem = new ApprovementProcessItem();
         approvementProcessItem.setUser(user);
         approvementProcessItem.setDocumentVersion(documentVersion);
 
-        approvementProcessItem.setStatus(documentVersion.getStatus()== DocumentStatus.PENDING_AUTHOR_SIGN? ApprovementProcessItemStatus.PENDING_AUTHOR_SIGN : ApprovementProcessItemStatus.PENDING_CONTRACTOR_SIGN);
+        approvementProcessItem.setStatus(documentVersion.getStatus() == DocumentStatus.PENDING_AUTHOR_SIGN ? ApprovementProcessItemStatus.PENDING_AUTHOR_SIGN : ApprovementProcessItemStatus.PENDING_CONTRACTOR_SIGN);
         approvementProcessItem.setCreatedAt(LocalDateTime.now());
         approvementItemRepository.save(approvementProcessItem);
         eventPublisher.publishEvent(new DocumentSignRequestEvent(this, approvementProcessItem));

@@ -3,9 +3,10 @@ package ru.caselab.edm.backend.mapper;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
-import ru.caselab.edm.backend.dto.AttributeDTO;
+import ru.caselab.edm.backend.dto.attribute.AttributeDTO;
 import ru.caselab.edm.backend.entity.Attribute;
 import ru.caselab.edm.backend.entity.DocumentType;
+import ru.caselab.edm.backend.mapper.attribute.AttributeMapper;
 
 import java.util.HashSet;
 import java.util.List;

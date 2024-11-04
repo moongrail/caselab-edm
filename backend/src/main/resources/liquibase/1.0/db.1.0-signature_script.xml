@@ -8,12 +8,24 @@
     <changeSet id="Signatures_table_creation" author="A192747" runOnChange="true">
         <sql>
 
-            CREATE TABLE IF NOT EXISTS signatures (
-                id                      BIGSERIAL       PRIMARY KEY,
-                approvement_item_id     Bigint          REFERENCES      approvment_process_item(id),
-                created_at              TIMESTAMP       DEFAULT         NOW(),
-                hash                    TEXT
-            );
+            CREATE TABLE IF NOT EXISTS signatures
+            (
+                id
+                BIGSERIAL
+                PRIMARY
+                KEY,
+                approvement_item_id
+                Bigint
+                REFERENCES
+                approvment_process_item
+            (
+                id
+            ),
+                created_at TIMESTAMP DEFAULT NOW
+            (
+            ),
+                hash TEXT
+                );
         </sql>
     </changeSet>
 </databaseChangeLog>

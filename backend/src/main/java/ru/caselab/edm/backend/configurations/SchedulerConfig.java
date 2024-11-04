@@ -13,6 +13,7 @@ import org.springframework.scheduling.quartz.SpringBeanJobFactory;
 public class SchedulerConfig {
     @Autowired
     private ApplicationContext applicationContext;
+
     @Bean
     public SpringBeanJobFactory springBeanJobFactory() {
         SpringBeanJobFactory factory = new SpringBeanJobFactory();
@@ -26,6 +27,7 @@ public class SchedulerConfig {
         factory.setJobFactory(springBeanJobFactory);
         return factory;
     }
+
     @Bean
     public Scheduler scheduler(SchedulerFactoryBean factory) throws SchedulerException {
         Scheduler scheduler = factory.getScheduler();

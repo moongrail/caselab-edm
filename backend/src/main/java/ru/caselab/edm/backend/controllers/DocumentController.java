@@ -27,25 +27,24 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import ru.caselab.edm.backend.dto.ApprovementProcessCreateDTO;
-import ru.caselab.edm.backend.dto.ApprovementProcessDTO;
-import ru.caselab.edm.backend.dto.ApprovementProcessItemDTO;
-import ru.caselab.edm.backend.dto.DocumentCreateDTO;
-import ru.caselab.edm.backend.dto.DocumentDTO;
-import ru.caselab.edm.backend.dto.DocumentOutputAllDocumentsDTO;
-import ru.caselab.edm.backend.dto.DocumentPageDTO;
-import ru.caselab.edm.backend.dto.DocumentUpdateDTO;
-import ru.caselab.edm.backend.dto.DocumentVersionDTO;
-import ru.caselab.edm.backend.dto.SignatureCreateDTO;
-import ru.caselab.edm.backend.entity.Document;
+import ru.caselab.edm.backend.dto.approvementprocess.ApprovementProcessCreateDTO;
+import ru.caselab.edm.backend.dto.approvementprocess.ApprovementProcessDTO;
+import ru.caselab.edm.backend.dto.approvementprocessitem.ApprovementProcessItemDTO;
+import ru.caselab.edm.backend.dto.document.DocumentCreateDTO;
+import ru.caselab.edm.backend.dto.document.DocumentDTO;
+import ru.caselab.edm.backend.dto.document.DocumentOutputAllDocumentsDTO;
+import ru.caselab.edm.backend.dto.document.DocumentPageDTO;
+import ru.caselab.edm.backend.dto.document.DocumentUpdateDTO;
+import ru.caselab.edm.backend.dto.documentversion.DocumentVersionDTO;
+import ru.caselab.edm.backend.dto.signature.SignatureCreateDTO;
 import ru.caselab.edm.backend.entity.DocumentVersion;
 import ru.caselab.edm.backend.entity.UserInfoDetails;
 import ru.caselab.edm.backend.enums.DocumentSortingType;
-import ru.caselab.edm.backend.mapper.DocumentMapper;
-import ru.caselab.edm.backend.mapper.DocumentVersionMapper;
+import ru.caselab.edm.backend.mapper.document.DocumentMapper;
+import ru.caselab.edm.backend.mapper.documentversion.DocumentVersionMapper;
 import ru.caselab.edm.backend.service.ApprovementService;
 import ru.caselab.edm.backend.service.DocumentService;
-import ru.caselab.edm.backend.service.DocumentVersionService;
+import ru.caselab.edm.backend.service.MinioService;
 import ru.caselab.edm.backend.service.SignatureService;
 
 import java.util.List;
@@ -60,11 +59,11 @@ import java.util.UUID;
 public class DocumentController {
 
     private final DocumentService documentService;
-    private final DocumentVersionService documentVersionService;
     private final DocumentMapper documentMapper;
     private final SignatureService signatureService;
     private final DocumentVersionMapper documentVersionMapper;
     private final ApprovementService approvementService;
+    private final MinioService minioService;
 
     @Operation(
             summary = "Start approval process for current document version"
@@ -95,7 +94,7 @@ public class DocumentController {
     @PostMapping("/{id}/sign")
     @ResponseStatus(HttpStatus.OK)
     public void signDocument(@Valid @RequestBody SignatureCreateDTO signatureCreateDTO,
-                             @Parameter(description = "Document id", required = true, example = "1")
+                             @Parameter(description = "Document ID", required = true, example = "1")
                              @PathVariable Long id,
                              @AuthenticationPrincipal UserInfoDetails authenticatedUser) {
         signatureService.sign(signatureCreateDTO, id, authenticatedUser);
@@ -116,7 +115,7 @@ public class DocumentController {
     @PostMapping("/{id}/send_for_signature")
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<ApprovementProcessItemDTO> sendForSignature(
-            @Parameter(description = "Document version ID", required = true, example = "1")
+            @Parameter(description = "Document ID", required = true, example = "1")
             @PathVariable(name = "id") Long id,
             @Parameter(description = "User ID", required = true, example = "550e8400-e29b-41d4-a716-446655440000,550e8400-e29b-41d4-a716-446655440001")
             @RequestParam(name = "userId") UUID userId,
@@ -134,7 +133,7 @@ public class DocumentController {
     @PostMapping()
     @ResponseStatus(HttpStatus.CREATED)
     public DocumentVersionDTO createDocument(@Valid @RequestBody DocumentCreateDTO documentCreateDTO,
-                                      @AuthenticationPrincipal UserInfoDetails user) {
+                                             @AuthenticationPrincipal UserInfoDetails user) {
         return documentVersionMapper.toDto(documentService.saveDocument(documentCreateDTO, user.getId()));
     }
 
@@ -214,4 +213,21 @@ public class DocumentController {
             @PathVariable Long id) {
         documentService.deleteDocument(id);
     }
+
+    @Operation(
+            summary = "Get a link to download the document",
+            description = """
+                    The method requires the value of the contentUrl field of the document for which the download link will be returned.
+                    Note: The link is only valid for 15 minutes. After the time has passed, a new one must be generated!
+                    """
+    )
+    @ApiResponse(responseCode = "200", description = "Download link was successfully returned", content = @Content)
+    @GetMapping("/download")
+    @ResponseStatus(HttpStatus.OK)
+    public String downloadDocument(
+            @Parameter(description = "The value of the contentUrl field of the document", example = "")
+            @RequestParam("url") String url) {
+        return minioService.generateTemporaryUrlToObject(url);
+    }
+
 }

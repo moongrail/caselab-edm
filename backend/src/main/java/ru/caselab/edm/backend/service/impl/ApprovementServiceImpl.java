@@ -4,19 +4,25 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
-import ru.caselab.edm.backend.dto.ApprovementProcessCreateDTO;
-import ru.caselab.edm.backend.dto.ApprovementProcessDTO;
-import ru.caselab.edm.backend.entity.*;
+import ru.caselab.edm.backend.dto.approvementprocess.ApprovementProcessCreateDTO;
+import ru.caselab.edm.backend.dto.approvementprocess.ApprovementProcessDTO;
+import ru.caselab.edm.backend.entity.ApprovementProcess;
+import ru.caselab.edm.backend.entity.ApprovementProcessItem;
+import ru.caselab.edm.backend.entity.DocumentVersion;
+import ru.caselab.edm.backend.entity.User;
+import ru.caselab.edm.backend.entity.UserInfoDetails;
 import ru.caselab.edm.backend.enums.ApprovementProcessItemStatus;
 import ru.caselab.edm.backend.event.DocumentSignRequestEvent;
 import ru.caselab.edm.backend.exceptions.DocumentForbiddenAccess;
 import ru.caselab.edm.backend.exceptions.ResourceNotFoundException;
-import ru.caselab.edm.backend.mapper.ApprovementProcessMapper;
+import ru.caselab.edm.backend.mapper.approvementproccess.ApprovementProcessMapper;
 import ru.caselab.edm.backend.repository.ApprovementItemRepository;
 import ru.caselab.edm.backend.repository.ApprovementProcessRepository;
 import ru.caselab.edm.backend.repository.DocumentVersionRepository;
 import ru.caselab.edm.backend.repository.UserRepository;
-import ru.caselab.edm.backend.service.*;
+import ru.caselab.edm.backend.service.ApprovementService;
+import ru.caselab.edm.backend.service.DocumentService;
+import ru.caselab.edm.backend.service.VotingService;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -37,22 +43,19 @@ public class ApprovementServiceImpl implements ApprovementService {
     private final ApprovementProcessMapper processMapper;
     private final VotingService votingService;
     private final ApplicationEventPublisher eventPublisher;
+    private final DocumentService documentService;
 
     @Override
     public ApprovementProcessDTO createApprovementProcess(ApprovementProcessCreateDTO createProcess, UserInfoDetails authenticatedUser) {
-        log.info("Started approval process for document version {}", createProcess.getDocumentVersionId());
-        Optional<DocumentVersion> documentVersionOptional = documentVersionRepository.findById(createProcess.getDocumentVersionId());
-        DocumentVersion documentVersion = documentVersionOptional.orElseThrow(() -> {
-            log.warn("Document Version not found with id: {}",createProcess.getDocumentVersionId() );
-            return new ResourceNotFoundException("Attribute not found with id = %s".formatted(createProcess.getDocumentVersionId()));
+        log.info("Started approval process for document version {}", createProcess.getDocumentId());
 
-        });
+        DocumentVersion documentVersion = documentService.getLastVersionDocumentForUser(createProcess.getDocumentId(), authenticatedUser.getId());
         if (!documentVersion.getDocument().getUser().getId().equals(authenticatedUser.getId())) {
-            throw new DocumentForbiddenAccess("You don't have access to this document with id = %d".formatted(createProcess.getDocumentVersionId()));
+            throw new DocumentForbiddenAccess("You don't have access to this document with id = %d".formatted(createProcess.getDocumentId()));
         }
         documentVersion.getState().publishForVoting(documentVersion);
-        ApprovementProcess process = buildApprovementProcess(createProcess,documentVersion);
-        List<ApprovementProcessItem> processItems = createProcess.getUsersIds().stream().map(u->createItem(u,documentVersion,process,authenticatedUser)).toList();
+        ApprovementProcess process = buildApprovementProcess(createProcess, documentVersion);
+        List<ApprovementProcessItem> processItems = createProcess.getUsersIds().stream().map(u -> createItem(u, documentVersion, process, authenticatedUser)).toList();
         process.getApprovementProcessItems().clear();
         process.getApprovementProcessItems().addAll(processItems);
         documentVersion.setApprovementProcesses(
@@ -61,14 +64,14 @@ public class ApprovementServiceImpl implements ApprovementService {
                         : new ArrayList<>()
         );
         documentVersion.getApprovementProcesses().add(process);
-        //проверка можем ли мы опубликовать документ на голосование
+        //проверка, можем ли мы опубликовать документ на голосование
         processRepository.save(process);
         votingService.scheduleVotingJob(process.getId(), process.getDeadline());
 
         return processMapper.toDTO(process);
     }
 
-    private ApprovementProcessItem createItem(UUID userId, DocumentVersion documentVersion, ApprovementProcess process, UserInfoDetails authenticatedUser){
+    private ApprovementProcessItem createItem(UUID userId, DocumentVersion documentVersion, ApprovementProcess process, UserInfoDetails authenticatedUser) {
         Optional<User> userOptional = userRepository.findById(userId);
         if (userOptional.isEmpty()) {
             throw new ResourceNotFoundException("User not found with id = %s".formatted(userId));
@@ -85,18 +88,16 @@ public class ApprovementServiceImpl implements ApprovementService {
         return approvementProcessItem;
     }
 
-    private ApprovementProcess buildApprovementProcess(ApprovementProcessCreateDTO createProcess,DocumentVersion version) {
+    private ApprovementProcess buildApprovementProcess(ApprovementProcessCreateDTO createProcess, DocumentVersion version) {
         ApprovementProcess process = new ApprovementProcess();
-        process.setAgreementProcent(createProcess.getAgreementProcent());
+        process.setAgreementProcent(createProcess.getAgreementPercent());
         process.setStatus(PUBLISHED_FOR_VOTING);
         process.setDocumentVersion(version);
         process.setDeadline(createProcess.getDeadline());
 
 
-        return  processRepository.save(process);
+        return processRepository.save(process);
     }
-
-
 
 
 }

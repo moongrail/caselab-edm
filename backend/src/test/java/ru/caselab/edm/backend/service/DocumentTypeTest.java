@@ -11,20 +11,24 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import ru.caselab.edm.backend.dto.AttributeDTO;
-import ru.caselab.edm.backend.dto.DocumentTypeCreateDTO;
-import ru.caselab.edm.backend.dto.DocumentTypeDTO;
-import ru.caselab.edm.backend.dto.DocumentTypeUpdateDTO;
+import ru.caselab.edm.backend.dto.attribute.AttributeDTO;
+import ru.caselab.edm.backend.dto.documenttype.DocumentTypeCreateDTO;
+import ru.caselab.edm.backend.dto.documenttype.DocumentTypeDTO;
+import ru.caselab.edm.backend.dto.documenttype.DocumentTypeUpdateDTO;
 import ru.caselab.edm.backend.entity.Attribute;
 import ru.caselab.edm.backend.entity.DocumentType;
-import ru.caselab.edm.backend.mapper.DocumentTypeMapper;
+import ru.caselab.edm.backend.mapper.documenttype.DocumentTypeMapper;
 import ru.caselab.edm.backend.repository.AttributeRepository;
 import ru.caselab.edm.backend.repository.DocumentTypeRepository;
 import ru.caselab.edm.backend.service.impl.DocumentTypeImpl;
 
 import java.time.LocalDateTime;
 import java.time.Month;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 @ExtendWith(MockitoExtension.class)
 class DocumentTypeTest {

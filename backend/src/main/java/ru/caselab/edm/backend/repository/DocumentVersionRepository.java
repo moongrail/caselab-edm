@@ -12,4 +12,5 @@ public interface DocumentVersionRepository extends JpaRepository<DocumentVersion
     Optional<DocumentVersion> findByDocumentName(String name);
 
     List<DocumentVersion> findByDocumentId(Long documentId);
+
 }

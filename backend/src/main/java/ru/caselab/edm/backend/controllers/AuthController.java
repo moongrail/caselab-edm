@@ -13,8 +13,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import ru.caselab.edm.backend.dto.JwtDTO;
-import ru.caselab.edm.backend.dto.LoginUserDTO;
+import ru.caselab.edm.backend.dto.auth.JwtDTO;
+import ru.caselab.edm.backend.dto.auth.LoginUserDTO;
 import ru.caselab.edm.backend.service.UserService;
 
 @RestController

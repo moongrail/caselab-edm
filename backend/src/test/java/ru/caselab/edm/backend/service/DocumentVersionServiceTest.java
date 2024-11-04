@@ -5,12 +5,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import ru.caselab.edm.backend.dto.DocumentCreateDTO;
-import ru.caselab.edm.backend.dto.MinioSaveDto;
+import ru.caselab.edm.backend.dto.document.DocumentCreateDTO;
+import ru.caselab.edm.backend.dto.minio.MinioSaveDto;
 import ru.caselab.edm.backend.entity.Document;
 import ru.caselab.edm.backend.entity.DocumentAttributeValue;
 import ru.caselab.edm.backend.entity.DocumentVersion;
-import ru.caselab.edm.backend.mapper.MinioDocumentMapper;
+import ru.caselab.edm.backend.mapper.document.MinioDocumentMapper;
 import ru.caselab.edm.backend.repository.DocumentVersionRepository;
 import ru.caselab.edm.backend.service.impl.DocumentVersionServiceImpl;
 

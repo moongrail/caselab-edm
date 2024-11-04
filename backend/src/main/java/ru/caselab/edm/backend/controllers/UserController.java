@@ -22,11 +22,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import ru.caselab.edm.backend.dto.CreateUserDTO;
-import ru.caselab.edm.backend.dto.UpdatePasswordDTO;
-import ru.caselab.edm.backend.dto.UpdateUserDTO;
-import ru.caselab.edm.backend.dto.UserDTO;
-import ru.caselab.edm.backend.dto.UserPageDTO;
+import ru.caselab.edm.backend.dto.user.CreateUserDTO;
+import ru.caselab.edm.backend.dto.user.UpdatePasswordDTO;
+import ru.caselab.edm.backend.dto.user.UpdateUserDTO;
+import ru.caselab.edm.backend.dto.user.UserDTO;
+import ru.caselab.edm.backend.dto.user.UserPageDTO;
 import ru.caselab.edm.backend.service.UserService;
 
 import java.util.UUID;

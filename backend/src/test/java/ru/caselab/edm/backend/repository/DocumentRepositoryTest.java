@@ -10,18 +10,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
-import ru.caselab.edm.backend.dto.DocumentOutputAllDocumentsDTO;
+import ru.caselab.edm.backend.dto.document.DocumentOutputAllDocumentsDTO;
 import ru.caselab.edm.backend.entity.Document;
 import ru.caselab.edm.backend.enums.ApprovementProcessStatus;
 
-
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -83,20 +78,23 @@ class DocumentRepositoryTest {
     @Test
     void getAllDocumentWithNameAndStatusProjectionForUser() {
         initdb();
-        Pageable pageable = PageRequest.of(0, 5, Sort.by("status"));
+        Pageable pageable = PageRequest.of(0, 5, Sort.by("approvementProcessStatus"));
 
         List<DocumentOutputAllDocumentsDTO> expected = List.of(
-                new DocumentOutputAllDocumentsDTO("Ivanov",
+                new DocumentOutputAllDocumentsDTO(2L, "Test1",
                         LocalDateTime.parse("2024-01-15T00:00:00").atZone(ZoneId.systemDefault()).toInstant(),
                         "document_name_test2",
+                        "test_url1",
                         ApprovementProcessStatus.VOTING_APPROVED),
-                new DocumentOutputAllDocumentsDTO("Ivanov",
+                new DocumentOutputAllDocumentsDTO(1L, "Test1",
                         LocalDateTime.parse("2024-01-15T00:00:00").atZone(ZoneId.systemDefault()).toInstant(),
                         "document_name_test1",
+                        "test_url",
                         ApprovementProcessStatus.VOTING_REJECTED),
-                new DocumentOutputAllDocumentsDTO("Ivanov",
+                new DocumentOutputAllDocumentsDTO(3L, "Test1",
                         LocalDateTime.parse("2024-01-15T00:00:00").atZone(ZoneId.systemDefault()).toInstant(),
                         "document_name_test3",
+                        "test_url3",
                         ApprovementProcessStatus.VOTING_REJECTED)
         );
 
