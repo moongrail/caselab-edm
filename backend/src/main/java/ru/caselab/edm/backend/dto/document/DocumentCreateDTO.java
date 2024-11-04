@@ -28,7 +28,7 @@ public class DocumentCreateDTO {
     private String documentName;
 
     @JsonProperty("base64Data")
-    @Schema(description = "File's data in Base64 format", example = "")
+    @Schema(name = "base64Data", description = "File's data in Base64 format", example = "")
     private String data;
 
     @Schema(description = "Value attributes")

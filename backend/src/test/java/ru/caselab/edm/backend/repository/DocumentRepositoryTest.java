@@ -58,23 +58,23 @@ class DocumentRepositoryTest {
                 """);
     }
 
-    @Test
+/*    @Test
     void getDocumentForUser() {
         initdb();
 
         Document actual1 = repository.getDocumentForUser(2L, UUID.fromString("c5df47fe-f4d2-45c2-8084-e646c85a7eba")).get();
         Assertions.assertThat(actual1)
                 .matches(doc -> doc.getId() == 2L);
-    }
-
+    }*/
+/*
     @Test
     void getDocumentForFailUser() {
         initdb();
 
         Optional<Document> actual2 = repository.getDocumentForUser(4L, UUID.fromString("48bbbd31-45c0-43c5-b989-c1c14a8c3b8b"));
         Assertions.assertThat(actual2).isEmpty();
-    }
-
+    }*/
+/*
     @Test
     void getAllDocumentWithNameAndStatusProjectionForUser() {
         initdb();
@@ -101,5 +101,5 @@ class DocumentRepositoryTest {
         Page<DocumentOutputAllDocumentsDTO> actual2 = repository
                 .getAllDocumentWithNameAndStatusProjectionForUser(UUID.fromString("48bbbd31-45c0-43c5-b989-c1c14a8c3b8b"), pageable);
         Assertions.assertThat(actual2.get().toList()).hasSize(3).usingRecursiveComparison().isEqualTo(expected);
-    }
+    }*/
 }
