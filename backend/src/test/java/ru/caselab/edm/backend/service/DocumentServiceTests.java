@@ -304,7 +304,6 @@ class DocumentServiceTests {
         DocumentVersion documentVersion = new DocumentVersion();
 
 
-
         when(documentRepository.findById(documentId)).thenReturn(Optional.of(existingDocument));
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 

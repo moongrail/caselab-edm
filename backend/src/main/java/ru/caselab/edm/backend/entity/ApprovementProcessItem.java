@@ -31,7 +31,7 @@ public class ApprovementProcessItem {
     @JoinColumn(name = "app_procc_id")
     private ApprovementProcess approvementProcess;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     private User user;
 

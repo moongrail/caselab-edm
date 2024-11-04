@@ -4,13 +4,17 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.caselab.edm.backend.dto.signature.SignatureCreateDTO;
-import ru.caselab.edm.backend.entity.*;
+import ru.caselab.edm.backend.entity.ApprovementProcessItem;
+import ru.caselab.edm.backend.entity.DocumentVersion;
+import ru.caselab.edm.backend.entity.Signature;
+import ru.caselab.edm.backend.entity.UserInfoDetails;
 import ru.caselab.edm.backend.enums.ApprovementProcessItemStatus;
 import ru.caselab.edm.backend.exceptions.ResourceNotFoundException;
 import ru.caselab.edm.backend.repository.ApprovementItemRepository;
 import ru.caselab.edm.backend.repository.DocumentVersionRepository;
 import ru.caselab.edm.backend.repository.SignatureRepository;
 import ru.caselab.edm.backend.repository.UserRepository;
+import ru.caselab.edm.backend.service.DocumentService;
 import ru.caselab.edm.backend.service.SignatureService;
 
 import java.security.MessageDigest;
@@ -26,53 +30,43 @@ public class SignatureServiceImpl implements SignatureService {
     private final DocumentVersionRepository documentVersionRepository;
     private final UserRepository userRepository;
     private final ApprovementItemRepository approvementItemRepository;
+    private final DocumentService documentService;
 
     @Override
     @Transactional
-    public void sign(SignatureCreateDTO createDTO, Long documentVersionId, UserInfoDetails authenticatedUser) {
-        Optional<DocumentVersion> documentVersionOptional = documentVersionRepository.findById(documentVersionId);
-        if (documentVersionOptional.isEmpty())
-            throw new ResourceNotFoundException("Document version not found with id = %d".formatted(documentVersionId));
+    public void sign(SignatureCreateDTO createDTO, Long documentId, UserInfoDetails authenticatedUser) {
 
-        DocumentVersion version = documentVersionOptional.get();
+        DocumentVersion documentVersion = documentService.getLastVersionDocumentForUser(documentId, authenticatedUser.getId());
 
+        Optional<ApprovementProcessItem> approvementProcessItemOptional = approvementItemRepository.findByDocumentVersionIdAndUserId(documentVersion.getId(), authenticatedUser.getId());
 
-        Optional<User> userOptional = userRepository.findById(createDTO.getUserId());
-        if (userOptional.isEmpty())
-            throw new ResourceNotFoundException("User not found with id = %s".formatted(createDTO.getUserId()));
-
-        User user = userOptional.get();
-
-
-
-        Optional<ApprovementProcessItem> approvementProcessItemOptional = approvementItemRepository.findByDocumentVersionIdAndUserId(documentVersionId, user.getId());
-
-        if (approvementProcessItemOptional.isEmpty())
+        if (approvementProcessItemOptional.isEmpty()) {
             throw new ResourceNotFoundException("Signing request not found");
+        }
 
         ApprovementProcessItem approvementProcessItem = approvementProcessItemOptional.get();
         approvementProcessItem.setStatus(ApprovementProcessItemStatus.valueOf(createDTO.getStatus()));
 
         //Изменение статуса версии документа после подписи
-        if(isAuthorSign(version,user.getId())){
-            //проверка что документ в данном состоянии может подписать автор
-            version.getState().signAuthor(version);
-        }else{
-            //проверка что документ в данном состоянии может подписать контрагент
-            version.getState().signContractor(approvementProcessItem);
+        if (isAuthorSign(documentVersion, authenticatedUser.getId())) {
+            //проверка, что документ в данном состоянии может подписать автор
+            documentVersion.getState().signAuthor(documentVersion);
+        } else {
+            //проверка, что документ в данном состоянии может подписать контрагент
+            documentVersion.getState().signContractor(approvementProcessItem);
 
         }
 
         Signature signature = new Signature();
         signature.setCreatedAt(LocalDateTime.now());
         signature.setApprovementProcessItem(approvementProcessItem);
-        signature.setHash(hash(user.getId(), documentVersionId));
+        signature.setHash(hash(authenticatedUser.getId(), documentVersion.getId()));
 
         approvementItemRepository.save(approvementProcessItem);
         signatureRepository.save(signature);
     }
 
-    private boolean isAuthorSign(DocumentVersion version, UUID userId){
+    private boolean isAuthorSign(DocumentVersion version, UUID userId) {
         return version.getDocument().getUser().getId().equals(userId);
     }
 

@@ -9,17 +9,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.UUID;
-
 @Data
 @Getter
 @Setter
 @NoArgsConstructor
 public class SignatureCreateDTO {
-    @JsonProperty("userId")
-    @NotNull
-    @Schema(description = "User ID", format = "uuid", example = "123e4567-e89b-12d3-a456-426614174000")
-    private UUID userId;
 
     @JsonProperty("status")
     @NotNull

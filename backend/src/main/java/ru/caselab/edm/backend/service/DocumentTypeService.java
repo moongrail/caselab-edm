@@ -17,5 +17,6 @@ public interface DocumentTypeService {
     DocumentTypeDTO updateDocumentType(Long id, DocumentTypeUpdateDTO updateDocumentType);
 
     void deleteDocumentType(Long id);
+
     DocumentTypeMapper getDocumentTypeMapper();
 }

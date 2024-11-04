@@ -12,6 +12,7 @@ import ru.caselab.edm.backend.mapper.role.RoleMapper;
 public interface UserMapper {
 
     UserDTO toDTO(User user);
+
     UserPageDTO toPageDTO(Page<User> user);
 
 }

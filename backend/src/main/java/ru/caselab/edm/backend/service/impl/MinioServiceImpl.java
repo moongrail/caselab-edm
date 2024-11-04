@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -35,8 +34,8 @@ public class MinioServiceImpl implements MinioService {
     private final InputStreamContentTypeDetector contentTypeDetector;
 
     public MinioServiceImpl(MinioConfigProperties minioConfigProperties,
-                        MinioClient minioClient,
-                        InputStreamContentTypeDetector contentTypeDetector) {
+                            MinioClient minioClient,
+                            InputStreamContentTypeDetector contentTypeDetector) {
         this.bucketName = minioConfigProperties.getBucketName();
         this.minioClient = minioClient;
         this.contentTypeDetector = contentTypeDetector;
@@ -75,6 +74,7 @@ public class MinioServiceImpl implements MinioService {
     private InputStream getInputStream(MinioSaveDto minioSaveDto) {
         return new ByteArrayInputStream(minioSaveDto.data());
     }
+
     private String getContentType(InputStream inputStream) throws ContentTypeDetectionException {
         return contentTypeDetector.detect(inputStream);
     }

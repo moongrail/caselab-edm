@@ -10,8 +10,8 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import ru.caselab.edm.backend.dto.user.CreateUserDTO;
 import ru.caselab.edm.backend.dto.role.RoleDTO;
+import ru.caselab.edm.backend.dto.user.CreateUserDTO;
 import ru.caselab.edm.backend.dto.user.UpdatePasswordDTO;
 import ru.caselab.edm.backend.dto.user.UpdateUserDTO;
 import ru.caselab.edm.backend.dto.user.UserDTO;
@@ -35,7 +35,9 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class UserServiceTests {
 
@@ -83,7 +85,7 @@ public class UserServiceTests {
     void getAllUsers_ShouldReturnUserDTOList() {
         Page<User> users = new PageImpl<>(Collections.singletonList(user));
         UserDTO userDTO = new UserDTO(userId, "test", "test@test.ru", "test", "test", "test", roleDTOS);
-        UserPageDTO userPageDTO = new UserPageDTO(0, 10, 1, 1,Collections.singletonList(userDTO));
+        UserPageDTO userPageDTO = new UserPageDTO(0, 10, 1, 1, Collections.singletonList(userDTO));
 
         when(userRepository.findAll(PageRequest.of(0, 10))).thenReturn(users);
         when(userMapper.toPageDTO(any(Page.class))).thenReturn(userPageDTO);

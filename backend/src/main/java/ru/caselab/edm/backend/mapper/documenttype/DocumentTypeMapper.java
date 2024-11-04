@@ -1,6 +1,7 @@
 package ru.caselab.edm.backend.mapper.documenttype;
 
-import org.mapstruct.*;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import ru.caselab.edm.backend.dto.documenttype.DocumentTypeDTO;
 import ru.caselab.edm.backend.entity.Attribute;
 import ru.caselab.edm.backend.entity.DocumentType;

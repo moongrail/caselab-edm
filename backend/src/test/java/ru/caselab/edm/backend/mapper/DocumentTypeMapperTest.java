@@ -41,8 +41,6 @@ class DocumentTypeMapperTest {
         testDocumentType.setAttributes(new HashSet<>(List.of(testAttribute)));
 
 
-
-
         DocumentTypeDTO map = mapper.toDto(testDocumentType);
         System.out.println(map);
         Assertions.assertThat(mapper.toDto(testDocumentType)).isEqualTo(testDocumentTypeDTO);

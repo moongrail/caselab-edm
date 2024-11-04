@@ -17,10 +17,10 @@ public class DocumentBaseState implements DocumentState {
     private final Map<DocumentStatus, Set<DocumentStatus>> allowedTransitions = new EnumMap<>(DocumentStatus.class);
 
     public DocumentBaseState() {
-        allowedTransitions.put(DocumentStatus.DRAFT, Set.of(DocumentStatus.AUTHOR_SIGNED, DocumentStatus.PENDING_AUTHOR_SIGN, DocumentStatus.IN_VOTING, DocumentStatus.DELETED,DocumentStatus.REWORK_REQUIRED));
+        allowedTransitions.put(DocumentStatus.DRAFT, Set.of(DocumentStatus.AUTHOR_SIGNED, DocumentStatus.PENDING_AUTHOR_SIGN, DocumentStatus.IN_VOTING, DocumentStatus.DELETED, DocumentStatus.REWORK_REQUIRED));
         allowedTransitions.put(DocumentStatus.PENDING_CONTRACTOR_SIGN, Set.of(DocumentStatus.APPROVED, DocumentStatus.REJECTED, DocumentStatus.REWORK_REQUIRED));
         allowedTransitions.put(DocumentStatus.AUTHOR_SIGNED, Set.of(DocumentStatus.PENDING_CONTRACTOR_SIGN));
-        allowedTransitions.put(DocumentStatus.REWORK_REQUIRED, Set.of(DocumentStatus.DELETED,DocumentStatus.REWORK_REQUIRED));
+        allowedTransitions.put(DocumentStatus.REWORK_REQUIRED, Set.of(DocumentStatus.DELETED, DocumentStatus.REWORK_REQUIRED));
         allowedTransitions.put(DocumentStatus.APPROVED, Set.of(DocumentStatus.DELETED));
         allowedTransitions.put(DocumentStatus.REJECTED, Set.of(DocumentStatus.DELETED));
         allowedTransitions.put(DocumentStatus.PENDING_AUTHOR_SIGN, Set.of(DocumentStatus.AUTHOR_SIGNED));
@@ -37,15 +37,14 @@ public class DocumentBaseState implements DocumentState {
     }
 
 
-
     @Override
     public void signAuthor(DocumentVersion version) {
-        if(isVotingDocument(version)){
+        if (isVotingDocument(version)) {
             ApprovementProcess process = version.getApprovementProcesses().get(0);
-            if (process.getStatus()!=PUBLISHED_FOR_VOTING){
+            if (process.getStatus() != PUBLISHED_FOR_VOTING) {
                 throw new InvalidDocumentStateException("Action - sign document during the voting is not allowed in the current state.");
             }
-        }else {
+        } else {
             changeState(version, DocumentStatus.AUTHOR_SIGNED);
         }
     }
@@ -53,22 +52,22 @@ public class DocumentBaseState implements DocumentState {
     @Override
     public void signContractor(ApprovementProcessItem item) {
         ApprovementProcess process = item.getApprovementProcess();
-        if(process!=null){
-            if (process.getStatus()!=PUBLISHED_FOR_VOTING){
-                 throw new InvalidDocumentStateException("Action - sign document during the voting is not allowed in the current state.");
+        if (process != null) {
+            if (process.getStatus() != PUBLISHED_FOR_VOTING) {
+                throw new InvalidDocumentStateException("Action - sign document during the voting is not allowed in the current state.");
             }
         } else {
             DocumentStatus targetStatus;
-                    switch (item.getStatus()) {
-                        case APPROVED -> targetStatus = DocumentStatus.APPROVED;
-                        case REJECTED -> targetStatus = DocumentStatus.REJECTED;
-                        case REWORK_REQUIRED -> targetStatus = DocumentStatus.REWORK_REQUIRED;
-                        default -> throw new InvalidDocumentStateException("Invalid status for contractor sign action.");
-                    }
+            switch (item.getStatus()) {
+                case APPROVED -> targetStatus = DocumentStatus.APPROVED;
+                case REJECTED -> targetStatus = DocumentStatus.REJECTED;
+                case REWORK_REQUIRED -> targetStatus = DocumentStatus.REWORK_REQUIRED;
+                default -> throw new InvalidDocumentStateException("Invalid status for contractor sign action.");
+            }
             changeState(item.getDocumentVersion(), targetStatus);
-                }
-
         }
+
+    }
 
 
     @Override
@@ -81,12 +80,12 @@ public class DocumentBaseState implements DocumentState {
 
     @Override
     public void publishForVoting(DocumentVersion version) {
-        changeState(version,DocumentStatus.IN_VOTING);
+        changeState(version, DocumentStatus.IN_VOTING);
 
     }
 
     private boolean isVotingDocument(DocumentVersion version) {
-        return version.getApprovementProcesses()!=null && !version.getApprovementProcesses().isEmpty();
+        return version.getApprovementProcesses() != null && !version.getApprovementProcesses().isEmpty();
     }
 
 

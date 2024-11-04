@@ -26,7 +26,7 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
     Optional<Document> getDocumentForUser(Long documentId, UUID userId);
 
     @Query(value = """
-            SELECT new ru.caselab.edm.backend.dto.document.DocumentOutputAllDocumentsDTO(d.id, u.login, d.createdAt, dv.documentName, dv.contentUrl, ap.status)
+            SELECT new ru.caselab.edm.backend.dto.document.DocumentOutputAllDocumentsDTO(d.id as id, u.login as login, d.createdAt as createdAt, dv.documentName as documentName, dv.contentUrl as contentUrl, ap.status as approvementProcessStatus)
                         FROM Document d left join d.documentVersion dv left join dv.approvementProcesses ap left join ap.approvementProcessItems api left join User u ON (u.id = d.user.id or u.id = api.user.id)
              			WHERE dv.id = (select dv1.id
              		                               from DocumentVersion dv1

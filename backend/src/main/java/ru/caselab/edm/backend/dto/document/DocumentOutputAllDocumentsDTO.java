@@ -29,5 +29,6 @@ public class DocumentOutputAllDocumentsDTO {
     @Schema(description = "Content URL")
     private String contentUrl;
 
-    private ApprovementProcessStatus status;
+    @Schema(description = "Document approvement process status")
+    private ApprovementProcessStatus approvementProcessStatus;
 }

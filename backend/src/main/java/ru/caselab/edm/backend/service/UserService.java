@@ -23,7 +23,7 @@ public interface UserService {
     void updatePassword(UUID id, UpdatePasswordDTO updatePasswordDTO);
 
     void deleteUser(UUID id);
-    
+
     JwtDTO auth(LoginUserDTO loginUserDTO);
 
 }

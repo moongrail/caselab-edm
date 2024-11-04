@@ -94,7 +94,7 @@ public class DocumentController {
     @PostMapping("/{id}/sign")
     @ResponseStatus(HttpStatus.OK)
     public void signDocument(@Valid @RequestBody SignatureCreateDTO signatureCreateDTO,
-                             @Parameter(description = "Document id", required = true, example = "1")
+                             @Parameter(description = "Document ID", required = true, example = "1")
                              @PathVariable Long id,
                              @AuthenticationPrincipal UserInfoDetails authenticatedUser) {
         signatureService.sign(signatureCreateDTO, id, authenticatedUser);
@@ -115,7 +115,7 @@ public class DocumentController {
     @PostMapping("/{id}/send_for_signature")
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<ApprovementProcessItemDTO> sendForSignature(
-            @Parameter(description = "Document version ID", required = true, example = "1")
+            @Parameter(description = "Document ID", required = true, example = "1")
             @PathVariable(name = "id") Long id,
             @Parameter(description = "User ID", required = true, example = "550e8400-e29b-41d4-a716-446655440000,550e8400-e29b-41d4-a716-446655440001")
             @RequestParam(name = "userId") UUID userId,
@@ -133,7 +133,7 @@ public class DocumentController {
     @PostMapping()
     @ResponseStatus(HttpStatus.CREATED)
     public DocumentVersionDTO createDocument(@Valid @RequestBody DocumentCreateDTO documentCreateDTO,
-                                      @AuthenticationPrincipal UserInfoDetails user) {
+                                             @AuthenticationPrincipal UserInfoDetails user) {
         return documentVersionMapper.toDto(documentService.saveDocument(documentCreateDTO, user.getId()));
     }
 
@@ -217,16 +217,16 @@ public class DocumentController {
     @Operation(
             summary = "Get a link to download the document",
             description = """
-                The method requires the value of the contentUrl field of the document for which the download link will be returned.
-                Note: The link is only valid for 15 minutes. After the time has passed, a new one must be generated!
-                """
+                    The method requires the value of the contentUrl field of the document for which the download link will be returned.
+                    Note: The link is only valid for 15 minutes. After the time has passed, a new one must be generated!
+                    """
     )
     @ApiResponse(responseCode = "200", description = "Download link was successfully returned", content = @Content)
-    @GetMapping("/download/{url}")
+    @GetMapping("/download")
     @ResponseStatus(HttpStatus.OK)
     public String downloadDocument(
             @Parameter(description = "The value of the contentUrl field of the document", example = "")
-            @PathVariable("url") String url) {
+            @RequestParam("url") String url) {
         return minioService.generateTemporaryUrlToObject(url);
     }
 

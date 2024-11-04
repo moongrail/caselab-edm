@@ -19,7 +19,7 @@ public class VoteResultAggregatorJob implements Job {
 
 
     @Override
-    public void execute(JobExecutionContext jobExecutionContext){
+    public void execute(JobExecutionContext jobExecutionContext) {
         Long processId = jobExecutionContext.getMergedJobDataMap().getLong("processId");
         votingService.collectVotingResults(processId);
     }

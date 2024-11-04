@@ -167,31 +167,28 @@ public class DocumentServiceImpl implements DocumentService {
 
     @Transactional
     @Override
-    public ApprovementProcessItemDTO sendForSign(UUID userId, Long documentVersionId, UserInfoDetails authenticatedUser) {
-        Optional<DocumentVersion> documentVersionOptional = documentVersionRepository.findById(documentVersionId);
-        if (documentVersionOptional.isEmpty()) {
-            throw new ResourceNotFoundException("Document version not found with id = %d".formatted(documentVersionId));
-        }
+    public ApprovementProcessItemDTO sendForSign(UUID userId, Long documentId, UserInfoDetails authenticatedUser) {
         Optional<User> userOptional = userRepository.findById(userId);
         if (userOptional.isEmpty()) {
             throw new ResourceNotFoundException("User not found with id = %s".formatted(userId));
         }
         User user = userOptional.get();
-        DocumentVersion documentVersion = documentVersionOptional.get();
-        //проверка можно ли такой документ отправить на подпись
-        documentVersion.getState().sendForSign(documentVersion);
 
+        DocumentVersion documentVersion = getLastVersionDocumentForUser(documentId, authenticatedUser.getId());
         if (!documentVersion.getDocument().getUser().getId().equals(authenticatedUser.getId())) {
-            throw new DocumentForbiddenAccess("You don't have access to this document with id = %d".formatted(documentVersionId));
+            throw new DocumentForbiddenAccess("You don't have access to this document with id = %d".formatted(documentId));
         }
         if (approvementItemRepository.existsByDocumentVersionIdAndUserId(documentVersion.getId(), user.getId())) {
             throw new ApprovementProccessItemAlreadyExistsException("Provided document already sent to user");
         }
+        //проверка можно ли такой документ отправить на подпись
+        documentVersion.getState().sendForSign(documentVersion);
+
         ApprovementProcessItem approvementProcessItem = new ApprovementProcessItem();
         approvementProcessItem.setUser(user);
         approvementProcessItem.setDocumentVersion(documentVersion);
 
-        approvementProcessItem.setStatus(documentVersion.getStatus()== DocumentStatus.PENDING_AUTHOR_SIGN? ApprovementProcessItemStatus.PENDING_AUTHOR_SIGN : ApprovementProcessItemStatus.PENDING_CONTRACTOR_SIGN);
+        approvementProcessItem.setStatus(documentVersion.getStatus() == DocumentStatus.PENDING_AUTHOR_SIGN ? ApprovementProcessItemStatus.PENDING_AUTHOR_SIGN : ApprovementProcessItemStatus.PENDING_CONTRACTOR_SIGN);
         approvementProcessItem.setCreatedAt(LocalDateTime.now());
         approvementItemRepository.save(approvementProcessItem);
         eventPublisher.publishEvent(new DocumentSignRequestEvent(this, approvementProcessItem));

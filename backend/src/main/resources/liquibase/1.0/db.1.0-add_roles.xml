@@ -7,7 +7,9 @@
 
     <changeSet id="db.1.0-add_roles" author="Shukhrat" runOnChange="true">
         <sql>
-            INSERT INTO roles(name) VALUES ('ADMIN'), ('USER')
+            INSERT INTO roles(name)
+            VALUES ('ADMIN'),
+                   ('USER')
         </sql>
     </changeSet>
 </databaseChangeLog>

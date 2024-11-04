@@ -27,6 +27,7 @@ public class DocumentVersionMapperImpl implements DocumentVersionMapper {
         documentVersionDTO.setAttributeValues(toAttrDtos(documentVersion.getDocumentAttributeValue()));
         documentVersionDTO.setCreatedAt(documentVersion.getCreatedAt());
         documentVersionDTO.setContentUrl(documentVersion.getContentUrl());
+        documentVersionDTO.setState(documentVersion.getStatus());
         return documentVersionDTO;
     }
 
@@ -46,6 +47,7 @@ public class DocumentVersionMapperImpl implements DocumentVersionMapper {
             dto.setId(v.getId());
             dto.setCreatedAt(v.getCreatedAt());
             dto.setContentUrl(v.getContentUrl());
+            dto.setState(v.getStatus());
             dto.setAttributeValues(toAttrDtos(v.getDocumentAttributeValue()));
             documentVersionDTOList.add(dto);
         }

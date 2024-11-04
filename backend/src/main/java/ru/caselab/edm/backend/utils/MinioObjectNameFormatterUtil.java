@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.UUID;
@@ -23,12 +24,7 @@ public final class MinioObjectNameFormatterUtil {
         String currentTime = getCurrentTimeAsPrefix();
 
         String objectName = concatString(userId.toString(), currentTime, nameWithoutDate);
-        try {
-            String encodedObjectName = URLEncoder.encode(objectName, "UTF-8");
-            return encodedObjectName.replace("%", "_PERCENT_");
-        } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException(e);
-        }
+        return URLEncoder.encode(objectName, StandardCharsets.UTF_8);
 
     }
 

@@ -23,7 +23,7 @@ public class ApprovementProcessItemDTO {
     @Schema(description = "Date of creation", example = "2020-01-01T00:00:00.000Z")
     private LocalDateTime createdAt;
 
-    @Schema(description = "Process status", example = "IN_PROGRESS")
+    @Schema(description = "Process status", example = "APPROVED")
     private ApprovementProcessItemStatus status;
 
     @Schema(description = "Document version ID", example = "1")

@@ -27,9 +27,15 @@ import ru.caselab.edm.backend.service.DocumentTypeService;
 
 import java.time.LocalDateTime;
 import java.time.Month;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -124,8 +130,6 @@ class DocumentTypeControllerTest {
         AttributeDTO testAttributeDto2 = getDocumentsAttributesDTO(1L, "Ответственный исполнитель");
 
 
-
-
         Set<Long> documentsAttributesDTOSet1 = new HashSet<>();
         documentsAttributesDTOSet1.add(testAttributeDto1.getId());
 
@@ -173,7 +177,7 @@ class DocumentTypeControllerTest {
                                     "description":"какое-то описание котировки",
                                "attributeIds":
                                         [0,1]
-                                       
+                        
                                 }
                                         ],
                                         "pageable":
@@ -255,7 +259,7 @@ class DocumentTypeControllerTest {
     @WithMockUser
     void updateDocumentType() throws Exception {
         DocumentTypeUpdateDTO documentTypeUpdateDTO = new DocumentTypeUpdateDTO();
-        documentTypeUpdateDTO.setAttributeIds( new HashSet<>(List.of(0L)));
+        documentTypeUpdateDTO.setAttributeIds(new HashSet<>(List.of(0L)));
         documentTypeUpdateDTO.setName("Новый документ");
         documentTypeUpdateDTO.setDescription("Такого вы еще не видели");
 

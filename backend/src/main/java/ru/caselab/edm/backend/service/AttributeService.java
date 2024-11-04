@@ -18,6 +18,7 @@ public interface AttributeService {
     Page<AttributeDTO> getAllAttributes(int page, int size);
 
     AttributeDTO getAttributeById(Long id);
+
     Attribute getAttributeEntityById(Long id);
 
     AttributeMapper getAttributeMapper();

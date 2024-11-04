@@ -22,6 +22,7 @@ public class GlobalExceptionHandler {
         log.error(ex.getMessage(), ex);
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
     @ExceptionHandler(InvalidDocumentStateException.class)
     ResponseEntity<String> handlerInvalidDocumentStateException(InvalidDocumentStateException ex) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.CONFLICT);
@@ -94,7 +95,7 @@ public class GlobalExceptionHandler {
     ResponseEntity<String> handleApprovementProccessItemAlreadyExistsException(ApprovementProccessItemAlreadyExistsException ex) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.CONFLICT);
     }
-    
+
     @ExceptionHandler(AuthorizationDeniedException.class)
     ResponseEntity<String> handleAuthorizationDeniedException(AuthorizationDeniedException ex) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.FORBIDDEN);

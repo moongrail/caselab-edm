@@ -14,7 +14,6 @@ import ru.caselab.edm.backend.dto.document.DocumentOutputAllDocumentsDTO;
 import ru.caselab.edm.backend.entity.Document;
 import ru.caselab.edm.backend.enums.ApprovementProcessStatus;
 
-
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
@@ -79,23 +78,23 @@ class DocumentRepositoryTest {
     @Test
     void getAllDocumentWithNameAndStatusProjectionForUser() {
         initdb();
-        Pageable pageable = PageRequest.of(0, 5, Sort.by("status"));
+        Pageable pageable = PageRequest.of(0, 5, Sort.by("approvementProcessStatus"));
 
         List<DocumentOutputAllDocumentsDTO> expected = List.of(
-                new DocumentOutputAllDocumentsDTO(1L, "Ivanov",
+                new DocumentOutputAllDocumentsDTO(2L, "Test1",
                         LocalDateTime.parse("2024-01-15T00:00:00").atZone(ZoneId.systemDefault()).toInstant(),
                         "document_name_test2",
-                        "url",
+                        "test_url1",
                         ApprovementProcessStatus.VOTING_APPROVED),
-                new DocumentOutputAllDocumentsDTO(2L, "Ivanov",
+                new DocumentOutputAllDocumentsDTO(1L, "Test1",
                         LocalDateTime.parse("2024-01-15T00:00:00").atZone(ZoneId.systemDefault()).toInstant(),
                         "document_name_test1",
-                        "url",
+                        "test_url",
                         ApprovementProcessStatus.VOTING_REJECTED),
-                new DocumentOutputAllDocumentsDTO(3L, "Ivanov",
+                new DocumentOutputAllDocumentsDTO(3L, "Test1",
                         LocalDateTime.parse("2024-01-15T00:00:00").atZone(ZoneId.systemDefault()).toInstant(),
                         "document_name_test3",
-                        "url",
+                        "test_url3",
                         ApprovementProcessStatus.VOTING_REJECTED)
         );
 
