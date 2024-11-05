@@ -5,20 +5,19 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
-import ru.caselab.edm.backend.dto.DocumentTypeCreateDTO;
-import ru.caselab.edm.backend.dto.DocumentTypeDTO;
-import ru.caselab.edm.backend.dto.DocumentTypeUpdateDTO;
+import ru.caselab.edm.backend.dto.documenttype.DocumentTypeCreateDTO;
+import ru.caselab.edm.backend.dto.documenttype.DocumentTypeDTO;
+import ru.caselab.edm.backend.dto.documenttype.DocumentTypeUpdateDTO;
 import ru.caselab.edm.backend.entity.Attribute;
 import ru.caselab.edm.backend.entity.DocumentType;
 import ru.caselab.edm.backend.exceptions.DocumentTypeAlreadyExistsException;
 import ru.caselab.edm.backend.exceptions.ResourceNotFoundException;
-import ru.caselab.edm.backend.mapper.DocumentTypeMapper;
+import ru.caselab.edm.backend.mapper.documenttype.DocumentTypeMapper;
 import ru.caselab.edm.backend.repository.AttributeRepository;
 import ru.caselab.edm.backend.repository.DocumentTypeRepository;
 import ru.caselab.edm.backend.service.DocumentTypeService;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Set;
 
 @Service
@@ -102,8 +101,8 @@ public class DocumentTypeImpl implements DocumentTypeService {
         log.info("Document type with id: {} deleted successfully", id);
     }
 
-    private List<Attribute> mapAttributeIdsToEntities(Set<Long> attributeIds) {
-        return new ArrayList<>(attributeRepository.findAllById(attributeIds));
+    private Set<Attribute> mapAttributeIdsToEntities(Set<Long> attributeIds) {
+        return new HashSet<>(attributeRepository.findAllById(attributeIds));
     }
 
     @Override

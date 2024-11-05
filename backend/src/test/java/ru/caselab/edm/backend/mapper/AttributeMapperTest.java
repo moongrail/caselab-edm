@@ -3,12 +3,11 @@ package ru.caselab.edm.backend.mapper;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
-import ru.caselab.edm.backend.dto.AttributeDTO;
+import ru.caselab.edm.backend.dto.attribute.AttributeDTO;
 import ru.caselab.edm.backend.entity.Attribute;
 import ru.caselab.edm.backend.entity.DocumentType;
+import ru.caselab.edm.backend.mapper.attribute.AttributeMapper;
 
-import java.time.LocalDateTime;
-import java.time.Month;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -27,7 +26,7 @@ public class AttributeMapperTest {
         Attribute testAttribute = new Attribute();
         testAttribute.setId(1L);
         testAttribute.setName("подпись");
-        testAttribute.setDocumentTypes(List.of(testDocumentType));
+        testAttribute.setDocumentTypes(new HashSet<>(List.of(testDocumentType)));
 
         AttributeDTO testAttributeDTO = new AttributeDTO();
         testAttributeDTO.setId(1L);
@@ -53,7 +52,7 @@ public class AttributeMapperTest {
         Attribute testAttribute = new Attribute();
         testAttribute.setId(1L);
         testAttribute.setName("подпись");
-        testAttribute.setDocumentTypes(List.of(testDocumentType));
+        testAttribute.setDocumentTypes(new HashSet<>(List.of(testDocumentType)));
 
         AttributeDTO testAttributeDTO = new AttributeDTO();
         testAttributeDTO.setId(1L);
@@ -66,7 +65,6 @@ public class AttributeMapperTest {
 
 
         Attribute map = mapper.toEntity(testAttributeDTO);
-        System.out.println(map);
-        Assertions.assertThat(mapper.toEntity(testAttributeDTO)).isEqualTo(testAttribute);
+        Assertions.assertThat(map).usingRecursiveComparison().isEqualTo(testAttribute);
     }
 }

@@ -11,14 +11,16 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "attributes")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -43,5 +45,5 @@ public class Attribute {
             joinColumns = @JoinColumn(name = "attribute_id"),
             inverseJoinColumns = @JoinColumn(name = "doc_type_id")
     )
-    private List<DocumentType> documentTypes;
+    private Set<DocumentType> documentTypes;
 }

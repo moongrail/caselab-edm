@@ -2,6 +2,7 @@ package ru.caselab.edm.backend.utils;
 
 import org.junit.jupiter.api.Test;
 
+import java.net.URLDecoder;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.UUID;
@@ -21,14 +22,16 @@ public class MinioObjectNameFormatterUtilTest {
         String rawName = "document.pdf";
 
         String formattedName = formatName(userId, rawName);
+        String decodedFormattedName = URLDecoder.decode(formattedName);
 
-        assertThat(formattedName).doesNotContain("2023-10-21")
+        assertThat(decodedFormattedName).doesNotContain("2023-10-21")
                 .startsWith(userId + SEPARATOR);
 
-        String[] parts = formattedName.split(SEPARATOR);
+        String[] parts = decodedFormattedName.split(SEPARATOR);
         assertThat(parts).hasSize(2);
 
     }
+
 
     @Test
     void formatName_givenNameWithDate_shouldReturnStringWithUpdatedDate() {
@@ -38,10 +41,11 @@ public class MinioObjectNameFormatterUtilTest {
                 LocalDateTime.now().format(FORMATTER);
 
         String formattedName = formatName(userId, nameWithDate);
+        String decodedFormattedName = URLDecoder.decode(formattedName);
 
-        assertThat(formattedName).doesNotContain("2023-10-21")
+        assertThat(decodedFormattedName).doesNotContain("2023-10-21")
                 .startsWith(expectedPrefix);
-        String[] parts = formattedName.split(SEPARATOR);
+        String[] parts = decodedFormattedName.split(SEPARATOR);
         assertThat(parts).hasSize(2);
     }
 }

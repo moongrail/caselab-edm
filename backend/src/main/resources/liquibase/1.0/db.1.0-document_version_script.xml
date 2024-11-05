@@ -10,14 +10,31 @@
 
             CREATE TABLE IF NOT EXISTS document_versions
             (
-                id BIGSERIAL PRIMARY KEY,
-                documents_id BIGINT REFERENCES documents(id),
-                document_name VARCHAR(255) NOT NULL,
-                created_at TIMESTAMP DEFAULT NOW() NOT NULL,
+                id
+                BIGSERIAL
+                PRIMARY
+                KEY,
+                documents_id
+                BIGINT
+                REFERENCES
+                documents
+            (
+                id
+            ),
+                document_name VARCHAR
+            (
+                255
+            ) NOT NULL,
+                state VARCHAR
+            (
+                50
+            ),
+                created_at TIMESTAMP DEFAULT NOW
+            (
+            ) NOT NULL,
                 updated_at TIMESTAMP,
                 content_url TEXT
-            );
-
+                );
             CREATE SEQUENCE IF NOT EXISTS document_version_sequence START WITH 1 INCREMENT BY 1;
         </sql>
     </changeSet>

@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -21,15 +22,16 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import ru.caselab.edm.backend.dto.AttributeCreateDTO;
-import ru.caselab.edm.backend.dto.AttributeDTO;
-import ru.caselab.edm.backend.dto.AttributeUpdateDTO;
+import ru.caselab.edm.backend.dto.attribute.AttributeCreateDTO;
+import ru.caselab.edm.backend.dto.attribute.AttributeDTO;
+import ru.caselab.edm.backend.dto.attribute.AttributeUpdateDTO;
 import ru.caselab.edm.backend.service.AttributeService;
 
 @RestController
 @RequestMapping("/attributes")
 @SecurityRequirement(name = "bearer-jwt")
 @PreAuthorize("hasRole('ADMIN')")
+@Tag(name = "Attribute", description = "Attribute management operations")
 public class AttributeController {
     private final AttributeService attributeService;
 

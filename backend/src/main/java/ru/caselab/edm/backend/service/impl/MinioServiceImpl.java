@@ -9,7 +9,7 @@ import io.minio.http.Method;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.caselab.edm.backend.configurations.props.MinioConfigProperties;
-import ru.caselab.edm.backend.dto.MinioSaveDto;
+import ru.caselab.edm.backend.dto.minio.MinioSaveDto;
 import ru.caselab.edm.backend.exceptions.ContentTypeDetectionException;
 import ru.caselab.edm.backend.exceptions.MinioServiceException;
 import ru.caselab.edm.backend.service.MinioService;
@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @Slf4j
@@ -33,8 +34,8 @@ public class MinioServiceImpl implements MinioService {
     private final InputStreamContentTypeDetector contentTypeDetector;
 
     public MinioServiceImpl(MinioConfigProperties minioConfigProperties,
-                        MinioClient minioClient,
-                        InputStreamContentTypeDetector contentTypeDetector) {
+                            MinioClient minioClient,
+                            InputStreamContentTypeDetector contentTypeDetector) {
         this.bucketName = minioConfigProperties.getBucketName();
         this.minioClient = minioClient;
         this.contentTypeDetector = contentTypeDetector;
@@ -73,6 +74,7 @@ public class MinioServiceImpl implements MinioService {
     private InputStream getInputStream(MinioSaveDto minioSaveDto) {
         return new ByteArrayInputStream(minioSaveDto.data());
     }
+
     private String getContentType(InputStream inputStream) throws ContentTypeDetectionException {
         return contentTypeDetector.detect(inputStream);
     }
@@ -102,7 +104,7 @@ public class MinioServiceImpl implements MinioService {
                 .method(Method.GET)
                 .bucket(bucketName)
                 .object(objectName)
-                .expiry(DEFAULT_DURATION_MINUTES)
+                .expiry(15, TimeUnit.MINUTES)
                 .build();
 
         return minioClient.getPresignedObjectUrl(getPresignedObjectUrlArgs);

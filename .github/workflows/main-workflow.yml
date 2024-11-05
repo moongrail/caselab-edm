@@ -1,0 +1,46 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+      - '.github/workflows/**'
+      - 'docker/docker-compose-server.yaml'
+  pull_request:
+    branches:
+      - main
+      - dev
+    paths:
+      - 'backend/**'
+      - '.github/workflows/**'
+
+jobs:
+  test:
+    uses: ./.github/workflows/reusable-test.yml
+    with:
+      java_version: '17'
+      java_distribution: 'corretto'
+      cache_build_tool: 'maven'
+      cache_path: 'backend/pom.xml'
+      test_report_path: '**/target/surefire-reports/TEST-*.xml'
+
+  build:
+    if: github.ref == 'refs/heads/main'
+    needs: test
+    uses: ./.github/workflows/reusable-build.yml
+    with:
+      image_name: 'moongrail/caselab-backend'
+      image_tag: 'latest'
+    secrets: inherit
+
+  deploy-prod:
+    if: github.ref == 'refs/heads/main'
+    needs: build
+    uses: ./.github/workflows/reusable-deploy.yml
+    with:
+      environment: prod
+      scp_local: 'docker/docker-compose-server.yaml'
+      scp_remote: '/home/ubuntu'
+    secrets: inherit
