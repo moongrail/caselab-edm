@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import ru.caselab.edm.backend.enums.ApprovementProcessStatus;
+import ru.caselab.edm.backend.state.DocumentStatus;
 
 import java.time.Instant;
 
@@ -29,6 +30,9 @@ public class DocumentOutputAllDocumentsDTO {
     @Schema(description = "Content URL")
     private String contentUrl;
 
-    @Schema(description = "Document approvement process status")
-    private ApprovementProcessStatus approvementProcessStatus;
+    @Schema(description = "Document status")
+    private DocumentStatus state;
 }
+/*
+    @Schema(description = "Document approvement process status")
+    private ApprovementProcessStatus approvementProcessStatus;*/

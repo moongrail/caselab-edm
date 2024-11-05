@@ -36,7 +36,7 @@ public class SignatureServiceImpl implements SignatureService {
     @Transactional
     public void sign(SignatureCreateDTO createDTO, Long documentId, UserInfoDetails authenticatedUser) {
 
-        DocumentVersion documentVersion = documentService.getLastVersionDocumentForUser(documentId, authenticatedUser.getId());
+        DocumentVersion documentVersion = documentService.getLastVersionDocumentWhereUserSignatories(documentId, authenticatedUser.getId());
 
         Optional<ApprovementProcessItem> approvementProcessItemOptional = approvementItemRepository.findByDocumentVersionIdAndUserId(documentVersion.getId(), authenticatedUser.getId());
 

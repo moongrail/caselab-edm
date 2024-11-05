@@ -20,8 +20,8 @@ public class DocumentUpdateDTO {
     @Schema(description = "Document name", example = "Spongebob best episodes")
     private String documentName;
 
-    @JsonProperty("data")
-    @Schema(description = "Content url", example = "")
+    @JsonProperty("base64Data")
+    @Schema(name = "base64Data", description = "File's data in Base64 format", example = "")
     private String data;
 
     @Schema(description = "Value attributes")

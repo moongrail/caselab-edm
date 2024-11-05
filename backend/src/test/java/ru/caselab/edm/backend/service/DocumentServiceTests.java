@@ -11,6 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.JpaSort;
 import ru.caselab.edm.backend.dto.document.DocumentCreateDTO;
 import ru.caselab.edm.backend.dto.document.DocumentOutputAllDocumentsDTO;
 import ru.caselab.edm.backend.dto.document.DocumentUpdateDTO;
@@ -160,7 +161,6 @@ class DocumentServiceTests {
         List<DocumentVersion> documentVersionList = new ArrayList<>();
         documentVersionList.add(version1);
         documentVersionList.add(version2);
-
         document.setDocumentVersion(documentVersionList);
 
         when(documentRepository.getDocumentForUser(documentId, userId)).thenReturn(Optional.of(document));
@@ -200,13 +200,15 @@ class DocumentServiceTests {
         documentVersionList.add(version1);
         documentVersionList.add(version2);
 
+        Page<DocumentVersion> documentVersionPage = new PageImpl<>(documentVersionList);
+
         document.setDocumentVersion(documentVersionList);
 
         when(documentRepository.getDocumentForUser(documentId, userId)).thenReturn(Optional.of(document));
 
-        List<DocumentVersion> result = documentService.getAllVersionDocumentForUser(documentId, userId);
+        Page<DocumentVersion> result = documentService.getAllVersionDocumentForUser(documentId, userId, 0, 5);
 
-        assertEquals(documentVersionList, result);
+        assertEquals(documentVersionPage.getTotalElements(), result.getTotalElements());
     }
 
     @Test
@@ -214,7 +216,7 @@ class DocumentServiceTests {
         when(documentRepository.getDocumentForUser(documentId, userId)).thenReturn(Optional.empty());
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
-                () -> documentService.getAllVersionDocumentForUser(documentId, userId));
+                () -> documentService.getAllVersionDocumentForUser(documentId, userId, 0, 5));
 
         assertEquals("Document not found", exception.getMessage());
     }
@@ -329,5 +331,48 @@ class DocumentServiceTests {
         documentService.deleteDocument(1L);
 
         verify(documentRepository).deleteById(1L);
+    }
+
+    @Test
+    void testGetAllDocumentWhereUserSignatoriesWithoutSorting() {
+        DocumentSortingType sortingType = DocumentSortingType.WITHOUT;
+
+        PageRequest pageable = PageRequest.of(page, size);
+
+        List<DocumentOutputAllDocumentsDTO> content = List.of(new DocumentOutputAllDocumentsDTO());
+        Page<DocumentOutputAllDocumentsDTO> expectedPage = new PageImpl<>(content);
+
+        when(documentRepository.getAllDocumentWithNameAndStatusProjectionWhereUserSignatories(userId,
+                pageable)).thenReturn(expectedPage);
+
+        Page<DocumentOutputAllDocumentsDTO> result = documentService.getAllDocumentWhereUserSignatories(page, size,
+                userId, sortingType);
+
+        verify(documentRepository).getAllDocumentWithNameAndStatusProjectionWhereUserSignatories(
+                userId,
+                pageable);
+        assertEquals(1, result.getTotalElements());
+    }
+
+    @Test
+    void testGetAllDocumentWhereUserSignatoriesWithSorting() {
+        DocumentSortingType sortingType = DocumentSortingType.DOCUMENT_NAME_ASC;
+
+        PageRequest pageable = PageRequest.of(page, size);
+        pageable = pageable.withSort(JpaSort.unsafe(sortingType.getDirection(), sortingType.getFieldName()));
+
+        List<DocumentOutputAllDocumentsDTO> content = List.of(new DocumentOutputAllDocumentsDTO());
+        Page<DocumentOutputAllDocumentsDTO> expectedPage = new PageImpl<>(content);
+
+        when(documentRepository.getAllDocumentWithNameAndStatusProjectionWhereUserSignatories(userId,
+                pageable)).thenReturn(expectedPage);
+
+        Page<DocumentOutputAllDocumentsDTO> result = documentService.getAllDocumentWhereUserSignatories(page, size,
+                userId, sortingType);
+
+        verify(documentRepository).getAllDocumentWithNameAndStatusProjectionWhereUserSignatories(
+                userId, pageable);
+
+        assertEquals(1, result.getTotalElements());
     }
 }

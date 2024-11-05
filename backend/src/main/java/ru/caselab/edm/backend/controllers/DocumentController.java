@@ -140,16 +140,49 @@ public class DocumentController {
     @Operation(summary = "Returning last version all documents of the current user")
     @ApiResponse(responseCode = "200", description = "Documents of the current user were successfully returned",
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = DocumentPageDTO.class)))
-    @GetMapping()
+    @GetMapping("/owner")
     @ResponseStatus(HttpStatus.OK)
-    public Page<DocumentOutputAllDocumentsDTO> getAllDocuments(@RequestParam(name = "page", defaultValue = "0")
-                                                               @Min(value = 0) int page,
-                                                               @RequestParam(name = "size", defaultValue = "10")
-                                                               @Min(value = 1) @Max(value = 100) int size,
-                                                               @RequestParam(name = "sort_type", defaultValue = "WITHOUT")
-                                                               DocumentSortingType sortingType,
-                                                               @AuthenticationPrincipal UserInfoDetails user) {
+    public Page<DocumentOutputAllDocumentsDTO> getAllDocumentsForUser(@RequestParam(name = "page", defaultValue = "0")
+                                                                      @Min(value = 0) int page,
+                                                                      @RequestParam(name = "size", defaultValue = "10")
+                                                                      @Min(value = 1) @Max(value = 100) int size,
+                                                                      @RequestParam(name = "sort_type", defaultValue = "WITHOUT")
+                                                                      DocumentSortingType sortingType,
+                                                                      @AuthenticationPrincipal UserInfoDetails user) {
         return documentService.getAllDocumentForUser(page, size, user.getId(), sortingType);
+    }
+
+    @Operation(summary = "Returning last version of all documents of the sent to the user for approval or signature")
+    @ApiResponse(responseCode = "200", description = "Documents of the current user were successfully returned",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = DocumentPageDTO.class)))
+    @GetMapping("/signer")
+    @ResponseStatus(HttpStatus.OK)
+    public Page<DocumentOutputAllDocumentsDTO> getAllDocumentsWhereUserSignatories(@RequestParam(name = "page", defaultValue = "0")
+                                                                                   @Min(value = 0) int page,
+                                                                                   @RequestParam(name = "size", defaultValue = "10")
+                                                                                   @Min(value = 1) @Max(value = 100) int size,
+                                                                                   @RequestParam(name = "sort_type", defaultValue = "WITHOUT")
+                                                                                   DocumentSortingType sortingType,
+                                                                                   @AuthenticationPrincipal UserInfoDetails user) {
+        return documentService.getAllDocumentWhereUserSignatories(page, size, user.getId(), sortingType);
+    }
+
+    @Operation(summary = "Returning last version document of the sent to the user for approval or signature")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Document of the current user was successfully returned",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = DocumentDTO.class))),
+            @ApiResponse(responseCode = "403", description = "Access to the document is forbidden",
+                    content = @Content)
+    })
+    @GetMapping("/signer/{id}/versions/last")
+    @ResponseStatus(HttpStatus.OK)
+    public DocumentVersionDTO getLastVersionDocumentWhereUserSignatoriesById(
+            @Parameter(description = "Document id", required = true, example = "1")
+            @PathVariable Long id, @AuthenticationPrincipal UserInfoDetails user
+    ) {
+        DocumentVersion documentForUser = documentService.getLastVersionDocumentWhereUserSignatories(id, user.getId());
+
+        return documentVersionMapper.toDto(documentForUser);
     }
 
     @Operation(summary = "Returning last version document of the current user by id")
@@ -159,9 +192,9 @@ public class DocumentController {
             @ApiResponse(responseCode = "403", description = "Access to the document is forbidden",
                     content = @Content)
     })
-    @GetMapping("/{id}/versions/last")
+    @GetMapping("/owner/{id}/versions/last")
     @ResponseStatus(HttpStatus.OK)
-    public DocumentVersionDTO getLastVersionDocumentById(
+    public DocumentVersionDTO getLastVersionDocumentForUserById(
             @Parameter(description = "Document id", required = true, example = "1")
             @PathVariable Long id, @AuthenticationPrincipal UserInfoDetails user
     ) {
@@ -177,15 +210,41 @@ public class DocumentController {
             @ApiResponse(responseCode = "403", description = "Access to the document is forbidden",
                     content = @Content)
     })
-    @GetMapping("/{id}/versions")
+    @GetMapping("/owner/{id}/versions")
     @ResponseStatus(HttpStatus.OK)
-    public List<DocumentVersionDTO> getAllVersionDocumentById(
+    public Page<DocumentVersionDTO> getAllVersionDocumentForUserById(
             @Parameter(description = "Document id", required = true, example = "1")
-            @PathVariable Long id, @AuthenticationPrincipal UserInfoDetails user
+            @PathVariable Long id, @AuthenticationPrincipal UserInfoDetails user,
+            @RequestParam(name = "page", defaultValue = "0")
+            @Min(value = 0) int page,
+            @RequestParam(name = "size", defaultValue = "10")
+            @Min(value = 1) @Max(value = 100) int size
     ) {
-        List<DocumentVersion> documentForUser = documentService.getAllVersionDocumentForUser(id, user.getId());
+        Page<DocumentVersion> documentForUser = documentService.getAllVersionDocumentForUser(id, user.getId(), page, size);
 
-        return documentVersionMapper.toDto(documentForUser);
+        return documentForUser.map(documentVersionMapper::toDto);
+    }
+
+    @Operation(summary = "Returning all version document of the sent to the user for approval or signature")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Document of the current user was successfully returned",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = DocumentDTO.class))),
+            @ApiResponse(responseCode = "403", description = "Access to the document is forbidden",
+                    content = @Content)
+    })
+    @GetMapping("/signer/{id}/versions")
+    @ResponseStatus(HttpStatus.OK)
+    public Page<DocumentVersionDTO> getAllVersionDocumentWhereUserSignatoriesById(
+            @Parameter(description = "Document id", required = true, example = "1")
+            @PathVariable Long id, @AuthenticationPrincipal UserInfoDetails user,
+            @RequestParam(name = "page", defaultValue = "0")
+            @Min(value = 0) int page,
+            @RequestParam(name = "size", defaultValue = "10")
+            @Min(value = 1) @Max(value = 100) int size
+    ) {
+        Page<DocumentVersion> documentForUser = documentService.getAllVersionDocumentWhereUserSignatories(id, user.getId(), page, size);
+
+        return documentForUser.map(documentVersionMapper::toDto);
     }
 
     @Operation(summary = "Updating document fields")

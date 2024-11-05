@@ -4,8 +4,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.JpaSort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.caselab.edm.backend.dto.approvementprocessitem.ApprovementProcessItemDTO;
@@ -74,13 +75,31 @@ public class DocumentServiceImpl implements DocumentService {
                 page, size, userId, sortingType);
         PageRequest pageable = PageRequest.of(page, size);
         if (!DocumentSortingType.WITHOUT.equals(sortingType)) {
-            pageable = pageable.withSort(Sort.by(sortingType.getDirection(), sortingType.getFieldName()));
+            pageable = pageable.withSort(JpaSort.unsafe(sortingType.getDirection(), sortingType.getFieldName()));
         }
         Page<DocumentOutputAllDocumentsDTO> allDocumentWithNameAndStatusProjectionForUser =
                 documentRepository.getAllDocumentWithNameAndStatusProjectionForUser(userId, pageable);
 
         log.info("Get {} document", allDocumentWithNameAndStatusProjectionForUser.getTotalElements());
         return allDocumentWithNameAndStatusProjectionForUser;
+    }
+
+    @Override
+    public Page<DocumentOutputAllDocumentsDTO> getAllDocumentWhereUserSignatories(int page,
+                                                                                  int size,
+                                                                                  UUID userId,
+                                                                                  DocumentSortingType sortingType) {
+        log.info("Get all document for user with sorting- page: {}, size: {}, userId: {}, sortingType: {}",
+                page, size, userId, sortingType);
+        PageRequest pageable = PageRequest.of(page, size);
+        if (!DocumentSortingType.WITHOUT.equals(sortingType)) {
+            pageable = pageable.withSort(JpaSort.unsafe(sortingType.getDirection(), sortingType.getFieldName()));
+        }
+        Page<DocumentOutputAllDocumentsDTO> allDocumentWithNameAndStatusProjectionWhereUserSignatories =
+                documentRepository.getAllDocumentWithNameAndStatusProjectionWhereUserSignatories(userId, pageable);
+
+        log.info("Get {} document", allDocumentWithNameAndStatusProjectionWhereUserSignatories.getTotalElements());
+        return allDocumentWithNameAndStatusProjectionWhereUserSignatories;
     }
 
     @Override
@@ -98,16 +117,62 @@ public class DocumentServiceImpl implements DocumentService {
     }
 
     @Override
-    public List<DocumentVersion> getAllVersionDocumentForUser(long id, UUID userId) {
+    public DocumentVersion getLastVersionDocumentWhereUserSignatories(long id, UUID userId) {
+        log.info("Get document with id: {} for user: {}", id, userId);
+        Document document = documentRepository.getDocumentWhereUserSignatories(id, userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Document not found"));
+        log.info("Get last version document");
+        DocumentVersion lastDocumentVersion = document.getDocumentVersion()
+                .stream()
+                .max(Comparator.comparing(DocumentVersion::getCreatedAt))
+                .orElseThrow();
+
+        return lastDocumentVersion;
+    }
+
+    @Override
+    public Page<DocumentVersion> getAllVersionDocumentForUser(long id,
+                                                              UUID userId,
+                                                              int page,
+                                                              int size) {
         log.info("Get document with id: {} for user: {}", id, userId);
         Document document = documentRepository.getDocumentForUser(id, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Document not found"));
+
+        PageRequest pageable = PageRequest.of(page, size);
+
         log.info("Get all version document");
         List<DocumentVersion> allDocumentVersion = document.getDocumentVersion();
+        allDocumentVersion.sort((dv1, dv2) -> Math.toIntExact(dv2.getId() - dv1.getId()));
 
-        return allDocumentVersion;
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), allDocumentVersion.size());
+
+        List<DocumentVersion> pageContent = allDocumentVersion.subList(start, end);
+        return new PageImpl<>(pageContent, pageable, allDocumentVersion.size());
     }
 
+    @Override
+    public Page<DocumentVersion> getAllVersionDocumentWhereUserSignatories(long id,
+                                                                           UUID userId,
+                                                                           int page,
+                                                                           int size) {
+        log.info("Get document with id: {} for user: {}", id, userId);
+        Document document = documentRepository.getDocumentWhereUserSignatories(id, userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Document not found"));
+
+        PageRequest pageable = PageRequest.of(page, size);
+
+        log.info("Get all version document");
+        List<DocumentVersion> allDocumentVersion = document.getDocumentVersion();
+        allDocumentVersion.sort((dv1, dv2) -> Math.toIntExact(dv2.getId() - dv1.getId()));
+
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), allDocumentVersion.size());
+
+        List<DocumentVersion> pageContent = allDocumentVersion.subList(start, end);
+        return new PageImpl<>(pageContent, pageable, allDocumentVersion.size());
+    }
 
     @Transactional
     @Override
