@@ -104,7 +104,7 @@ public class MinioServiceImpl implements MinioService {
                 .method(Method.GET)
                 .bucket(bucketName)
                 .object(objectName)
-                .expiry(15, TimeUnit.MINUTES)
+                .expiry(DEFAULT_DURATION_MINUTES, TimeUnit.MINUTES)
                 .build();
 
         return minioClient.getPresignedObjectUrl(getPresignedObjectUrlArgs);

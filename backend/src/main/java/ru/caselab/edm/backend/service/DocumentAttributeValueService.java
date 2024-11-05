@@ -9,6 +9,7 @@ import ru.caselab.edm.backend.entity.DocumentVersion;
 
 import java.util.List;
 
+
 public interface DocumentAttributeValueService {
 
     DocumentAttributeValueDTO getDocumentAttributeValueByDocumentAndAttribute(Long documentId, Long attributeId);
