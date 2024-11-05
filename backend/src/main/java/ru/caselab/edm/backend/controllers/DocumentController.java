@@ -167,7 +167,7 @@ public class DocumentController {
         return documentService.getAllDocumentWhereUserSignatories(page, size, user.getId(), sortingType);
     }
 
-    @Operation(summary = "Returning last version document of the sent to the user for approval or signature")
+    @Operation(summary = "Returning document of the current user by id")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Document of the current user was successfully returned",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = DocumentDTO.class))),
