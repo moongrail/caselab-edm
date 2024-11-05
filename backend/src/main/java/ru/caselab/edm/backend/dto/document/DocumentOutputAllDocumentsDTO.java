@@ -4,7 +4,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import ru.caselab.edm.backend.enums.ApprovementProcessStatus;
 import ru.caselab.edm.backend.state.DocumentStatus;
 
 import java.time.Instant;

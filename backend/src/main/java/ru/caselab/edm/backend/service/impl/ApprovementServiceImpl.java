@@ -18,7 +18,6 @@ import ru.caselab.edm.backend.exceptions.ResourceNotFoundException;
 import ru.caselab.edm.backend.mapper.approvementproccess.ApprovementProcessMapper;
 import ru.caselab.edm.backend.repository.ApprovementItemRepository;
 import ru.caselab.edm.backend.repository.ApprovementProcessRepository;
-import ru.caselab.edm.backend.repository.DocumentVersionRepository;
 import ru.caselab.edm.backend.repository.UserRepository;
 import ru.caselab.edm.backend.service.ApprovementService;
 import ru.caselab.edm.backend.service.DocumentService;
@@ -39,7 +38,6 @@ public class ApprovementServiceImpl implements ApprovementService {
     private final UserRepository userRepository;
     private final ApprovementProcessRepository processRepository;
     private final ApprovementItemRepository itemRepository;
-    private final DocumentVersionRepository documentVersionRepository;
     private final ApprovementProcessMapper processMapper;
     private final VotingService votingService;
     private final ApplicationEventPublisher eventPublisher;

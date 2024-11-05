@@ -40,14 +40,12 @@ import ru.caselab.edm.backend.dto.signature.SignatureCreateDTO;
 import ru.caselab.edm.backend.entity.DocumentVersion;
 import ru.caselab.edm.backend.entity.UserInfoDetails;
 import ru.caselab.edm.backend.enums.DocumentSortingType;
-import ru.caselab.edm.backend.mapper.document.DocumentMapper;
 import ru.caselab.edm.backend.mapper.documentversion.DocumentVersionMapper;
 import ru.caselab.edm.backend.service.ApprovementService;
 import ru.caselab.edm.backend.service.DocumentService;
 import ru.caselab.edm.backend.service.MinioService;
 import ru.caselab.edm.backend.service.SignatureService;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -59,7 +57,6 @@ import java.util.UUID;
 public class DocumentController {
 
     private final DocumentService documentService;
-    private final DocumentMapper documentMapper;
     private final SignatureService signatureService;
     private final DocumentVersionMapper documentVersionMapper;
     private final ApprovementService approvementService;

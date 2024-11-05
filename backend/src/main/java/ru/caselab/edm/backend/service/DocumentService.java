@@ -10,7 +10,6 @@ import ru.caselab.edm.backend.entity.DocumentVersion;
 import ru.caselab.edm.backend.entity.UserInfoDetails;
 import ru.caselab.edm.backend.enums.DocumentSortingType;
 
-import java.util.List;
 import java.util.UUID;
 
 public interface DocumentService {
