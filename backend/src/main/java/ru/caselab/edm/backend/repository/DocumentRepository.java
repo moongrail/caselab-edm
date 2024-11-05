@@ -54,7 +54,6 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
              		                               where dv1.document.id = d.id
                                                    order by dv1.createdAt DESC
              		                               LIMIT 1)
-             		    AND api.status in('PENDING_CONTRACTOR_SIGN', 'PENDING_AUTHOR_SIGN')
              		    AND api.user.id = :userId
             """, countQuery = """
             SELECT count(d.id)
@@ -68,7 +67,6 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
              		                               where dv1.document.id = d.id
                                                    order by dv1.createdAt DESC
              		                               LIMIT 1)
-             		    AND api.status in('PENDING_CONTRACTOR_SIGN', 'PENDING_AUTHOR_SIGN')
              		    AND api.user.id = :userId
             """)
     Page<DocumentOutputAllDocumentsDTO> getAllDocumentWithNameAndStatusProjectionWhereUserSignatories(UUID userId, Pageable pageable);

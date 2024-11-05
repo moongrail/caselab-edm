@@ -39,7 +39,7 @@ class DocumentTypeRepositoryTest {
                     (4, 1, null);
                 """);
     }
-/*
+
     @Test
     void findByName() {
         initdb();
@@ -51,5 +51,5 @@ class DocumentTypeRepositoryTest {
         Collections.sort(actual);
         Assertions.assertThat(actual)
                 .isEqualTo(List.of(1L, 2L, 3L));
-    }*/
+    }
 }
