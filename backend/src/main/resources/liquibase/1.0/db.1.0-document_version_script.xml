@@ -25,10 +25,6 @@
             (
                 255
             ) NOT NULL,
-                state VARCHAR
-            (
-                50
-            ),
                 created_at TIMESTAMP DEFAULT NOW
             (
             ) NOT NULL,
