@@ -1,5 +1,6 @@
 package ru.caselab.edm.backend.service.impl;
 
+import jakarta.annotation.PostConstruct;
 import jakarta.transaction.Transactional;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -11,15 +12,18 @@ import ru.caselab.edm.backend.dto.attribute.AttributeCreateDTO;
 import ru.caselab.edm.backend.dto.attribute.AttributeDTO;
 import ru.caselab.edm.backend.dto.attribute.AttributeUpdateDTO;
 import ru.caselab.edm.backend.entity.Attribute;
+import ru.caselab.edm.backend.entity.AttributeSearch;
 import ru.caselab.edm.backend.entity.DocumentType;
 import ru.caselab.edm.backend.exceptions.AttributeAlreadyExistsException;
 import ru.caselab.edm.backend.exceptions.ResourceNotFoundException;
 import ru.caselab.edm.backend.mapper.attribute.AttributeMapper;
 import ru.caselab.edm.backend.repository.AttributeRepository;
+import ru.caselab.edm.backend.repository.elastic.AttributeSearchRepository;
 import ru.caselab.edm.backend.repository.DocumentTypeRepository;
 import ru.caselab.edm.backend.service.AttributeService;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -33,7 +37,21 @@ public class AttributeServiceImpl implements AttributeService {
     @Getter
     private final AttributeMapper attributeMapper;
     private final DocumentTypeRepository documentTypeRepository;
+    private final AttributeSearchRepository attributeSearchRepository;
 
+    @PostConstruct
+    public void init() {
+        List<Attribute> attributes = attributeRepository.findAll();
+        for (Attribute attribute : attributes) {
+            AttributeSearch attributeSearch = new AttributeSearch(attribute.getId(), attribute.getName(), attribute.getDataType(), attribute.isRequired());
+            attributeSearchRepository.save(attributeSearch);
+        }
+    }
+
+    @Override
+    public List<AttributeSearch> searchByName(String name) {
+        return attributeSearchRepository.findByName(name);
+    }
 
     @Transactional
     @Override

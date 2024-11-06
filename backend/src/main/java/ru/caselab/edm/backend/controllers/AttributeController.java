@@ -13,19 +13,14 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import ru.caselab.edm.backend.dto.attribute.AttributeCreateDTO;
 import ru.caselab.edm.backend.dto.attribute.AttributeDTO;
 import ru.caselab.edm.backend.dto.attribute.AttributeUpdateDTO;
+import ru.caselab.edm.backend.entity.AttributeSearch;
 import ru.caselab.edm.backend.service.AttributeService;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/attributes")
@@ -126,5 +121,15 @@ public class AttributeController {
             @PathVariable Long id) {
         attributeService.deleteAttribute(id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @Operation(summary = "Search match attributes")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved the search list of attributes",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = AttributeSearch.class))),
+    })
+    @GetMapping("/search")
+    public List<AttributeSearch> search(@RequestParam String name) {
+        return attributeService.searchByName(name);
     }
 }
