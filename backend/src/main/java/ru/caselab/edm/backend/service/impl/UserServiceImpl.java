@@ -205,7 +205,7 @@ public class UserServiceImpl implements UserService {
         if (passwordEncoder.matches(loginUserDTO.password(), existingUser.getPassword())) {
             log.info("Passwords are equals");
             log.info("Creating JwtDTO");
-            JwtDTO jwtDTO = new JwtDTO(refreshTokenService.createRefreshToken(existingUser.getLogin()).getToken(), jwtService.generateToken(new UserInfoDetails(existingUser)));
+            JwtDTO jwtDTO = new JwtDTO(existingUser.getId(), refreshTokenService.createRefreshToken(existingUser.getLogin()).getToken(), jwtService.generateToken(new UserInfoDetails(existingUser)));
             log.info("JwtDTO successfully created");
 
             return jwtDTO;
