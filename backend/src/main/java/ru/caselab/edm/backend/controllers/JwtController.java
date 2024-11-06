@@ -53,7 +53,7 @@ public class JwtController {
 
         UserInfoDetails userInfoDetails = new UserInfoDetails(user);
 
-        JwtDTO jwtDto = new JwtDTO(refreshTokenDto.refreshToken(),
+        JwtDTO jwtDto = new JwtDTO(user.getId(), refreshTokenDto.refreshToken(),
                 jwtService.generateToken(userInfoDetails));
         return ResponseEntity.ok(jwtDto);
     }
