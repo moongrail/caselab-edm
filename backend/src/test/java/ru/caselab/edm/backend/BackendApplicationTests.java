@@ -41,9 +41,6 @@ class BackendApplicationTests {
         registry.add("spring.elasticsearch.rest.uris", elasticsearchContainer::getHttpHostAddress);
         registry.add("spring.elasticsearch.username", () -> "user");
         registry.add("spring.elasticsearch.password", () -> "pass");
-        registry.add("spring.data.elasticsearch.repositories.enabled", () -> "false");
-        registry.add("discovery.type", () -> "single-node");
-        registry.add("xpack.security.enabled", () -> "false");
     }
 
     @Test
