@@ -11,9 +11,7 @@ import ru.caselab.edm.backend.entity.UserInfoDetails;
 import ru.caselab.edm.backend.enums.ApprovementProcessItemStatus;
 import ru.caselab.edm.backend.exceptions.ResourceNotFoundException;
 import ru.caselab.edm.backend.repository.ApprovementItemRepository;
-import ru.caselab.edm.backend.repository.DocumentVersionRepository;
 import ru.caselab.edm.backend.repository.SignatureRepository;
-import ru.caselab.edm.backend.repository.UserRepository;
 import ru.caselab.edm.backend.service.DocumentService;
 import ru.caselab.edm.backend.service.SignatureService;
 
@@ -27,8 +25,6 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class SignatureServiceImpl implements SignatureService {
     private final SignatureRepository signatureRepository;
-    private final DocumentVersionRepository documentVersionRepository;
-    private final UserRepository userRepository;
     private final ApprovementItemRepository approvementItemRepository;
     private final DocumentService documentService;
 
@@ -36,7 +32,7 @@ public class SignatureServiceImpl implements SignatureService {
     @Transactional
     public void sign(SignatureCreateDTO createDTO, Long documentId, UserInfoDetails authenticatedUser) {
 
-        DocumentVersion documentVersion = documentService.getLastVersionDocumentForUser(documentId, authenticatedUser.getId());
+        DocumentVersion documentVersion = documentService.getLastVersionDocumentWhereUserSignatories(documentId, authenticatedUser.getId());
 
         Optional<ApprovementProcessItem> approvementProcessItemOptional = approvementItemRepository.findByDocumentVersionIdAndUserId(documentVersion.getId(), authenticatedUser.getId());
 

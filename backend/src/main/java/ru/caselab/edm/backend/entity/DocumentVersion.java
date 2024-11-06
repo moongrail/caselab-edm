@@ -63,6 +63,7 @@ public class DocumentVersion {
     @OneToMany(mappedBy = "documentVersion", fetch = FetchType.LAZY)
     private List<ApprovementProcess> approvementProcesses;
 
+    @Column(name = "state")
     @Enumerated(EnumType.STRING)
     private DocumentStatus state;
 

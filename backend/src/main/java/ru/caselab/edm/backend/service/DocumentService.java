@@ -10,7 +10,6 @@ import ru.caselab.edm.backend.entity.DocumentVersion;
 import ru.caselab.edm.backend.entity.UserInfoDetails;
 import ru.caselab.edm.backend.enums.DocumentSortingType;
 
-import java.util.List;
 import java.util.UUID;
 
 public interface DocumentService {
@@ -19,11 +18,21 @@ public interface DocumentService {
                                                               UUID userId,
                                                               DocumentSortingType sortingType);
 
+    Page<DocumentOutputAllDocumentsDTO> getAllDocumentWhereUserSignatories(int page,
+                                                                           int size,
+                                                                           UUID userId,
+                                                                           DocumentSortingType sortingType);
+
     DocumentVersion getLastVersionDocumentForUser(long id, UUID userId);
 
-    List<DocumentVersion> getAllVersionDocumentForUser(long id, UUID userId);
+    DocumentVersion getLastVersionDocumentWhereUserSignatories(long id, UUID userId);
+
+    Page<DocumentVersion> getAllVersionDocumentForUser(long id, UUID userId, int page, int size);
+
+    Page<DocumentVersion> getAllVersionDocumentWhereUserSignatories(long id, UUID userId, int page, int size);
 
     Page<Document> getAllDocuments(int page, int size);
+
 
     Document getDocument(long id);
 

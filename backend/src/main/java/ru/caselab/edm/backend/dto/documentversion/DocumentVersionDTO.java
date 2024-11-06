@@ -1,5 +1,6 @@
 package ru.caselab.edm.backend.dto.documentversion;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import ru.caselab.edm.backend.dto.attributevalue.DocumentAttributeValueDTO;
@@ -12,6 +13,7 @@ import java.util.List;
 @Schema(description = "DTO for representing document version")
 public class DocumentVersionDTO {
     @Schema(description = "id", format = "long", example = "1")
+    @JsonProperty("documentVersionId")
     private Long id;
 
     @Schema(description = "Document name", example = "Spongebob best episodes")

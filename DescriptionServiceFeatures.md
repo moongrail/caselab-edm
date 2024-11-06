@@ -13,7 +13,7 @@
 
 ### 2. Авторизация
 
-> ***POST /check/jwtTest***
+> ***POST /auth***
 
 при протухании JWT обновляем его через refresh token
 > ***POST /jwt/update***
