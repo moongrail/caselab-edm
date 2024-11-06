@@ -130,6 +130,6 @@ public class AttributeController {
     })
     @GetMapping("/search")
     public List<AttributeSearch> search(@RequestParam String name) {
-        return attributeService.searchByName(name);
+        return attributeService.findByNameWithMinLength(name);
     }
 }

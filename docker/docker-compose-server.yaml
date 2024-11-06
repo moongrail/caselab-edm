@@ -55,6 +55,7 @@ services:
       - MINIO_ROOT_USER=minio-user
       - MINIO_ROOT_PASSWORD=minio-password
       - MINIO_ENDPOINT=http://minio:9000
+      - ELASTIC_ENDPOINT=http://elasticsearch:9200
     restart: always
 
   elasticsearch:

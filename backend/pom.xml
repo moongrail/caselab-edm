@@ -21,7 +21,7 @@
         <tika-core.version>2.9.2</tika-core.version>
         <minio-testcontainers.version>1.20.2</minio-testcontainers.version>
         <maven-surefire-plugin.version>3.5.1</maven-surefire-plugin.version>
-        <elasticsearch-rest-high-level-client.version>7.17.25</elasticsearch-rest-high-level-client.version>
+        <elasticsearch-testcontainers.version>1.17.3</elasticsearch-testcontainers.version>
     </properties>
     <dependencies>
         <dependency>
@@ -163,6 +163,12 @@
             <groupId>org.testcontainers</groupId>
             <artifactId>minio</artifactId>
             <version>${minio-testcontainers.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>elasticsearch</artifactId>
+            <version>${elasticsearch-testcontainers.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

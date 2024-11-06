@@ -7,6 +7,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -25,27 +26,23 @@ import ru.caselab.edm.backend.repository.DocumentRepository;
 import ru.caselab.edm.backend.repository.DocumentTypeRepository;
 import ru.caselab.edm.backend.repository.DocumentVersionRepository;
 import ru.caselab.edm.backend.repository.UserRepository;
+import ru.caselab.edm.backend.repository.elastic.AttributeSearchRepository;
 import ru.caselab.edm.backend.service.impl.DocumentServiceImpl;
 import ru.caselab.edm.backend.service.impl.DocumentVersionServiceImpl;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 class DocumentServiceTests {
-
+    @MockBean
+    AttributeSearchRepository attributeSearchRepository;
     @Mock
     private DocumentRepository documentRepository;
 
@@ -156,7 +153,7 @@ class DocumentServiceTests {
         DocumentVersion version2 = new DocumentVersion();
         version2.setId(2L);
         version2.setDocumentName("version2");
-        version2.setCreatedAt(Instant.now());
+        version2.setCreatedAt(Instant.now().plusSeconds(10));
 
         List<DocumentVersion> documentVersionList = new ArrayList<>();
         documentVersionList.add(version1);

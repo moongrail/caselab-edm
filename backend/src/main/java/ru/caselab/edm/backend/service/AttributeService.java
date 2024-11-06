@@ -27,4 +27,6 @@ public interface AttributeService {
     AttributeMapper getAttributeMapper();
 
     List<AttributeSearch> searchByName(String name);
+
+    List<AttributeSearch> findByNameWithMinLength(String name);
 }

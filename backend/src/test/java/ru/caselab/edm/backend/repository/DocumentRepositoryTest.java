@@ -4,6 +4,7 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -11,6 +12,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import ru.caselab.edm.backend.dto.document.DocumentOutputAllDocumentsDTO;
 import ru.caselab.edm.backend.entity.Document;
+import ru.caselab.edm.backend.repository.elastic.AttributeSearchRepository;
 import ru.caselab.edm.backend.state.DocumentStatus;
 
 import java.time.LocalDateTime;
@@ -26,7 +28,8 @@ class DocumentRepositoryTest {
     private JdbcTemplate jdbcTemplate;
     @Autowired
     DocumentRepository repository;
-
+    @MockBean
+    AttributeSearchRepository attributeSearchRepository;
     private void initdb() {
         jdbcTemplate.execute("""
                 INSERT INTO users (id, login, email, password, first_name, last_name, patronymic) VALUES
