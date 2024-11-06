@@ -7,20 +7,19 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
-import ru.caselab.edm.backend.dto.AttributeCreateDTO;
-import ru.caselab.edm.backend.dto.AttributeDTO;
-import ru.caselab.edm.backend.dto.AttributeUpdateDTO;
+import ru.caselab.edm.backend.dto.attribute.AttributeCreateDTO;
+import ru.caselab.edm.backend.dto.attribute.AttributeDTO;
+import ru.caselab.edm.backend.dto.attribute.AttributeUpdateDTO;
 import ru.caselab.edm.backend.entity.Attribute;
 import ru.caselab.edm.backend.entity.DocumentType;
 import ru.caselab.edm.backend.exceptions.AttributeAlreadyExistsException;
 import ru.caselab.edm.backend.exceptions.ResourceNotFoundException;
-import ru.caselab.edm.backend.mapper.AttributeMapper;
+import ru.caselab.edm.backend.mapper.attribute.AttributeMapper;
 import ru.caselab.edm.backend.repository.AttributeRepository;
 import ru.caselab.edm.backend.repository.DocumentTypeRepository;
 import ru.caselab.edm.backend.service.AttributeService;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
@@ -64,7 +63,7 @@ public class AttributeServiceImpl implements AttributeService {
 
     @Transactional
     @Override
-    public AttributeDTO getAttributeById(Long id) {
+    public Attribute getAttributeEntityById(Long id) {
         Attribute attribute = attributeRepository.findById(id)
                 .orElseThrow(() -> {
                     log.warn("Attribute not found with id: {}", id);
@@ -72,6 +71,13 @@ public class AttributeServiceImpl implements AttributeService {
 
                 });
         log.info("Attribute with id: {} found", attribute.getId());
+        return attribute;
+    }
+
+    @Transactional
+    @Override
+    public AttributeDTO getAttributeById(Long id) {
+        Attribute attribute = getAttributeEntityById(id);
         return attributeMapper.toDTO(attribute);
     }
 
@@ -95,11 +101,6 @@ public class AttributeServiceImpl implements AttributeService {
                     return new ResourceNotFoundException("Attribute not found");
                 });
         log.debug("Current attribute details: {}", attribute);
-        if (!attributeRepository.findByName(updateAttributeDTO.getName()).isEmpty()) {
-            throw new AttributeAlreadyExistsException("Attribute with name %s already exists"
-                    .formatted(updateAttributeDTO.getName()));
-        }
-
         attribute.setName(updateAttributeDTO.getName());
         attribute.setDataType(updateAttributeDTO.getDataType());
         attribute.setRequired(updateAttributeDTO.isRequired());
@@ -126,9 +127,9 @@ public class AttributeServiceImpl implements AttributeService {
         }
     }
 
-    private List<DocumentType> mapDocumentTypeIdsToEntities(Set<Long> documentTypeIds) {
+    private Set<DocumentType> mapDocumentTypeIdsToEntities(Set<Long> documentTypeIds) {
         log.debug("Mapping DocumentType IDs to entities: {}", documentTypeIds);
-        List<DocumentType> documentTypes = new ArrayList<>();
+        Set<DocumentType> documentTypes = new HashSet<>();
         for (Long id : documentTypeIds) {
             DocumentType documentType = documentTypeRepository.findById(id)
                     .orElseThrow(() -> {

@@ -12,7 +12,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ru.caselab.edm.backend.configurations.props.MinioConfigProperties;
-import ru.caselab.edm.backend.dto.MinioSaveDto;
+import ru.caselab.edm.backend.dto.minio.MinioSaveDto;
 import ru.caselab.edm.backend.exceptions.MinioServiceException;
 import ru.caselab.edm.backend.service.helpers.InputStreamContentTypeDetector;
 import ru.caselab.edm.backend.service.impl.MinioServiceImpl;
@@ -23,8 +23,11 @@ import java.io.InputStream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class MinioServiceTest {

@@ -9,7 +9,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -24,9 +23,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import ru.caselab.edm.backend.dto.DocumentTypeCreateDTO;
-import ru.caselab.edm.backend.dto.DocumentTypeDTO;
-import ru.caselab.edm.backend.dto.DocumentTypeUpdateDTO;
+import ru.caselab.edm.backend.dto.documenttype.DocumentTypeCreateDTO;
+import ru.caselab.edm.backend.dto.documenttype.DocumentTypeDTO;
+import ru.caselab.edm.backend.dto.documenttype.DocumentTypeUpdateDTO;
 import ru.caselab.edm.backend.service.DocumentTypeService;
 
 @RequiredArgsConstructor
@@ -34,6 +33,7 @@ import ru.caselab.edm.backend.service.DocumentTypeService;
 @RequestMapping("/document_type")
 @SecurityRequirement(name = "bearer-jwt")
 @Tag(name = "Document type", description = "Document type management operations")
+@PreAuthorize("hasRole('ADMIN')")
 public class DocumentTypeController {
 
     private final DocumentTypeService documentTypeService;

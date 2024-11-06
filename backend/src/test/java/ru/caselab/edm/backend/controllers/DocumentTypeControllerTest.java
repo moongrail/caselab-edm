@@ -13,23 +13,29 @@ import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.web.servlet.MockMvc;
-import ru.caselab.edm.backend.dto.AttributeDTO;
-import ru.caselab.edm.backend.dto.DocumentTypeCreateDTO;
-import ru.caselab.edm.backend.dto.DocumentTypeDTO;
-import ru.caselab.edm.backend.dto.DocumentTypeUpdateDTO;
+import ru.caselab.edm.backend.dto.attribute.AttributeDTO;
+import ru.caselab.edm.backend.dto.documenttype.DocumentTypeCreateDTO;
+import ru.caselab.edm.backend.dto.documenttype.DocumentTypeDTO;
+import ru.caselab.edm.backend.dto.documenttype.DocumentTypeUpdateDTO;
 import ru.caselab.edm.backend.entity.Attribute;
 import ru.caselab.edm.backend.entity.DocumentType;
 import ru.caselab.edm.backend.repository.RoleRepository;
 import ru.caselab.edm.backend.repository.UserRepository;
 import ru.caselab.edm.backend.security.details.UserDetailsServiceImpl;
-import ru.caselab.edm.backend.security.service.JwtServiceImpl;
+import ru.caselab.edm.backend.security.service.impl.JwtServiceImpl;
 import ru.caselab.edm.backend.service.DocumentTypeService;
 
 import java.time.LocalDateTime;
 import java.time.Month;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -124,8 +130,6 @@ class DocumentTypeControllerTest {
         AttributeDTO testAttributeDto2 = getDocumentsAttributesDTO(1L, "Ответственный исполнитель");
 
 
-
-
         Set<Long> documentsAttributesDTOSet1 = new HashSet<>();
         documentsAttributesDTOSet1.add(testAttributeDto1.getId());
 
@@ -173,7 +177,7 @@ class DocumentTypeControllerTest {
                                     "description":"какое-то описание котировки",
                                "attributeIds":
                                         [0,1]
-                                       
+                        
                                 }
                                         ],
                                         "pageable":
@@ -255,7 +259,7 @@ class DocumentTypeControllerTest {
     @WithMockUser
     void updateDocumentType() throws Exception {
         DocumentTypeUpdateDTO documentTypeUpdateDTO = new DocumentTypeUpdateDTO();
-        documentTypeUpdateDTO.setAttributeIds( new HashSet<>(List.of(0L)));
+        documentTypeUpdateDTO.setAttributeIds(new HashSet<>(List.of(0L)));
         documentTypeUpdateDTO.setName("Новый документ");
         documentTypeUpdateDTO.setDescription("Такого вы еще не видели");
 

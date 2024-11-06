@@ -1,8 +1,7 @@
 package ru.caselab.edm.backend.service;
 
-import ru.caselab.edm.backend.entity.Signature;
+import ru.caselab.edm.backend.entity.ApprovementProcessItem;
 
 public interface EmailService {
-
-    void sendEmailForSign(Signature signature);
+    void sendEmailForSign(ApprovementProcessItem processItem);
 }

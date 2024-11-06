@@ -55,7 +55,10 @@
 
             CREATE TABLE IF NOT EXISTS user_roles
             (
-                user_id UUID REFERENCES users
+                user_id
+                UUID
+                REFERENCES
+                users
             (
                 id
             ) ON DELETE CASCADE NOT NULL,

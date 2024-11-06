@@ -7,10 +7,26 @@
 
     <changeSet id="Document table creation" author="A192747" runOnChange="true">
         <sql>
-            CREATE TABLE IF NOT EXISTS documents (
-                id BIGSERIAL PRIMARY KEY,
-                document_type_id BIGINT REFERENCES document_types(id),
-                user_id UUID REFERENCES users(id) ON DELETE CASCADE
+            CREATE TABLE IF NOT EXISTS documents
+            (
+                id
+                BIGSERIAL
+                PRIMARY
+                KEY,
+                document_type_id
+                BIGINT
+                REFERENCES
+                document_types
+            (
+                id
+            ),
+                user_id UUID REFERENCES users
+            (
+                id
+            ) ON DELETE CASCADE,
+                created_at TIMESTAMP DEFAULT NOW
+            (
+            )
                 );
 
             CREATE SEQUENCE IF NOT EXISTS document_sequence

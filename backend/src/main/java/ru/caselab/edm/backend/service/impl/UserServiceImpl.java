@@ -9,14 +9,20 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.caselab.edm.backend.dto.*;
+import ru.caselab.edm.backend.dto.auth.JwtDTO;
+import ru.caselab.edm.backend.dto.auth.LoginUserDTO;
+import ru.caselab.edm.backend.dto.user.CreateUserDTO;
+import ru.caselab.edm.backend.dto.user.UpdatePasswordDTO;
+import ru.caselab.edm.backend.dto.user.UpdateUserDTO;
+import ru.caselab.edm.backend.dto.user.UserDTO;
+import ru.caselab.edm.backend.dto.user.UserPageDTO;
 import ru.caselab.edm.backend.entity.Role;
 import ru.caselab.edm.backend.entity.User;
 import ru.caselab.edm.backend.entity.UserInfoDetails;
 import ru.caselab.edm.backend.enums.RoleName;
 import ru.caselab.edm.backend.exceptions.ResourceNotFoundException;
 import ru.caselab.edm.backend.exceptions.UserAlreadyExistsException;
-import ru.caselab.edm.backend.mapper.UserMapper;
+import ru.caselab.edm.backend.mapper.user.UserMapper;
 import ru.caselab.edm.backend.repository.RoleRepository;
 import ru.caselab.edm.backend.repository.UserRepository;
 import ru.caselab.edm.backend.security.service.JwtService;
@@ -86,7 +92,7 @@ public class UserServiceImpl implements UserService {
         }
         Set<Role> roles = new HashSet<>();
         for (RoleName role : createdUser.roles()) {
-            Optional<Role> roleOptional = roleRepository.findByName(role.name());
+            Optional<Role> roleOptional = roleRepository.findByName(role);
             if (roleOptional.isPresent()) {
                 roles.add(roleOptional.get());
             } else {
@@ -110,7 +116,7 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     @Override
-    public UserDTO updateUser (UUID id, UpdateUserDTO updatedUser) {
+    public UserDTO updateUser(UUID id, UpdateUserDTO updatedUser) {
         log.info("Updating user with id: {}", id);
         Optional<User> user = userRepository.findById(id);
         if (user.isPresent()) {
@@ -127,7 +133,7 @@ public class UserServiceImpl implements UserService {
             }
             Set<Role> roles = new HashSet<>();
             for (RoleName role : updatedUser.roles()) {
-                Optional<Role> roleOptional = roleRepository.findByName(role.name());
+                Optional<Role> roleOptional = roleRepository.findByName(role);
                 if (roleOptional.isPresent()) {
                     roles.add(roleOptional.get());
                 } else {
@@ -146,7 +152,7 @@ public class UserServiceImpl implements UserService {
             userRepository.save(existingUser);
             log.info("User with id: {} successfully updated", id);
             return userMapper.toDTO(existingUser);
-        } else{
+        } else {
             log.warn("User not found with id: {}", id);
             throw new ResourceNotFoundException("User not found with this id = %s".formatted(id));
         }
@@ -155,7 +161,7 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     @Override
-    public void updatePassword (UUID id, UpdatePasswordDTO updatePasswordDTO){
+    public void updatePassword(UUID id, UpdatePasswordDTO updatePasswordDTO) {
         log.info("Updating password for user with id: {}", id);
         Optional<User> user = userRepository.findById(id);
         if (user.isPresent()) {
@@ -175,7 +181,7 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     @Override
-    public void deleteUser (UUID id){
+    public void deleteUser(UUID id) {
         log.info("Deleting user with id: {}", id);
         Optional<User> user = userRepository.findById(id);
         if (user.isPresent()) {

@@ -20,6 +20,6 @@ public class DocumentSignRequestListener {
     @Async
     @TransactionalEventListener
     public void onDocumentSentForSign(DocumentSignRequestEvent event) {
-        emailService.sendEmailForSign(event.getSignature());
+        emailService.sendEmailForSign(event.getApprovementProcessItem());
     }
 }

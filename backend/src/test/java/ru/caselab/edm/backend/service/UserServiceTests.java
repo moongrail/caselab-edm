@@ -10,18 +10,18 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import ru.caselab.edm.backend.dto.CreateUserDTO;
-import ru.caselab.edm.backend.dto.RoleDTO;
-import ru.caselab.edm.backend.dto.UpdatePasswordDTO;
-import ru.caselab.edm.backend.dto.UpdateUserDTO;
-import ru.caselab.edm.backend.dto.UserDTO;
-import ru.caselab.edm.backend.dto.UserPageDTO;
+import ru.caselab.edm.backend.dto.role.RoleDTO;
+import ru.caselab.edm.backend.dto.user.CreateUserDTO;
+import ru.caselab.edm.backend.dto.user.UpdatePasswordDTO;
+import ru.caselab.edm.backend.dto.user.UpdateUserDTO;
+import ru.caselab.edm.backend.dto.user.UserDTO;
+import ru.caselab.edm.backend.dto.user.UserPageDTO;
 import ru.caselab.edm.backend.entity.Role;
 import ru.caselab.edm.backend.entity.User;
 import ru.caselab.edm.backend.enums.RoleName;
 import ru.caselab.edm.backend.exceptions.ResourceNotFoundException;
 import ru.caselab.edm.backend.exceptions.UserAlreadyExistsException;
-import ru.caselab.edm.backend.mapper.UserMapper;
+import ru.caselab.edm.backend.mapper.user.UserMapper;
 import ru.caselab.edm.backend.repository.RoleRepository;
 import ru.caselab.edm.backend.repository.UserRepository;
 import ru.caselab.edm.backend.service.impl.UserServiceImpl;
@@ -35,7 +35,9 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class UserServiceTests {
 
@@ -75,7 +77,7 @@ public class UserServiceTests {
         roleDTOS.add(new RoleDTO(1L, "USER"));
         role = Role.builder()
                 .id(1L)
-                .name(RoleName.USER.name())
+                .name(RoleName.USER)
                 .build();
     }
 
@@ -83,16 +85,14 @@ public class UserServiceTests {
     void getAllUsers_ShouldReturnUserDTOList() {
         Page<User> users = new PageImpl<>(Collections.singletonList(user));
         UserDTO userDTO = new UserDTO(userId, "test", "test@test.ru", "test", "test", "test", roleDTOS);
-        UserPageDTO userPageDTO = new UserPageDTO(0, 10, 1, 1,Collections.singletonList(userDTO));
+        UserPageDTO userPageDTO = new UserPageDTO(0, 10, 1, 1, Collections.singletonList(userDTO));
 
         when(userRepository.findAll(PageRequest.of(0, 10))).thenReturn(users);
-        //when(userMapper.toDTO(any(User.class))).thenReturn(userDTO);
         when(userMapper.toPageDTO(any(Page.class))).thenReturn(userPageDTO);
 
         UserPageDTO result = userService.getAllUsers(0, 10);
 
         verify(userRepository, times(1)).findAll(PageRequest.of(0, 10));
-        //verify(userMapper, times(1)).toDTO(any(User.class));
         verify(userMapper, times(1)).toPageDTO(any(Page.class));
         assertEquals(1, result.totalElements());
         assertEquals(userDTO, result.content().get(0));
@@ -129,7 +129,7 @@ public class UserServiceTests {
 
         when(userRepository.existsByEmail("test@test.ru")).thenReturn(false);
         when(userRepository.existsByLogin("test")).thenReturn(false);
-        when(roleRepository.findByName(RoleName.USER.name())).thenReturn(Optional.of(role));
+        when(roleRepository.findByName(RoleName.USER)).thenReturn(Optional.of(role));
         when(passwordEncoder.encode("test")).thenReturn("encodedTest");
         when(userMapper.toDTO(any(User.class))).thenReturn(userDTO);
 
@@ -173,7 +173,7 @@ public class UserServiceTests {
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(userRepository.existsByEmail("newTest@test.ru")).thenReturn(false);
         when(userRepository.existsByLogin("newTest")).thenReturn(false);
-        when(roleRepository.findByName(RoleName.USER.name())).thenReturn(Optional.of(role));
+        when(roleRepository.findByName(RoleName.USER)).thenReturn(Optional.of(role));
         when(userMapper.toDTO(any(User.class))).thenReturn(userDTO);
 
         UserDTO result = userService.updateUser(userId, updateUserDTO);
@@ -194,7 +194,7 @@ public class UserServiceTests {
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(userRepository.existsByEmail("testt@test.ru")).thenReturn(true);
         when(userRepository.existsByLogin("test")).thenReturn(true);
-        when(roleRepository.findByName(RoleName.USER.name())).thenReturn(Optional.of(role));
+        when(roleRepository.findByName(RoleName.USER)).thenReturn(Optional.of(role));
         when(userMapper.toDTO(any(User.class))).thenReturn(userDTO);
 
         UserDTO result = userService.updateUser(userId, updateUserDTO);

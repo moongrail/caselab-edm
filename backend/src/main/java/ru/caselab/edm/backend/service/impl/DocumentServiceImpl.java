@@ -1,50 +1,57 @@
 package ru.caselab.edm.backend.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.JpaSort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.caselab.edm.backend.dto.DocumentCreateDTO;
-import ru.caselab.edm.backend.dto.DocumentUpdateDTO;
-import ru.caselab.edm.backend.dto.MinioSaveDto;
+import ru.caselab.edm.backend.dto.approvementprocessitem.ApprovementProcessItemDTO;
+import ru.caselab.edm.backend.dto.document.DocumentCreateDTO;
+import ru.caselab.edm.backend.dto.document.DocumentOutputAllDocumentsDTO;
+import ru.caselab.edm.backend.dto.document.DocumentUpdateDTO;
+import ru.caselab.edm.backend.entity.ApprovementProcessItem;
 import ru.caselab.edm.backend.entity.Document;
 import ru.caselab.edm.backend.entity.DocumentVersion;
-import ru.caselab.edm.backend.exceptions.ResourceNotFoundException;
-import ru.caselab.edm.backend.entity.Signature;
 import ru.caselab.edm.backend.entity.User;
+import ru.caselab.edm.backend.entity.UserInfoDetails;
+import ru.caselab.edm.backend.enums.ApprovementProcessItemStatus;
+import ru.caselab.edm.backend.enums.DocumentSortingType;
 import ru.caselab.edm.backend.event.DocumentSignRequestEvent;
+import ru.caselab.edm.backend.exceptions.ApprovementProccessItemAlreadyExistsException;
 import ru.caselab.edm.backend.exceptions.DocumentForbiddenAccess;
+import ru.caselab.edm.backend.exceptions.ResourceNotFoundException;
 import ru.caselab.edm.backend.exceptions.WrongDateException;
-import ru.caselab.edm.backend.mapper.MinioDocumentMapper;
+import ru.caselab.edm.backend.mapper.approvementprocessitem.ApprovementProccessItemMapper;
+import ru.caselab.edm.backend.repository.ApprovementItemRepository;
 import ru.caselab.edm.backend.repository.DocumentRepository;
 import ru.caselab.edm.backend.repository.DocumentTypeRepository;
-import ru.caselab.edm.backend.repository.DocumentVersionRepository;
-import ru.caselab.edm.backend.repository.SignatureRepository;
 import ru.caselab.edm.backend.repository.UserRepository;
 import ru.caselab.edm.backend.service.DocumentService;
-import ru.caselab.edm.backend.service.MinioService;
+import ru.caselab.edm.backend.service.DocumentVersionService;
+import ru.caselab.edm.backend.state.DocumentStatus;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class DocumentServiceImpl implements DocumentService {
 
     private final DocumentRepository documentRepository;
     private final UserRepository userRepository;
     private final DocumentTypeRepository documentTypeRepository;
-    private final DocumentVersionRepository documentVersionRepository;
-    private final SignatureRepository signatureRepository;
     private final ApplicationEventPublisher eventPublisher;
-    private final MinioDocumentMapper minioDocumentMapper;
-    private final MinioService minioService;
+    private final ApprovementItemRepository approvementItemRepository;
+    private final ApprovementProccessItemMapper approvementProccessItemMapper;
+    private final DocumentVersionService documentVersionService;
 
     @Override
     public Page<Document> getAllDocuments(int page, int size) {
@@ -58,106 +65,154 @@ public class DocumentServiceImpl implements DocumentService {
     }
 
     @Override
-    public Page<DocumentVersion> getAllDocumentForUser(int page, int size, UUID userId) {
-        Pageable pageable = PageRequest.of(page, size);
-        Page<Document> documents = documentRepository.getAllDocumentForUser(userId, pageable);
-        List<DocumentVersion> documentVersions = documents.stream()
-                .map(document -> document.getDocumentVersion().get(document.getDocumentVersion().size() - 1))
-                .toList();
-        return new PageImpl<>(documentVersions, pageable, documents.getTotalElements());
+    public Page<DocumentOutputAllDocumentsDTO> getAllDocumentForUser(int page,
+                                                                     int size,
+                                                                     UUID userId,
+                                                                     DocumentSortingType sortingType) {
+        log.info("Get all document for user with sorting- page: {}, size: {}, userId: {}, sortingType: {}",
+                page, size, userId, sortingType);
+        PageRequest pageable = PageRequest.of(page, size);
+        if (!DocumentSortingType.WITHOUT.equals(sortingType)) {
+            pageable = pageable.withSort(JpaSort.unsafe(sortingType.getDirection(), sortingType.getFieldName()));
+        }
+        Page<DocumentOutputAllDocumentsDTO> allDocumentWithNameAndStatusProjectionForUser =
+                documentRepository.getAllDocumentWithNameAndStatusProjectionForUser(userId, pageable);
+
+        log.info("Get {} document", allDocumentWithNameAndStatusProjectionForUser.getTotalElements());
+        return allDocumentWithNameAndStatusProjectionForUser;
     }
 
     @Override
-    public DocumentVersion getDocumentForUser(long id, UUID userId) {
-        getDocument(id);
-        Document document =  documentRepository.getDocumentForUser(id, userId)
-                .orElseThrow(() -> new DocumentForbiddenAccess("Access to the document is forbidden"));
-        return document.getDocumentVersion().get(document.getDocumentVersion().size() - 1);
+    public Page<DocumentOutputAllDocumentsDTO> getAllDocumentWhereUserSignatories(int page,
+                                                                                  int size,
+                                                                                  UUID userId,
+                                                                                  DocumentSortingType sortingType) {
+        log.info("Get all document for user with sorting- page: {}, size: {}, userId: {}, sortingType: {}",
+                page, size, userId, sortingType);
+        PageRequest pageable = PageRequest.of(page, size);
+        if (!DocumentSortingType.WITHOUT.equals(sortingType)) {
+            pageable = pageable.withSort(JpaSort.unsafe(sortingType.getDirection(), sortingType.getFieldName()));
+        }
+        Page<DocumentOutputAllDocumentsDTO> allDocumentWithNameAndStatusProjectionWhereUserSignatories =
+                documentRepository.getAllDocumentWithNameAndStatusProjectionWhereUserSignatories(userId, pageable);
+
+        log.info("Get {} document", allDocumentWithNameAndStatusProjectionWhereUserSignatories.getTotalElements());
+        return allDocumentWithNameAndStatusProjectionWhereUserSignatories;
+    }
+
+    @Override
+    public DocumentVersion getLastVersionDocumentForUser(long id, UUID userId) {
+        log.info("Get document with id: {} for user: {}", id, userId);
+        Document document = documentRepository.getDocumentForUser(id, userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Document not found"));
+        log.info("Get last version document");
+        DocumentVersion lastDocumentVersion = document.getDocumentVersion()
+                .stream()
+                .max(Comparator.comparing(DocumentVersion::getCreatedAt))
+                .orElseThrow();
+
+        return lastDocumentVersion;
+    }
+
+    @Override
+    public DocumentVersion getLastVersionDocumentWhereUserSignatories(long id, UUID userId) {
+        log.info("Get document with id: {} for user: {}", id, userId);
+        Document document = documentRepository.getDocumentWhereUserSignatories(id, userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Document not found"));
+        log.info("Get last version document");
+        DocumentVersion lastDocumentVersion = document.getDocumentVersion()
+                .stream()
+                .max(Comparator.comparing(DocumentVersion::getCreatedAt))
+                .orElseThrow();
+
+        return lastDocumentVersion;
+    }
+
+    @Override
+    public Page<DocumentVersion> getAllVersionDocumentForUser(long id,
+                                                              UUID userId,
+                                                              int page,
+                                                              int size) {
+        log.info("Get document with id: {} for user: {}", id, userId);
+        Document document = documentRepository.getDocumentForUser(id, userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Document not found"));
+
+        PageRequest pageable = PageRequest.of(page, size);
+
+        log.info("Get all version document");
+        List<DocumentVersion> allDocumentVersion = document.getDocumentVersion();
+        allDocumentVersion.sort((dv1, dv2) -> Math.toIntExact(dv2.getId() - dv1.getId()));
+
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), allDocumentVersion.size());
+
+        List<DocumentVersion> pageContent = allDocumentVersion.subList(start, end);
+        return new PageImpl<>(pageContent, pageable, allDocumentVersion.size());
+    }
+
+    @Override
+    public Page<DocumentVersion> getAllVersionDocumentWhereUserSignatories(long id,
+                                                                           UUID userId,
+                                                                           int page,
+                                                                           int size) {
+        log.info("Get document with id: {} for user: {}", id, userId);
+        Document document = documentRepository.getDocumentWhereUserSignatories(id, userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Document not found"));
+
+        PageRequest pageable = PageRequest.of(page, size);
+
+        log.info("Get all version document");
+        List<DocumentVersion> allDocumentVersion = document.getDocumentVersion();
+        allDocumentVersion.sort((dv1, dv2) -> Math.toIntExact(dv2.getId() - dv1.getId()));
+
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), allDocumentVersion.size());
+
+        List<DocumentVersion> pageContent = allDocumentVersion.subList(start, end);
+        return new PageImpl<>(pageContent, pageable, allDocumentVersion.size());
     }
 
     @Transactional
     @Override
-    public DocumentVersion saveDocument(DocumentCreateDTO document) {
+    public DocumentVersion saveDocument(DocumentCreateDTO document, UUID userId) {
+        Long documentTypeId = document.getDocumentTypeId();
         Document newDocument = new Document();
-
+        log.info("Creating document with name: {}", document.getDocumentName());
         newDocument.setDocumentType(
-                documentTypeRepository.findById(document.getDocumentTypeId())
+                documentTypeRepository.findById(documentTypeId)
                         .orElseThrow(() -> new ResourceNotFoundException("Document type not found"))
         );
 
+        log.info("Creating document for User: {}", userId);
         newDocument.setUser(
-                userRepository.findById(document.getUserId())
+                userRepository.findById(userId)
                         .orElseThrow(() -> new ResourceNotFoundException("User not found"))
         );
-
-        DocumentVersion documentVersion = new DocumentVersion();
-        documentVersion.setDocumentName(document.getName());
-        documentVersion.setCreatedAt(Instant.now());
-        documentVersion.setUpdatedAt(Instant.now());
-
-        MinioSaveDto saveDto = minioDocumentMapper.map(document);
-        minioService.saveObject(saveDto);
-        documentVersion.setContentUrl(saveDto.objectName());
-
-        newDocument = documentRepository.save(newDocument);
-
-        documentVersion.setDocument(newDocument);
-        documentVersion = documentVersionRepository.save(documentVersion);
-
+        log.info("Save new document with id {}", newDocument.getId());
+        Document saved = documentRepository.save(newDocument);
+        log.info("Save document version document {}", document.getDocumentName());
+        DocumentVersion documentVersion = documentVersionService.saveDocumentVersion(document, saved, userId);
         return documentVersion;
     }
 
     @Transactional
     @Override
-    public DocumentVersion updateDocument(long id, DocumentUpdateDTO document) {
+    public DocumentVersion updateDocument(long id, DocumentUpdateDTO document, UUID userId) {
+        log.info("Updating document with id: {}", id);
         Document existingDocument = documentRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Document not found"));
 
-        if (document.getDocumentTypeId() != null &&
-                document.getDocumentTypeId().equals(existingDocument.getDocumentType().getId())) {
-            existingDocument.setDocumentType(
-                    documentTypeRepository.findById(document.getDocumentTypeId())
-                            .orElseThrow(() -> new ResourceNotFoundException("Document type not found"))
-            );
-        }
-
-        if (document.getUserId() != null) {
+        if (userId != null) {
             existingDocument.setUser(
-                    userRepository.findById(document.getUserId())
+                    userRepository.findById(userId)
                             .orElseThrow(() -> new ResourceNotFoundException("User not found"))
             );
         }
 
-        DocumentVersion documentVersion = new DocumentVersion();
-
-        if (existingDocument.getDocumentVersion() != null)
-            documentVersion = getUpdatedDocumentVersion(document, existingDocument);
-
         existingDocument = documentRepository.save(existingDocument);
 
-        documentVersion.setDocument(existingDocument);
-
-        return documentVersionRepository.save(documentVersion);
-    }
-
-    private DocumentVersion getUpdatedDocumentVersion(DocumentUpdateDTO document, Document existingDocument) {
-
-        // изменения только в последнюю версию документа
-        DocumentVersion documentVersion = existingDocument.getDocumentVersion()
-                .get(existingDocument.getDocumentVersion().size() - 1);
-        if (document.getName() != null) {
-            documentVersion.setDocumentName(document.getName());
-        }
-
-        // TODO: спросить может ли быть contentUrl пустым
-        if (document.getData() != null && !document.getData().isEmpty()) {
-            MinioSaveDto saveDto = minioDocumentMapper.map(document);
-            minioService.saveObject(saveDto);
-            documentVersion.setContentUrl(saveDto.objectName());
-        }
-
-        documentVersion.setUpdatedAt(Instant.now());
-
+        DocumentVersion documentVersion = documentVersionService.updateDocumentVersion(document, existingDocument, userId);
+        log.info("Document update successfully");
         return documentVersion;
     }
 
@@ -175,25 +230,31 @@ public class DocumentServiceImpl implements DocumentService {
 
     @Transactional
     @Override
-    public void sendForSign(List<UUID> userIds, Long documentVersionId) {
-        Optional<DocumentVersion> documentVersionOptional = documentVersionRepository.findById(documentVersionId);
-        if (documentVersionOptional.isEmpty()) {
-            throw new ResourceNotFoundException("Document version not found with id = %d".formatted(documentVersionId));
+    public ApprovementProcessItemDTO sendForSign(UUID userId, Long documentId, UserInfoDetails authenticatedUser) {
+        Optional<User> userOptional = userRepository.findById(userId);
+        if (userOptional.isEmpty()) {
+            throw new ResourceNotFoundException("User not found with id = %s".formatted(userId));
         }
-        DocumentVersion documentVersion = documentVersionOptional.get();
-        List<User> users = userRepository.findAllById(userIds);
-        for (User user : users) {
-            Signature signature = new Signature();
-            signature.setUser(user);
-            signature.setDocumentVersion(documentVersion);
-            signatureRepository.save(signature);
-            eventPublisher.publishEvent(new DocumentSignRequestEvent(this, signature));
+        User user = userOptional.get();
+
+        DocumentVersion documentVersion = getLastVersionDocumentForUser(documentId, authenticatedUser.getId());
+        if (!documentVersion.getDocument().getUser().getId().equals(authenticatedUser.getId())) {
+            throw new DocumentForbiddenAccess("You don't have access to this document with id = %d".formatted(documentId));
         }
+        if (approvementItemRepository.existsByDocumentVersionIdAndUserId(documentVersion.getId(), user.getId())) {
+            throw new ApprovementProccessItemAlreadyExistsException("Provided document already sent to user");
+        }
+        //проверка можно ли такой документ отправить на подпись
+        documentVersion.getState().sendForSign(documentVersion);
 
-    }
+        ApprovementProcessItem approvementProcessItem = new ApprovementProcessItem();
+        approvementProcessItem.setUser(user);
+        approvementProcessItem.setDocumentVersion(documentVersion);
 
-    private String saveToMinio(MinioSaveDto saveDto) {
-        minioService.saveObject(saveDto);
-        return saveDto.objectName();
+        approvementProcessItem.setStatus(documentVersion.getStatus() == DocumentStatus.PENDING_AUTHOR_SIGN ? ApprovementProcessItemStatus.PENDING_AUTHOR_SIGN : ApprovementProcessItemStatus.PENDING_CONTRACTOR_SIGN);
+        approvementProcessItem.setCreatedAt(LocalDateTime.now());
+        approvementItemRepository.save(approvementProcessItem);
+        eventPublisher.publishEvent(new DocumentSignRequestEvent(this, approvementProcessItem));
+        return approvementProccessItemMapper.toDTO(approvementProcessItem);
     }
 }
