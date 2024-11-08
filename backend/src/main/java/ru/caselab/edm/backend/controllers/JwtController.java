@@ -7,8 +7,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,7 +18,6 @@ import ru.caselab.edm.backend.dto.auth.RefreshTokenDTO;
 import ru.caselab.edm.backend.entity.User;
 import ru.caselab.edm.backend.entity.UserInfoDetails;
 import ru.caselab.edm.backend.exceptions.ResourceNotFoundException;
-import ru.caselab.edm.backend.security.details.UserDetailsServiceImpl;
 import ru.caselab.edm.backend.security.service.JwtService;
 import ru.caselab.edm.backend.security.service.RefreshTokenService;
 
@@ -29,7 +26,6 @@ import ru.caselab.edm.backend.security.service.RefreshTokenService;
 @Tag(name = "JWT", description = "JWT management operation")
 public class JwtController {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(UserDetailsServiceImpl.class);
     private final RefreshTokenService refreshTokenService;
     private final JwtService jwtService;
 
@@ -57,7 +53,7 @@ public class JwtController {
 
         UserInfoDetails userInfoDetails = new UserInfoDetails(user);
 
-        JwtDTO jwtDto = new JwtDTO(refreshTokenDto.refreshToken(),
+        JwtDTO jwtDto = new JwtDTO(user.getId(), refreshTokenDto.refreshToken(),
                 jwtService.generateToken(userInfoDetails));
         return ResponseEntity.ok(jwtDto);
     }

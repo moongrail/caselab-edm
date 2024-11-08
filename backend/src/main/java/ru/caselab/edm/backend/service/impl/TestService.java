@@ -31,7 +31,7 @@ public class TestService {
 
         UserInfoDetails userInfoDetails = new UserInfoDetails(user);
 
-        JwtDTO jwtDto = new JwtDTO(refreshTokenService.createRefreshToken(dto.login()).getToken()
+        JwtDTO jwtDto = new JwtDTO(user.getId(), refreshTokenService.createRefreshToken(dto.login()).getToken()
                 , jwtService.generateToken(userInfoDetails));
 
         return jwtDto;

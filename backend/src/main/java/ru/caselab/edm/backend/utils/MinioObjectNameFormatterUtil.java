@@ -4,7 +4,6 @@ package ru.caselab.edm.backend.utils;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
-import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
