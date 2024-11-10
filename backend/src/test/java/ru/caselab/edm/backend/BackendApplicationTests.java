@@ -1,6 +1,5 @@
 package ru.caselab.edm.backend;
 
-import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -29,7 +28,30 @@ class BackendApplicationTests {
         registry.add(MINIO_PASSWORD, minioContainer::getPassword);
     }
 
-    @Test
-    public void contextLoads() {
-    }
+
+/**
+ *      Объяснения почему так сделал
+ *      Контейнер без впн не качается.
+ *      Плюс надо его еще настраивать.
+ *      Везде где задевает ставьте @MockBean.
+ TODO:  На случай если кому то захочется донастроить.
+ */
+//    private static final String ELASTICSEARCH_IMAGE = "docker.elastic.co/elasticsearch/elasticsearch:8.7.1";
+
+//    @DynamicPropertySource
+//    static void elasticsearchProperties(DynamicPropertyRegistry registry) {
+//        registry.add("spring.elasticsearch.rest.uris", elasticsearchContainer::getHttpHostAddress);
+//        registry.add("spring.elasticsearch.username", () -> "user");
+//        registry.add("spring.elasticsearch.password", () -> "pass");
+//        registry.add("spring.data.elasticsearch.repositories.enabled", () -> "false");
+//    }
+
+//    static final ElasticsearchContainer elasticsearchContainer = new ElasticsearchContainer(ELASTICSEARCH_IMAGE)
+//            .withAccessToHost(true)
+//            .withSharedMemorySize(512L)
+//            .withPassword("pass");
+//
+//    static {
+//        elasticsearchContainer.start();
+//    }
 }
