@@ -1,15 +1,6 @@
 package ru.caselab.edm.backend.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -34,6 +25,10 @@ public class User {
     @Column(name = "id")
     private UUID id;
 
+    @ManyToOne
+    @JoinColumn(name = "department_id", nullable = false)
+    private Department departmentId;
+
     @Column(name = "login", nullable = false, unique = true)
     private String login;
 
@@ -52,11 +47,20 @@ public class User {
     @Column(name = "patronymic")
     private String patronymic;
 
+    @Column(name = "position")
+    private String position;
+
     @OneToMany(mappedBy = "user")
     private Set<RefreshToken> refreshTokens;
 
     @OneToMany(mappedBy = "user")
     private Set<Document> documents;
+
+    @OneToMany(mappedBy = "managerUserId")
+    private List<ReplacementManager> replacementManagers;
+
+    @OneToMany(mappedBy = "tempManagerUserId")
+    private List<ReplacementManager> tempReplacementManagers;
 
 /*    @OneToMany(mappedBy = "user")
     private Set<Signature> signatures;*/
