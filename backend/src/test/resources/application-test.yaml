@@ -12,7 +12,10 @@ spring:
         dialect: org.hibernate.dialect.H2Dialect
     hibernate:
       ddl-auto: none
-
+  data:
+    elasticsearch:
+      repositories:
+        enabled: false
 minio:
   bucket:
     name: test-bucket

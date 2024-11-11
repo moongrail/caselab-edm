@@ -21,6 +21,7 @@ import ru.caselab.edm.backend.entity.Attribute;
 import ru.caselab.edm.backend.entity.DocumentType;
 import ru.caselab.edm.backend.repository.RoleRepository;
 import ru.caselab.edm.backend.repository.UserRepository;
+import ru.caselab.edm.backend.repository.elastic.AttributeSearchRepository;
 import ru.caselab.edm.backend.security.details.UserDetailsServiceImpl;
 import ru.caselab.edm.backend.security.service.impl.JwtServiceImpl;
 import ru.caselab.edm.backend.service.DocumentTypeService;
@@ -42,6 +43,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Import({JwtServiceImpl.class, UserDetailsServiceImpl.class})
 @WebMvcTest(controllers = DocumentTypeController.class)
 class DocumentTypeControllerTest {
+    @MockBean
+    AttributeSearchRepository attributeSearchRepository;
     @MockBean
     UserRepository userRepository;
     @MockBean

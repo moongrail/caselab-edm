@@ -5,7 +5,10 @@ import ru.caselab.edm.backend.dto.attribute.AttributeCreateDTO;
 import ru.caselab.edm.backend.dto.attribute.AttributeDTO;
 import ru.caselab.edm.backend.dto.attribute.AttributeUpdateDTO;
 import ru.caselab.edm.backend.entity.Attribute;
+import ru.caselab.edm.backend.entity.AttributeSearch;
 import ru.caselab.edm.backend.mapper.attribute.AttributeMapper;
+
+import java.util.List;
 
 
 public interface AttributeService {
@@ -23,4 +26,7 @@ public interface AttributeService {
 
     AttributeMapper getAttributeMapper();
 
+    List<AttributeSearch> searchByName(String name);
+
+    List<AttributeSearch> findByNameWithMinLength(String name);
 }
