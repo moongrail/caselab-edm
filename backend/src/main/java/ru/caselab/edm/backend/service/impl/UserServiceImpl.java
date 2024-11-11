@@ -16,6 +16,7 @@ import ru.caselab.edm.backend.dto.user.UpdatePasswordDTO;
 import ru.caselab.edm.backend.dto.user.UpdateUserDTO;
 import ru.caselab.edm.backend.dto.user.UserDTO;
 import ru.caselab.edm.backend.dto.user.UserPageDTO;
+import ru.caselab.edm.backend.entity.Department;
 import ru.caselab.edm.backend.entity.Role;
 import ru.caselab.edm.backend.entity.User;
 import ru.caselab.edm.backend.entity.UserInfoDetails;
@@ -23,6 +24,7 @@ import ru.caselab.edm.backend.enums.RoleName;
 import ru.caselab.edm.backend.exceptions.ResourceNotFoundException;
 import ru.caselab.edm.backend.exceptions.UserAlreadyExistsException;
 import ru.caselab.edm.backend.mapper.user.UserMapper;
+import ru.caselab.edm.backend.repository.DepartmentRepository;
 import ru.caselab.edm.backend.repository.RoleRepository;
 import ru.caselab.edm.backend.repository.UserRepository;
 import ru.caselab.edm.backend.security.service.JwtService;
@@ -40,19 +42,21 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+    private final DepartmentRepository departmentRepository;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final RefreshTokenService refreshTokenService;
 
     @Autowired
-    public UserServiceImpl(UserRepository userRepository, RoleRepository roleRepository, UserMapper userMapper, PasswordEncoder passwordEncoder, JwtService jwtService, RefreshTokenService refreshTokenService) {
+    public UserServiceImpl(UserRepository userRepository, RoleRepository roleRepository, UserMapper userMapper, PasswordEncoder passwordEncoder, JwtService jwtService, RefreshTokenService refreshTokenService, DepartmentRepository departmentRepository) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.userMapper = userMapper;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.refreshTokenService = refreshTokenService;
+        this.departmentRepository = departmentRepository;
     }
 
     @Transactional(readOnly = true)
@@ -90,6 +94,15 @@ public class UserServiceImpl implements UserService {
             log.warn("User already exists with email: {}", createdUser.email());
             throw new UserAlreadyExistsException("User already exists with this email = %s".formatted(createdUser.email()));
         }
+        log.info("Trying to find department with id: {}", createdUser.departmentId());
+        Optional<Department> department = departmentRepository.findById(createdUser.departmentId());
+        if (department.isEmpty()) {
+            log.warn("Department not found with current id: {}", createdUser.departmentId());
+            throw new ResourceNotFoundException("Department not found with id = %s".formatted(createdUser.departmentId()));
+        }
+
+        Department existingDepartment = department.get();
+
         Set<Role> roles = new HashSet<>();
         for (RoleName role : createdUser.roles()) {
             Optional<Role> roleOptional = roleRepository.findByName(role);
@@ -101,6 +114,7 @@ public class UserServiceImpl implements UserService {
             }
         }
         User newUser = User.builder()
+                .departmentId(existingDepartment)
                 .login(createdUser.login())
                 .email(createdUser.email())
                 .password(passwordEncoder.encode(createdUser.password()))
@@ -141,6 +155,15 @@ public class UserServiceImpl implements UserService {
                     throw new ResourceNotFoundException("Role not found with this name = %s".formatted(role.name()));
                 }
             }
+            Optional<Department> department = departmentRepository.findById(updatedUser.departmentId());
+            if (department.isEmpty()) {
+                log.warn("Department not found with current id: {}", updatedUser.departmentId());
+                throw new ResourceNotFoundException("Department not found with id = %s".formatted(updatedUser.departmentId()));
+            }
+
+            Department existingDepartment = department.get();
+
+            existingUser.setDepartmentId(existingDepartment);
             existingUser.setLogin(updatedUser.login());
             existingUser.setEmail(updatedUser.email());
             existingUser.setFirstName(updatedUser.firstName());
