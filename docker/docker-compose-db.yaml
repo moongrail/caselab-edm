@@ -45,11 +45,12 @@ services:
       - discovery.type=single-node
       - ES_JAVA_OPTS=-Xms512m -Xmx512m
       - xpack.security.enabled=false
+      - http.host=0.0.0.0
     ports:
       - "9200:9200"
       - "9600:9600"
     volumes:
-      - ./elasticsearch_data:/usr/share/elasticsearch/data
+      - elasticsearch_data:/usr/share/elasticsearch/data
     healthcheck:
       test: [ "CMD", "curl", "--fail", "http://localhost:9200" ]
       interval: 30s
@@ -60,3 +61,4 @@ services:
 volumes:
   postgres_data:
   minio_data:
+  elasticsearch_data:
