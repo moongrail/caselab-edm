@@ -33,7 +33,7 @@ import ru.caselab.edm.backend.service.ReplacementManagementService;
 @PreAuthorize("hasRole('USER')")
 @Tag(name = "Replacement", description = "Replacement managers operations")
 public class ReplacementManagementController {
-    private final ReplacementManagementService departmentService;
+    private final ReplacementManagementService replacementManagementService;
     private final UserMapper userMapper;
 
     @Operation(
@@ -53,7 +53,7 @@ public class ReplacementManagementController {
                                                  @RequestParam(name = "size", defaultValue = "10")
                                                  @Min(value = 1) @Max(value = 100) int size,
                                                  @AuthenticationPrincipal UserInfoDetails user) {
-        Page<User> userForReplacement = departmentService.getUserForReplacement(page, size, user.getId());
+        Page<User> userForReplacement = replacementManagementService.getAllUsersForReplacement(page, size, user.getId());
         return userMapper.toPageDTO(userForReplacement);
     }
 }

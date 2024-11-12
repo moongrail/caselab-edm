@@ -18,9 +18,9 @@ public class ReplacementManagementServiceImpl implements ReplacementManagementSe
     private final UserRepository userRepository;
 
     @Override
-    public Page<User> getUserForReplacement(int page, int size, UUID userId) {
+    public Page<User> getAllUsersForReplacement(int page, int size, UUID userId) {
         PageRequest pageable = PageRequest.of(page, size);
         log.info("Get a page of users available for replacement - page: {}, size: {}", page, size);
-        return userRepository.getAllUserForReplacement(userId, pageable);
+        return userRepository.getAllUsersForReplacement(userId, pageable);
     }
 }

@@ -6,5 +6,5 @@ import ru.caselab.edm.backend.entity.User;
 import java.util.UUID;
 
 public interface ReplacementManagementService {
-    Page<User> getUserForReplacement(int page, int size, UUID userId);
+    Page<User> getAllUsersForReplacement(int page, int size, UUID userId);
 }

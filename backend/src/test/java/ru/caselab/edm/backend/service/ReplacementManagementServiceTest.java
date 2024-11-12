@@ -69,8 +69,8 @@ class ReplacementManagementServiceTest {
         userList.add(user);
         Page<User> userPage = new PageImpl<>(userList);
 
-        when(userRepository.getAllUserForReplacement(userId, pageable)).thenReturn(userPage);
-        Page<User> result = departmentService.getUserForReplacement(0, 10, userId);
+        when(userRepository.getAllUsersForReplacement(userId, pageable)).thenReturn(userPage);
+        Page<User> result = departmentService.getAllUsersForReplacement(0, 10, userId);
 
         assertEquals(userPage, result);
     }

@@ -28,5 +28,5 @@ public interface UserRepository extends JpaRepository<User, UUID> {
             AND id !=:userId
             """,
             nativeQuery = true)
-    Page<User> getAllUserForReplacement(UUID userId, Pageable pageable);
+    Page<User> getAllUsersForReplacement(UUID userId, Pageable pageable);
 }
