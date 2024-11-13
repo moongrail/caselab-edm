@@ -15,21 +15,23 @@ import java.util.UUID;
 public interface DepartmentRepository extends JpaRepository<Department, Long> {
 
     @Query(value = """
-            SELECT DISTINCT ON (d.id) d.id, d.name, d.description, d.parent_id
+            SELECT d.id, d.name, d.description, d.parent_id
             FROM departments d
             JOIN department_members dm
             ON d.id = dm.department_id
             WHERE dm.member_id = :userId
+            ORDER BY d.name ASC
             """,
             nativeQuery = true)
     Page<Department> getDepartmentsWithUser(UUID userId, Pageable pageable);
 
     @Query(value = """
-            SELECT DISTINCT ON (d.id) d.id, d.name, d.description, d.parent_id
+            SELECT d.id, d.name, d.description, d.parent_id
             FROM departments d
             JOIN department_managers dm
             ON d.id = dm.department_id
             WHERE dm.user_id = :userId
+            ORDER BY d.name ASC
             """,
             nativeQuery = true)
     Page<Department> getSubordinateDepartments(UUID userId, Pageable pageable);
