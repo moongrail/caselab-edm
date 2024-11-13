@@ -148,7 +148,7 @@ public class DepartmentController {
     )
     @ApiResponse(responseCode = "204", description = "Department was successfully deleted",
             content = @Content)
-    @DeleteMapping("/{id}/delete")
+    @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteDepartment(@PathVariable Long id) {
         departmentService.deleteDepartment(id);
