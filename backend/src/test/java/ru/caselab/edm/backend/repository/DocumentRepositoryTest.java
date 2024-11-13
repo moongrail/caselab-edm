@@ -29,10 +29,10 @@ class DocumentRepositoryTest {
 
     private void initdb() {
         jdbcTemplate.execute("""
-                INSERT INTO users (id, department_id, login, email, password, first_name, last_name, patronymic, "position") VALUES
-                ('48bbbd31-45c0-43c5-b989-c1c14a8c3b8b', 1, 'Test1', 'test1@gmail.com', 'test1password', 'Ivan', 'Ivanov', 'shskfckhvca', 'sfsadfa'),
-                ('c5df47fe-f4d2-45c2-8084-e646c85a7eba', 1, 'Test2', 'test2@gmail.com', 'test2password', 'Mari', 'Ivanova', 'sdfvsfdev', 'dfgdsfgdsfgdsf'),
-                ('c5df47fe-f4d2-45c2-8084-e546c85a7eba', 1, 'Test3', 'test3@gmail.com', 'test3password', 'Test', 'Test', 'test', 'dsgdfgdf');
+                INSERT INTO users (id, login, email, password, first_name, last_name, patronymic, "position") VALUES
+                ('48bbbd31-45c0-43c5-b989-c1c14a8c3b8b','Test1', 'test1@gmail.com', 'test1password', 'Ivan', 'Ivanov', 'shskfckhvca', 'sfsadfa'),
+                ('c5df47fe-f4d2-45c2-8084-e646c85a7eba', 'Test2', 'test2@gmail.com', 'test2password', 'Mari', 'Ivanova', 'sdfvsfdev', 'dfgdsfgdsfgdsf'),
+                ('c5df47fe-f4d2-45c2-8084-e546c85a7eba', 'Test3', 'test3@gmail.com', 'test3password', 'Test', 'Test', 'test', 'dsgdfgdf');
                 INSERT INTO document_types (id, name, description, created_at, updated_at) VALUES
                     (1, 'test_type', 'test', '2024-01-15', '2024-01-15');
                 INSERT INTO documents (id, user_id, document_type_id, created_at) VALUES
