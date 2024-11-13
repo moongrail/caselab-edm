@@ -3,6 +3,14 @@
 ### Запуск
 - cd docker, docker compose -f docker-compose-db.yaml up -d для поднятия базы, минио. в общем пакете лежит сборщик бекэнд+бд.
 
+### Запуск на сервере.
+Автоматический апдейт после мержа в мейн, если нужно вручную перезапустить то. 
+- cd docker. docker compose -f docker-compose-server.yaml up -d
+
+### Схема сущностей приложения 
+![schemeBD.PNG](img%2FschemeBD.PNG)
+### Логика статусов документов
+![docStatus.PNG](img%2FdocStatus.PNG)
 ### API
 - ко всем эндпоинтам приписывается api/v1
   т.е. если вы пишите @ReqMap("/test") будет api/v1/test
@@ -43,7 +51,7 @@ docker push ваш_аккаунт_докер/minio:версия(пример 0.0
 sudo docker compose -f docker-compose-server.yaml up -d
 ```
 
-#### Отдельно каждый образ
+#### Отдельно каждый образ (not actual)
 ```
 sudo docker run -d --net=host --restart unless-stopped \
 -e POSTGRES_USER=postgres \

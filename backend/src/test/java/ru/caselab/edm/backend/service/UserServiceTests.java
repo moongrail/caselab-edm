@@ -181,6 +181,7 @@ public class UserServiceTests {
         UpdateUserDTO updateUserDTO = new UpdateUserDTO( "newTest", "newTest@test.ru", "newTest", "newTest", "newTest", "newDeveloper", new RoleName[]{RoleName.USER});
         UserDTO userDTO = new UserDTO(userId,"newTest", "newTest@test.ru", "newTest", "newTest", "newTest", "newDeveloper" ,roleDTOS);
 
+        when(departmentRepository.findById(1L)).thenReturn(Optional.of(department));
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(userRepository.existsByEmail("newTest@test.ru")).thenReturn(false);
         when(userRepository.existsByLogin("newTest")).thenReturn(false);
@@ -189,6 +190,7 @@ public class UserServiceTests {
 
         UserDTO result = userService.updateUser(userId, updateUserDTO);
 
+        verify(departmentRepository, times(1)).findById(1L);
         verify(userRepository, times(1)).existsByEmail("newTest@test.ru");
         verify(userRepository, times(1)).existsByLogin("newTest");
         verify(userRepository, times(1)).save(any(User.class));
@@ -202,6 +204,8 @@ public class UserServiceTests {
         UpdateUserDTO updateUserDTO = new UpdateUserDTO( "test", "test@test.ru", "newTest", "newTest", "newTest", "newDeveloper", new RoleName[]{RoleName.USER});
         UserDTO userDTO = new UserDTO(userId,"test", "test@test.ru", "newTest", "newTest", "newTest", "newDeveloper", roleDTOS);
 
+
+        when(departmentRepository.findById(1L)).thenReturn(Optional.of(department));
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(userRepository.existsByEmail("testt@test.ru")).thenReturn(true);
         when(userRepository.existsByLogin("test")).thenReturn(true);
@@ -210,6 +214,7 @@ public class UserServiceTests {
 
         UserDTO result = userService.updateUser(userId, updateUserDTO);
 
+        verify(departmentRepository, times(1)).findById(1L);
         verify(userRepository, times(0)).existsByEmail("test@test.ru");
         verify(userRepository, times(0)).existsByLogin("test");
         verify(userRepository, times(1)).save(any(User.class));
@@ -233,6 +238,7 @@ public class UserServiceTests {
     void updateUser_WhenLoginExists_ShouldThrowUserAlreadyExistException() {
         UpdateUserDTO updateUserDTO = new UpdateUserDTO("newTest", "test@test.ru", "newTest", "newTest", "newTest", "newDeveloper", new RoleName[]{RoleName.USER});
 
+
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(userRepository.existsByEmail("test@test.ru")).thenReturn(true);
         when(userRepository.existsByLogin("newTest")).thenReturn(true);
@@ -244,6 +250,7 @@ public class UserServiceTests {
     @Test
     void updateUser_WhenUserNotFound_ShouldThrowResourceNotFoundException() {
         UpdateUserDTO updateUserDTO = new UpdateUserDTO("newTest", "test@test.ru", "newTest", "newTest", "newTest", "newDeveloper", new RoleName[]{RoleName.USER});
+
 
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 

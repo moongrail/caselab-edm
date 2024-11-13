@@ -32,6 +32,3 @@ public class DocumentOutputAllDocumentsDTO {
     @Schema(description = "Document status")
     private DocumentStatus state;
 }
-/*
-    @Schema(description = "Document approvement process status")
-    private ApprovementProcessStatus approvementProcessStatus;*/

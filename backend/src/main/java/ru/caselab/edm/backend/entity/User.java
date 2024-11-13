@@ -22,6 +22,10 @@ public class User {
     @Column(name = "id")
     private UUID id;
 
+    @ManyToOne
+    @JoinColumn(name = "department_id", nullable = false)
+    private Department departmentId;
+
     @Column(name = "login", nullable = false, unique = true)
     private String login;
 

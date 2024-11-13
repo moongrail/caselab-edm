@@ -4,9 +4,11 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import ru.caselab.edm.backend.entity.Attribute;
+import ru.caselab.edm.backend.repository.elastic.AttributeSearchRepository;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -20,6 +22,8 @@ class DocumentTypeRepositoryTest {
     DocumentTypeRepository documentTypeRepository;
     @Autowired
     AttributeRepository attributesRepository;
+    @MockBean
+    AttributeSearchRepository attributeSearchRepository;
     @Autowired
     private JdbcTemplate jdbcTemplate;
 

@@ -26,7 +26,8 @@
                 (
                     department_id BIGINT REFERENCES departments(id),
                     member_id UUID REFERENCES users(id)
-            )
+            );
+          
         </sql>
     </changeSet>
 </databaseChangeLog>

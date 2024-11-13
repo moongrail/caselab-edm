@@ -96,6 +96,7 @@ public class UserServiceImpl implements UserService {
         }
 
         log.info("Trying to find department by user id: {}", createdUser.departmentId());
+
         Optional<Department> department = departmentRepository.findById(createdUser.departmentId());
         if (department.isEmpty()) {
             log.warn("Department not found with current id: {}", createdUser.departmentId());
@@ -119,6 +120,7 @@ public class UserServiceImpl implements UserService {
         departments.add(existingDepartment);
 
         User newUser = User.builder()
+                .departmentId(existingDepartment)
                 .login(createdUser.login())
                 .email(createdUser.email())
                 .password(passwordEncoder.encode(createdUser.password()))
@@ -160,7 +162,7 @@ public class UserServiceImpl implements UserService {
                     throw new ResourceNotFoundException("Role not found with this name = %s".formatted(role.name()));
                 }
             }
-
+          
             existingUser.setLogin(updatedUser.login());
             existingUser.setEmail(updatedUser.email());
             existingUser.setFirstName(updatedUser.firstName());

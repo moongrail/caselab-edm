@@ -60,7 +60,7 @@ public class DocumentTypeImpl implements DocumentTypeService {
         documentType.setName(createdDocumentType.getName());
         documentType.setDescription(createdDocumentType.getDescription());
         if (createdDocumentType.getAttributeIds() != null
-                && !createdDocumentType.getAttributeIds().isEmpty()) {
+            && !createdDocumentType.getAttributeIds().isEmpty()) {
             documentType.setAttributes(mapAttributeIdsToEntities(createdDocumentType.getAttributeIds()));
         }
 
@@ -77,13 +77,19 @@ public class DocumentTypeImpl implements DocumentTypeService {
                     log.warn("Document type with id: {} not found", id);
                     return new ResourceNotFoundException("Not Found: " + id);
                 });
-        if (!documentTypeRepository.findByName(updateDocumentType.getName()).isEmpty()) {
-            throw new DocumentTypeAlreadyExistsException("Document type with name %s already exists"
-                    .formatted(updateDocumentType.getName()));
+
+        if (updateDocumentType.getName() != null && !updateDocumentType.getName().isBlank()) {
+            if (!documentTypeRepository.findByName(updateDocumentType.getName()).isEmpty()) {
+                throw new DocumentTypeAlreadyExistsException("Document type with name %s already exists"
+                        .formatted(updateDocumentType.getName()));
+            }
+            documentType.setName(updateDocumentType.getName());
         }
-        documentType.setName(updateDocumentType.getName());
         documentType.setDescription(updateDocumentType.getDescription());
-        documentType.setAttributes(mapAttributeIdsToEntities(updateDocumentType.getAttributeIds()));
+
+        if (updateDocumentType.getAttributeIds() != null) {
+            documentType.setAttributes(mapAttributeIdsToEntities(updateDocumentType.getAttributeIds()));
+        }
 
         documentTypeRepository.save(documentType);
         log.info("Document type update successfully: {}", documentType);
