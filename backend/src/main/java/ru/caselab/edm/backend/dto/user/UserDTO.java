@@ -12,10 +12,7 @@ public record UserDTO(
 
         @Schema(description = "ID", format = "uuid", example = "123e4567-e89b-12d3-a456-426614174000")
         UUID id,
-
-        @Schema(description = "Department ID", example = "1")
-        Long departmentId,
-
+        
         @Schema(description = "Login", example = "login")
         String login,
 
