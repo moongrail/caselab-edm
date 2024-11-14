@@ -248,7 +248,7 @@ public class DocumentServiceImpl implements DocumentService {
 
     private User getUserOrTempManagerById(UUID userId) {
         return replacementManagerRepository.findActiveReplacementByManagerUserId(userId)
-                .map(ReplacementManager::getTempManagerUserId)
+                .map(ReplacementManager::getTempManagerUser)
                 .orElseGet(() -> getUserById(userId));
     }
 
