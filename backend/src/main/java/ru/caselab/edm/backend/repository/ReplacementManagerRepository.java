@@ -5,9 +5,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import ru.caselab.edm.backend.entity.ReplacementManager;
-import ru.caselab.edm.backend.entity.User;
-
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -17,9 +14,9 @@ public interface ReplacementManagerRepository extends JpaRepository<ReplacementM
     @Query("""
         SELECT rm
         FROM ReplacementManager rm
-        WHERE rm.managerUserId.id = :userId
-            AND (rm.from < CURRENT_TIMESTAMP AND rm.to > CURRENT_TIMESTAMP)
-        ORDER BY rm.from DESC
+        WHERE rm.managerUser.id = :userId
+            AND (rm.startDate < CURRENT_TIMESTAMP AND rm.endDate > CURRENT_TIMESTAMP)
+        ORDER BY rm.startDate DESC
         """)
     Optional<ReplacementManager> findActiveReplacementByManagerUserId(@Param("userId") UUID userId);
 
