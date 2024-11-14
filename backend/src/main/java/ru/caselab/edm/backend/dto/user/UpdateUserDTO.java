@@ -10,10 +10,6 @@ import ru.caselab.edm.backend.enums.RoleName;
 @Schema(description = "DTO for update user")
 public record UpdateUserDTO(
 
-        @Schema(description = "Department id", example = "1")
-        @NotBlank
-        Long departmentId,
-
         @Schema(description = "Login", example = "login")
         @NotBlank String login,
 

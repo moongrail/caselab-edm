@@ -29,8 +29,13 @@ public class Department {
     @Column(name = "parent_id")
     private Long parentId;
 
-    @OneToMany(mappedBy = "departmentId")
-    private Set<User> users;
+    @ManyToMany
+    @JoinTable(
+            name = "department_members",
+            joinColumns = @JoinColumn(name = "department_id"),
+            inverseJoinColumns = @JoinColumn(name = "member_id")
+    )
+    private Set<User> members;
 
     @ManyToMany
     @JoinTable(
@@ -38,6 +43,6 @@ public class Department {
             joinColumns = @JoinColumn(name = "department_id"),
             inverseJoinColumns = @JoinColumn(name = "user_id")
     )
-    private List<User> managers;
+    private Set<User> managers;
 
 }

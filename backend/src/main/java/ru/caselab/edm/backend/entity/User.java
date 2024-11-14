@@ -1,11 +1,7 @@
 package ru.caselab.edm.backend.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.List;
 import java.util.Set;
@@ -16,6 +12,7 @@ import java.util.UUID;
 @Builder
 @Getter
 @Setter
+@EqualsAndHashCode
 @NoArgsConstructor
 @AllArgsConstructor
 public class User {
@@ -57,10 +54,10 @@ public class User {
     private Set<Document> documents;
 
     @OneToMany(mappedBy = "managerUserId")
-    private List<ReplacementManager> replacementManagers;
+    private Set<ReplacementManager> replacementManagers;
 
     @OneToMany(mappedBy = "tempManagerUserId")
-    private List<ReplacementManager> tempReplacementManagers;
+    private Set<ReplacementManager> tempReplacementManagers;
 
 /*    @OneToMany(mappedBy = "user")
     private Set<Signature> signatures;*/
@@ -72,6 +69,12 @@ public class User {
             inverseJoinColumns = @JoinColumn(name = "role_id")
     )
     private Set<Role> roles;
+
+    @ManyToMany(mappedBy = "managers")
+    private Set<Department> leadsDepartments;
+
+    @ManyToMany(mappedBy = "members")
+    private Set<Department> departments;
 
     @OneToMany(mappedBy = "user")
     private List<ApprovementProcessItem> approvementProcessItems;
