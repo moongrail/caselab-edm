@@ -8,6 +8,8 @@ import ru.caselab.edm.backend.entity.Department;
 import ru.caselab.edm.backend.entity.User;
 import ru.caselab.edm.backend.mapper.role.RoleMapper;
 
+import java.util.List;
+
 
 @Mapper(componentModel = "spring", uses = {RoleMapper.class})
 public interface UserMapper {
@@ -19,5 +21,7 @@ public interface UserMapper {
     }
 
     UserPageDTO toPageDTO(Page<User> user);
+
+    List<UserDTO> toListDTO(List<User> users);
 
 }

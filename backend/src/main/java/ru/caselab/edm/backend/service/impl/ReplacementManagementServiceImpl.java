@@ -8,8 +8,8 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import ru.caselab.edm.backend.dto.replacementmanagement.UsersForReplacementDTO;
-import ru.caselab.edm.backend.entity.Department;
 import ru.caselab.edm.backend.entity.User;
+import ru.caselab.edm.backend.mapper.user.UserMapper;
 import ru.caselab.edm.backend.repository.DepartmentRepository;
 import ru.caselab.edm.backend.repository.UserRepository;
 import ru.caselab.edm.backend.service.ReplacementManagementService;
@@ -24,6 +24,7 @@ import java.util.UUID;
 public class ReplacementManagementServiceImpl implements ReplacementManagementService {
     private final UserRepository userRepository;
     private final DepartmentRepository departmentRepository;
+    private final UserMapper userMapper;
 
     @Override
     public Page<UsersForReplacementDTO> getAllUsersForReplacementManager(int page, int size, UUID userId) {
@@ -33,12 +34,11 @@ public class ReplacementManagementServiceImpl implements ReplacementManagementSe
 
         for (Long d : departmentByManagerUuid) {
             List<User> departmentMembersForReplacementManager = userRepository.getDepartmentMembersForReplacementManager(d);
-            for (User u : departmentMembersForReplacementManager) {
-                UsersForReplacementDTO usersForReplacementDTO = mapToDTO(d, u);
-                allUsersForReplacementManager.add(usersForReplacementDTO);
-            }
+            UsersForReplacementDTO usersForReplacementDTO = new UsersForReplacementDTO();
+            usersForReplacementDTO.setDepartmentId(d);
+            usersForReplacementDTO.setUsers(userMapper.toListDTO(departmentMembersForReplacementManager));
+            allUsersForReplacementManager.add(usersForReplacementDTO);
         }
-
         return listMapToPage(page, size, allUsersForReplacementManager);
     }
 
@@ -53,26 +53,13 @@ public class ReplacementManagementServiceImpl implements ReplacementManagementSe
             List<User> departmentMembersForReplacement = userRepository.getDepartmentMembersForReplacement(userId, d);
             List<User> departmentMembersAndManagersForReplacement = (List<User>) CollectionUtils.union(departmentManagersForReplacementDepartmentMember, departmentMembersForReplacement);
 
-            for (User u : departmentMembersAndManagersForReplacement) {
-                UsersForReplacementDTO usersForReplacementDTO = mapToDTO(d, u);
-                allUsersForReplacementDepartmentMember.add(usersForReplacementDTO);
-            }
+            UsersForReplacementDTO usersForReplacementDTO = new UsersForReplacementDTO();
+            usersForReplacementDTO.setDepartmentId(d);
+            usersForReplacementDTO.setUsers(userMapper.toListDTO(departmentMembersAndManagersForReplacement));
+            allUsersForReplacementDepartmentMember.add(usersForReplacementDTO);
         }
 
         return listMapToPage(page, size, allUsersForReplacementDepartmentMember);
-    }
-
-    private static UsersForReplacementDTO mapToDTO(Long d, User u) {
-        UsersForReplacementDTO usersForReplacementDTO = new UsersForReplacementDTO();
-        usersForReplacementDTO.setId(u.getId());
-        usersForReplacementDTO.setLogin(u.getLogin());
-        usersForReplacementDTO.setEmail(u.getEmail());
-        usersForReplacementDTO.setPatronymic(u.getPatronymic());
-        usersForReplacementDTO.setPosition(u.getPosition());
-        usersForReplacementDTO.setFirstName(u.getFirstName());
-        usersForReplacementDTO.setLastName(u.getLastName());
-        usersForReplacementDTO.setDepartmentId(d);
-        return usersForReplacementDTO;
     }
 
     private static PageImpl<UsersForReplacementDTO> listMapToPage(int page, int size, List<UsersForReplacementDTO> allUsersForReplacementManager) {
