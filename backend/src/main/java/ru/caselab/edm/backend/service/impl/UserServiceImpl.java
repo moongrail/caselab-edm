@@ -104,7 +104,6 @@ public class UserServiceImpl implements UserService {
         }
 
         Department existingDepartment = department.get();
-
         Set<Role> roles = new HashSet<>();
         for (RoleName role : createdUser.roles()) {
             Optional<Role> roleOptional = roleRepository.findByName(role);
@@ -130,6 +129,10 @@ public class UserServiceImpl implements UserService {
                 .roles(roles)
                 .departments(departments)
                 .build();
+
+        existingDepartment.getMembers().add(newUser);
+
+        departmentRepository.save(existingDepartment);
         userRepository.save(newUser);
         log.info("User created with id: {}", newUser.getId());
         return userMapper.toDTO(newUser);
