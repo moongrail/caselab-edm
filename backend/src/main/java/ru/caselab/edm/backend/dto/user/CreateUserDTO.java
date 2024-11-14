@@ -5,14 +5,13 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import ru.caselab.edm.backend.entity.Department;
 import ru.caselab.edm.backend.enums.RoleName;
 
 @Schema(description = "DTO for creating user")
 public record CreateUserDTO(
 
         @Schema(description = "Department id", example = "1")
-        @NotBlank Long departmentId,
+         Long departmentId,
 
         @Schema(description = "Login", example = "login")
         @NotBlank String login,

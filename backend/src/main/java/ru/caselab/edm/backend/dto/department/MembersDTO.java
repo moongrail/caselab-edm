@@ -10,7 +10,6 @@ import java.util.UUID;
 public record MembersDTO(
 
         @Schema(description = "List of user ID's to be added/deleted to department")
-        @NotBlank
         List<UUID> members
 ) {
 }

@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import ru.caselab.edm.backend.entity.User;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -38,4 +39,29 @@ public interface UserRepository extends JpaRepository<User, UUID> {
             """,
             nativeQuery = true)
     Page<User> getDepartmentMembers(@Param("departmentId") Long departmentId, Pageable pageable);
+
+
+    @Query(value = """
+            SELECT u.id, u.login, u.email, u.first_name, u.last_name, u.patronymic, u.password, u.position
+            FROM users u
+            JOIN department_members dm
+            ON u.id = dm.member_id
+            WHERE dm.department_id IN (:departmentIds) 
+              AND u.id not in (:notAvailableUsers)
+            
+            """,
+            nativeQuery = true)
+    Page<User> getAvailableUsersForDelegation(@Param("departmentIds") List<Long> departmentIds, @Param("notAvailableUsers") List<UUID> notAvailableUsers, Pageable pageable);
+
+    @Query(value = """
+            SELECT u.id, u.login, u.email, u.first_name, u.last_name, u.patronymic, u.password, u.position
+            FROM users u
+            JOIN department_members dm ON u.id = dm.member_id
+            WHERE u.id = :userId
+              AND dm.department_id IN (:departmentIds)
+              AND u.id NOT IN (:notAvailableUsers)
+            """,
+            nativeQuery = true)
+    Optional<User> findUserByIdAndDepartmentAndNotInNotAvailableList(UUID userId, List<Long> departmentIds, List<UUID> notAvailableUsers);
+
 }
