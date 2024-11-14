@@ -28,11 +28,11 @@ public class ReplacementManagementServiceImpl implements ReplacementManagementSe
     @Override
     public Page<UsersForReplacementDTO> getAllUsersForReplacementManager(int page, int size, UUID userId) {
         log.info("Get department id where the manager with UUID: {} works ", userId);
-        List<Department> departmentByManagerUuid = departmentRepository.findDepartmentByManagerUuid(userId);
+        List<Long> departmentByManagerUuid = departmentRepository.findDepartmentByManagerUuid(userId);
         List<UsersForReplacementDTO> allUsersForReplacementManager = new ArrayList<>();
 
-        for (Department d : departmentByManagerUuid) {
-            List<User> departmentMembersForReplacementManager = userRepository.getDepartmentMembersForReplacementManager(d.getId());
+        for (Long d : departmentByManagerUuid) {
+            List<User> departmentMembersForReplacementManager = userRepository.getDepartmentMembersForReplacementManager(d);
             for (User u : departmentMembersForReplacementManager) {
                 UsersForReplacementDTO usersForReplacementDTO = mapToDTO(d, u);
                 allUsersForReplacementManager.add(usersForReplacementDTO);
@@ -45,12 +45,12 @@ public class ReplacementManagementServiceImpl implements ReplacementManagementSe
     @Override
     public Page<UsersForReplacementDTO> getAllUsersForReplacementDepartmentMember(int page, int size, UUID userId) {
         log.info("Get department id where the user with UUID: {} works ", userId);
-        List<Department> departmentByMemberUuid = departmentRepository.findDepartmentByMemberUuid(userId);
+        List<Long> departmentIdByMemberUuid = departmentRepository.findDepartmentByMemberUuid(userId);
         List<UsersForReplacementDTO> allUsersForReplacementDepartmentMember = new ArrayList<>();
 
-        for (Department d : departmentByMemberUuid) {
-            List<User> departmentManagersForReplacementDepartmentMember = userRepository.getDepartmentManagersForReplacementDepartmentMember(d.getId());
-            List<User> departmentMembersForReplacement = userRepository.getDepartmentMembersForReplacement(userId, d.getId());
+        for (Long d : departmentIdByMemberUuid) {
+            List<User> departmentManagersForReplacementDepartmentMember = userRepository.getDepartmentManagersForReplacementDepartmentMember(d);
+            List<User> departmentMembersForReplacement = userRepository.getDepartmentMembersForReplacement(userId, d);
             List<User> departmentMembersAndManagersForReplacement = (List<User>) CollectionUtils.union(departmentManagersForReplacementDepartmentMember, departmentMembersForReplacement);
 
             for (User u : departmentMembersAndManagersForReplacement) {
@@ -62,7 +62,7 @@ public class ReplacementManagementServiceImpl implements ReplacementManagementSe
         return listMapToPage(page, size, allUsersForReplacementDepartmentMember);
     }
 
-    private static UsersForReplacementDTO mapToDTO(Department d, User u) {
+    private static UsersForReplacementDTO mapToDTO(Long d, User u) {
         UsersForReplacementDTO usersForReplacementDTO = new UsersForReplacementDTO();
         usersForReplacementDTO.setId(u.getId());
         usersForReplacementDTO.setLogin(u.getLogin());
@@ -71,7 +71,7 @@ public class ReplacementManagementServiceImpl implements ReplacementManagementSe
         usersForReplacementDTO.setPosition(u.getPosition());
         usersForReplacementDTO.setFirstName(u.getFirstName());
         usersForReplacementDTO.setLastName(u.getLastName());
-        usersForReplacementDTO.setDepartmentId(d.getId());
+        usersForReplacementDTO.setDepartmentId(d);
         return usersForReplacementDTO;
     }
 

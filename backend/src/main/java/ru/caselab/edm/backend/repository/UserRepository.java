@@ -45,7 +45,7 @@ public interface UserRepository extends JpaRepository<User, UUID> {
             select u.* from users u
             join department_members dm on u.id = dm.member_id
             where dm.department_id =:departmentId
-            and u.id != userId
+            and u.id !=:userId
             """,
             nativeQuery = true)
     List<User> getDepartmentMembersForReplacement(UUID userId, Long departmentId);

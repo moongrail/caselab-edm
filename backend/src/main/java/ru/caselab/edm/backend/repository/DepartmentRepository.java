@@ -39,20 +39,20 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
             """,
             nativeQuery = true)
     Page<Department> getSubordinateDepartments(UUID userId, Pageable pageable);
-}
+
     @Query(value = """
             select dm.department_id from department_members dm
             join users u on u.id = dm.member_id
             where u.id = :userId
             """,
             nativeQuery = true)
-    List<Department> findDepartmentByMemberUuid(UUID userId);
+    List<Long> findDepartmentByMemberUuid(UUID userId);
 
     @Query(value = """
             select dm.department_id from department_managers dm
-            join users u on u.id = dm.member_id
+            join users u on u.id = dm.user_id
             where u.id = :userId
             """,
             nativeQuery = true)
-    List<Department> findDepartmentByManagerUuid(UUID userId);
+    List<Long> findDepartmentByManagerUuid(UUID userId);
 }

@@ -43,11 +43,11 @@ class ReplacementManagementServiceTest {
         user.setFirstName("John");
         user.setLastName("Doe");
 
-        List<Department> departments = List.of(department);
+        List<Long> departmentsId = List.of(1L);
         List<User> users = List.of(user);
 
-        Mockito.when(departmentRepository.findDepartmentByManagerUuid(userId)).thenReturn(departments);
-        Mockito.when(userRepository.getDepartmentMembersForReplacementManager(department.getId())).thenReturn(users);
+        Mockito.when(departmentRepository.findDepartmentByManagerUuid(userId)).thenReturn(departmentsId);
+        Mockito.when(userRepository.getDepartmentMembersForReplacementManager(1L)).thenReturn(users);
 
         Page<UsersForReplacementDTO> result = replacementManagementService.getAllUsersForReplacementManager(0, 10, userId);
 
@@ -79,13 +79,13 @@ class ReplacementManagementServiceTest {
         member.setFirstName("Member");
         member.setLastName("Member");
 
-        List<Department> departments = List.of(department);
+        List<Long> departmentsId = List.of(1L);
 
         List<User> managers = List.of(manager);
         List<User> members = List.of(member);
 
-        Mockito.when(departmentRepository.findDepartmentByMemberUuid(userId)).thenReturn(departments);
-        Mockito.when(userRepository.getDepartmentManagersForReplacementDepartmentMember(department.getId())).thenReturn(managers);
+        Mockito.when(departmentRepository.findDepartmentByMemberUuid(userId)).thenReturn(departmentsId);
+        Mockito.when(userRepository.getDepartmentManagersForReplacementDepartmentMember(1L)).thenReturn(managers);
         Mockito.when(userRepository.getDepartmentMembersForReplacement(userId, department.getId())).thenReturn(members);
 
         Page<UsersForReplacementDTO> result = replacementManagementService.getAllUsersForReplacementDepartmentMember(0, 10, userId);

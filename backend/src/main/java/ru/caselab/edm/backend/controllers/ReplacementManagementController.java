@@ -14,6 +14,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -42,6 +43,7 @@ public class ReplacementManagementController {
                             schema = @Schema(implementation = UsersForReplacementDTO.class)))
     })
     @ResponseStatus(HttpStatus.OK)
+    @GetMapping("/department_member")
     public Page<UsersForReplacementDTO> getAllUsersForReplacementDocumentMember(@RequestParam(name = "page", defaultValue = "0")
                                                                                 @Min(value = 0) int page,
                                                                                 @RequestParam(name = "size", defaultValue = "10")
@@ -62,6 +64,7 @@ public class ReplacementManagementController {
                             schema = @Schema(implementation = UsersForReplacementDTO.class)))
     })
     @ResponseStatus(HttpStatus.OK)
+    @GetMapping("/department_manager")
     public Page<UsersForReplacementDTO> getAllUsersForReplacementDepartmentManager(@RequestParam(name = "page", defaultValue = "0")
                                                                                    @Min(value = 0) int page,
                                                                                    @RequestParam(name = "size", defaultValue = "10")
