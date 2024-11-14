@@ -54,6 +54,9 @@ public class DepartmentServiceImpl implements DepartmentService {
             }
         }
 
+        if (managers.isEmpty())
+            throw new ResourceNotFoundException("Managers are not exists");
+
         log.info("Creating department entity");
         Department department = Department.builder().name(createDepartmentDTO.name())
                 .description(createDepartmentDTO.description()).parentId(createDepartmentDTO.parentId())

@@ -104,7 +104,6 @@ public class UserServiceImpl implements UserService {
         }
 
         Department existingDepartment = department.get();
-
         Set<Role> roles = new HashSet<>();
         for (RoleName role : createdUser.roles()) {
             Optional<Role> roleOptional = roleRepository.findByName(role);
