@@ -119,7 +119,6 @@ public class UserServiceImpl implements UserService {
         departments.add(existingDepartment);
 
         User newUser = User.builder()
-                .departmentId(existingDepartment)
                 .login(createdUser.login())
                 .email(createdUser.email())
                 .password(passwordEncoder.encode(createdUser.password()))
