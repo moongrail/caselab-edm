@@ -130,6 +130,9 @@ public class UserServiceImpl implements UserService {
                 .departments(departments)
                 .build();
 
+        if (existingDepartment.getMembers() == null)
+            existingDepartment.setMembers(new HashSet<>());
+
         existingDepartment.getMembers().add(newUser);
 
         departmentRepository.save(existingDepartment);
