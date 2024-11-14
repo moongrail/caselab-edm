@@ -47,7 +47,7 @@
             (
                 100
             ),
-                "position" VARCHAR
+                position VARCHAR
                 (
                     255
                 ) NOT NULL

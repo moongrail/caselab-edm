@@ -35,7 +35,7 @@ jobs:
           cache-dependency-path: ${{ inputs.cache_path }}
 
       - name: Run Tests
-        run: mvn -f backend/pom.xml clean verify
+        run: mvn -f backend/pom.xml -ntp clean verify
 
       - name: Publish Test Report
         uses: mikepenz/action-junit-report@v4
