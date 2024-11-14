@@ -94,7 +94,9 @@ public class UserServiceImpl implements UserService {
             log.warn("User already exists with email: {}", createdUser.email());
             throw new UserAlreadyExistsException("User already exists with this email = %s".formatted(createdUser.email()));
         }
-        log.info("Trying to find department with id: {}", createdUser.departmentId());
+
+        log.info("Trying to find department by user id: {}", createdUser.departmentId());
+
         Optional<Department> department = departmentRepository.findById(createdUser.departmentId());
         if (department.isEmpty()) {
             log.warn("Department not found with current id: {}", createdUser.departmentId());
@@ -102,7 +104,6 @@ public class UserServiceImpl implements UserService {
         }
 
         Department existingDepartment = department.get();
-
         Set<Role> roles = new HashSet<>();
         for (RoleName role : createdUser.roles()) {
             Optional<Role> roleOptional = roleRepository.findByName(role);
@@ -113,8 +114,11 @@ public class UserServiceImpl implements UserService {
                 throw new ResourceNotFoundException("Role not found with this name = %s".formatted(role.name()));
             }
         }
+
+        Set<Department> departments = new HashSet<>();
+        departments.add(existingDepartment);
+
         User newUser = User.builder()
-                .departmentId(existingDepartment)
                 .login(createdUser.login())
                 .email(createdUser.email())
                 .password(passwordEncoder.encode(createdUser.password()))
@@ -122,7 +126,15 @@ public class UserServiceImpl implements UserService {
                 .lastName(createdUser.lastName())
                 .patronymic(createdUser.patronymic())
                 .roles(roles)
+                .departments(departments)
                 .build();
+
+        if (existingDepartment.getMembers() == null)
+            existingDepartment.setMembers(new HashSet<>());
+
+        existingDepartment.getMembers().add(newUser);
+
+        departmentRepository.save(existingDepartment);
         userRepository.save(newUser);
         log.info("User created with id: {}", newUser.getId());
         return userMapper.toDTO(newUser);
@@ -155,15 +167,7 @@ public class UserServiceImpl implements UserService {
                     throw new ResourceNotFoundException("Role not found with this name = %s".formatted(role.name()));
                 }
             }
-            Optional<Department> department = departmentRepository.findById(updatedUser.departmentId());
-            if (department.isEmpty()) {
-                log.warn("Department not found with current id: {}", updatedUser.departmentId());
-                throw new ResourceNotFoundException("Department not found with id = %s".formatted(updatedUser.departmentId()));
-            }
-
-            Department existingDepartment = department.get();
-
-            existingUser.setDepartmentId(existingDepartment);
+          
             existingUser.setLogin(updatedUser.login());
             existingUser.setEmail(updatedUser.email());
             existingUser.setFirstName(updatedUser.firstName());

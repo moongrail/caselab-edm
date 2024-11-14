@@ -21,15 +21,15 @@ public class ReplacementManager {
 
     @ManyToOne
     @JoinColumn(name = "manager_user_id", nullable = false)
-    private User managerUserId;
+    private User managerUser;
 
     @ManyToOne
     @JoinColumn(name = "temp_manager_user_id", nullable = false)
-    private User tempManagerUserId;
+    private User tempManagerUser;
 
-    @Column(name = "from", nullable = false)
-    private Instant from;
+    @Column(name = "start_date", nullable = false)
+    private Instant startDate;
 
-    @Column(name = "to", nullable = false)
-    private Instant to;
+    @Column(name = "end_date", nullable = false)
+    private Instant endDate;
 }
