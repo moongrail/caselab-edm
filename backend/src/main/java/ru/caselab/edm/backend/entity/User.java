@@ -53,11 +53,12 @@ public class User {
     @OneToMany(mappedBy = "user")
     private Set<Document> documents;
 
-    @OneToMany(mappedBy = "managerUserId")
+    @OneToMany(mappedBy = "managerUser")
     private Set<ReplacementManager> replacementManagers;
 
-    @OneToMany(mappedBy = "tempManagerUserId")
+    @OneToMany(mappedBy = "tempManagerUser")
     private Set<ReplacementManager> tempReplacementManagers;
+
 
 /*    @OneToMany(mappedBy = "user")
     private Set<Signature> signatures;*/
