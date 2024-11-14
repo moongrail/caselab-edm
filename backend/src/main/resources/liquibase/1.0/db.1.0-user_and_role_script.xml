@@ -22,10 +22,6 @@
                 UUID
                 PRIMARY
                 KEY,
-                department_id
-                BIGINT
-                REFERENCES departments(id)
-                NOT NULL,
                 login
                 VARCHAR
             (

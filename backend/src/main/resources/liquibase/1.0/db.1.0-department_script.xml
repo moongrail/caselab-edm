@@ -21,6 +21,13 @@
                     user_id UUID REFERENCES users(id),
                     department_id BIGINT REFERENCES departments(id)
                 );
+
+            CREATE TABLE IF NOT EXISTS  department_members
+                (
+                    department_id BIGINT REFERENCES departments(id),
+                    member_id UUID REFERENCES users(id)
+            );
+          
         </sql>
     </changeSet>
 </databaseChangeLog>
