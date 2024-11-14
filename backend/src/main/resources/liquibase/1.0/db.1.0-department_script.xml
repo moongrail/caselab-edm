@@ -12,8 +12,8 @@
                     id BIGSERIAL PRIMARY KEY,
                     manager_user_id UUID REFERENCES users(id),
                     temp_manager_user_id UUID REFERENCES users(id),
-                    "from" TIMESTAMP NOT NULL,
-                    "to" TIMESTAMP NOT NULL
+                    start_date TIMESTAMP NOT NULL,
+                    end_date TIMESTAMP NOT NULL
                 );
 
             CREATE TABLE IF NOT EXISTS department_managers

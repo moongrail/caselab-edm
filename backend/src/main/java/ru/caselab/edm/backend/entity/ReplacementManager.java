@@ -27,9 +27,9 @@ public class ReplacementManager {
     @JoinColumn(name = "temp_manager_user_id", nullable = false)
     private User tempManagerUserId;
 
-    @Column(name = "from", nullable = false)
-    private Instant from;
+    @Column(name = "start_date", nullable = false)
+    private Instant startDate;
 
-    @Column(name = "to", nullable = false)
-    private Instant to;
+    @Column(name = "end_date", nullable = false)
+    private Instant endDate;
 }
