@@ -117,7 +117,7 @@ public class DepartmentController {
     )
     @PostMapping("/add/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<StatisticMembersDTO> addMembersToDepartment(@RequestParam
+    public ResponseEntity<StatisticMembersDTO> addMembersToDepartment(@RequestBody
                                                                       @Valid MembersDTO addMembersDTO,
                                                                       @Parameter(description = "Department id", required = true, example = "1")
                                                                       @PathVariable Long id) {
@@ -136,7 +136,7 @@ public class DepartmentController {
     )
     @PostMapping("/kick/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<StatisticMembersDTO> kickMembersFromDepartment(@RequestParam
+    public ResponseEntity<StatisticMembersDTO> kickMembersFromDepartment(@RequestBody
                                                                          @Valid MembersDTO kickMembersDTO,
                                                                          @Parameter(description = "Department id", required = true, example = "1")
                                                                          @PathVariable Long id) {
