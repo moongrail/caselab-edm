@@ -21,11 +21,11 @@ public class ReplacementManager {
 
     @ManyToOne
     @JoinColumn(name = "manager_user_id", nullable = false)
-    private User managerUserId;
+    private User managerUser;
 
     @ManyToOne
     @JoinColumn(name = "temp_manager_user_id", nullable = false)
-    private User tempManagerUserId;
+    private User tempManagerUser;
 
     @Column(name = "start_date", nullable = false)
     private Instant startDate;

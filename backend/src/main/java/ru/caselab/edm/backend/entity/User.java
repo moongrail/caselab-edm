@@ -56,10 +56,10 @@ public class User {
     @OneToMany(mappedBy = "user")
     private Set<Document> documents;
 
-    @OneToMany(mappedBy = "managerUserId")
+    @OneToMany(mappedBy = "managerUser")
     private List<ReplacementManager> replacementManagers;
 
-    @OneToMany(mappedBy = "tempManagerUserId")
+    @OneToMany(mappedBy = "tempManagerUser")
     private List<ReplacementManager> tempReplacementManagers;
 
 /*    @OneToMany(mappedBy = "user")
