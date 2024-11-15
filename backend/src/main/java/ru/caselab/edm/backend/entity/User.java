@@ -67,11 +67,16 @@ public class User {
     )
     private Set<Role> roles;
 
-    @ManyToMany(mappedBy = "managers")
-    private Set<Department> leadsDepartments;
+    @OneToOne(mappedBy = "manager")
+    private Department leadDepartment;
 
-    @ManyToMany(mappedBy = "members")
-    private Set<Department> departments;
+    @ManyToOne
+    @JoinTable(
+            name = "department_members",
+            joinColumns = @JoinColumn(name = "member_id"),
+            inverseJoinColumns = @JoinColumn(name = "department_id")
+    )
+    private Department department;
 
     @OneToMany(mappedBy = "user")
     private List<ApprovementProcessItem> approvementProcessItems;
