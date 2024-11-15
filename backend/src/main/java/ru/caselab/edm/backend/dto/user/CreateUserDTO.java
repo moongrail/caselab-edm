@@ -7,8 +7,11 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import ru.caselab.edm.backend.entity.Department;
 import ru.caselab.edm.backend.enums.RoleName;
+import ru.caselab.edm.backend.validation.password.PasswordMatcher;
+import ru.caselab.edm.backend.validation.password.PasswordValidatable;
 
 @Schema(description = "DTO for creating user")
+@PasswordMatcher
 public record CreateUserDTO(
 
         @Schema(description = "Department id", example = "1")
@@ -22,6 +25,9 @@ public record CreateUserDTO(
 
         @Schema(description = "Password", example = "password")
         @NotBlank String password,
+
+        @Schema(description = "Password confirmation", example = "password")
+        @NotBlank String passwordConfirmation,
 
         @Schema(description = "First name", example = "first name")
         @NotBlank String firstName,
@@ -38,6 +44,14 @@ public record CreateUserDTO(
 
         @Schema(description = "Role", example = "[\"USER\", \"ADMIN\"]")
         @NotNull RoleName[] roles
-) {
+) implements PasswordValidatable {
+        @Override
+        public String getPassword() {
+                return this.password;
+        }
 
+        @Override
+        public String getPasswordConfirmation() {
+                return this.passwordConfirmation;
+        }
 }
