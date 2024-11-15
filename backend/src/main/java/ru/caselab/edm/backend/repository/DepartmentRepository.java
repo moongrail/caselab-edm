@@ -7,23 +7,21 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import ru.caselab.edm.backend.entity.Department;
-import ru.caselab.edm.backend.entity.User;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
 public interface DepartmentRepository extends JpaRepository<Department, Long> {
 
     @Query(value = """
-            SELECT d.id, d.name, d.description, d.parent_id
+            SELECT d.*
             FROM departments d
-            JOIN department_members dm
-            ON d.id = dm.department_id
+            JOIN department_members dm ON d.id = dm.department_id
             WHERE dm.member_id = :userId
-            ORDER BY d.name ASC
             """,
             nativeQuery = true)
-    Page<Department> getDepartmentsWithUser(UUID userId, Pageable pageable);
+    Optional<Department> getDepartmentWithUser(@Param("userId") UUID userId);
 
     @Query(value = """
             SELECT d.id, d.name, d.description, d.parent_id

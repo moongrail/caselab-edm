@@ -27,7 +27,7 @@ public interface UserRepository extends JpaRepository<User, UUID> {
             WHERE dm.department_id = :departmentId
             """,
             nativeQuery = true)
-    Page<User> getDepartmentManagers(@Param("departmentId") Long departmentId, Pageable pageable);
+    User getDepartmentManager(@Param("departmentId") Long departmentId);
 
     @Query(value = """
             SELECT u.id, u.login, u.email, u.first_name, u.last_name, u.patronymic, u.password, u.position
@@ -38,4 +38,13 @@ public interface UserRepository extends JpaRepository<User, UUID> {
             """,
             nativeQuery = true)
     Page<User> getDepartmentMembers(@Param("departmentId") Long departmentId, Pageable pageable);
+
+    @Query(value = """
+        SELECT EXISTS (
+            SELECT 1
+            FROM department_members dm
+            WHERE member_id = :userId
+        ) AS result;
+    """, nativeQuery = true)
+    boolean existsUserInOtherDepartmentsAsMember(@Param("userId") UUID userId);
 }
