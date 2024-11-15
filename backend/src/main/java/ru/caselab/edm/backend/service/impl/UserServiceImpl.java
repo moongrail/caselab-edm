@@ -115,8 +115,6 @@ public class UserServiceImpl implements UserService {
             }
         }
 
-        Set<Department> departments = new HashSet<>();
-        departments.add(existingDepartment);
 
         User newUser = User.builder()
                 .login(createdUser.login())
@@ -126,7 +124,7 @@ public class UserServiceImpl implements UserService {
                 .lastName(createdUser.lastName())
                 .patronymic(createdUser.patronymic())
                 .roles(roles)
-                .departments(departments)
+                .department(existingDepartment)
                 .build();
 
         if (existingDepartment.getMembers() == null)

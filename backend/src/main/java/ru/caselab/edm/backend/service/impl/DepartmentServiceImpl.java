@@ -6,9 +6,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import ru.caselab.edm.backend.dto.department.*;
+import ru.caselab.edm.backend.dto.user.UserDTO;
 import ru.caselab.edm.backend.dto.user.UserPageDTO;
 import ru.caselab.edm.backend.entity.Department;
 import ru.caselab.edm.backend.entity.User;
+import ru.caselab.edm.backend.exceptions.NotDepartmentMemberException;
 import ru.caselab.edm.backend.exceptions.ResourceNotFoundException;
 import ru.caselab.edm.backend.mapper.department.DepartmentMapper;
 import ru.caselab.edm.backend.mapper.user.UserMapper;
@@ -30,37 +32,21 @@ public class DepartmentServiceImpl implements DepartmentService {
 
     @Override
     public DepartmentDTO createDepartment(CreateDepartmentDTO createDepartmentDTO) {
-        Set<User> managers = new HashSet<>();
 
-        log.info("Executing all managers uuid to managers User list");
-        for (UUID id : createDepartmentDTO.managers()) {
-            Optional<User> user = userRepository.findById(id);
+        log.info("Executing manager uuid");
+        UUID id = createDepartmentDTO.manager();
 
-            if (user.isEmpty()) {
-                /*
-                Думаю нет смысла делать так, чтобы абсолютно все руководители из списка существовали,
-                просто нужен как минимум 1 руководитель на департамент
-                 */
-                log.info("User with id: {} does not exists", id);
-            } else {
-                User existingUser = user.get();
-                /*
-                Обязательно ли руководитель должен быть в департаменте которым он руководит?
-                Мб добавить роль MANAGER для каждого юзера являющегося руководителем?
-                 */
+        User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Manager with id %s doesn't exists".formatted(id)));
 
-                log.info("User with id: {} added to managers list", id);
-                managers.add(existingUser);
-            }
-        }
-
-        if (managers.isEmpty())
-            throw new ResourceNotFoundException("Managers are not exists");
+        /*
+            Обязательно ли руководитель должен быть в департаменте которым он руководит?
+            Мб добавить роль MANAGER для каждого юзера являющегося руководителем?
+         */
 
         log.info("Creating department entity");
         Department department = Department.builder().name(createDepartmentDTO.name())
                 .description(createDepartmentDTO.description()).parentId(createDepartmentDTO.parentId())
-                .managers(managers).build();
+                .manager(user).build();
 
         log.info("Saving department to repository");
         department = departmentRepository.save(department);
@@ -71,19 +57,17 @@ public class DepartmentServiceImpl implements DepartmentService {
 
 
     @Override
-    public DepartmentPageDTO getAllDepartmentsWithUser(int page, int size, UUID id) {
-        log.info("Fetching all departments - page: {}, size: {}, with user id: {}", page, size, id);
-        Page<Department> departments = departmentRepository.getDepartmentsWithUser(id, PageRequest.of(page, size));
-        log.info("Fetched {} departments", departments.getTotalElements());
-        return departmentMapper.toPageDTO(departments);
+    public DepartmentDTO getDepartmentWithUser(UUID id) {
+        log.info("Fetching department with user id: {}", id);
+        Department department = departmentRepository.getDepartmentWithUser(id).orElseThrow(() -> new NotDepartmentMemberException("You are not a member of any department"));
+        return departmentMapper.toDto(department);
     }
 
     @Override
-    public UserPageDTO getAllManagersDepartment(int page, int size, Long id) {
-        log.info("Fetching all managers - page: {}, size: {}, with department id: {}", page, size, id);
-        Page<User> managers = userRepository.getDepartmentManagers(id, PageRequest.of(page, size));
-        log.info("Fetched {} managers", managers.getTotalElements());
-        return userMapper.toPageDTO(managers);
+    public UserDTO getManagerOfDepartment(Long id) {
+        log.info("Fetching manager with department id: {}",id);
+        User manager = userRepository.getDepartmentManager(id);
+        return userMapper.toDTO(manager);
     }
 
     @Override
@@ -122,8 +106,13 @@ public class DepartmentServiceImpl implements DepartmentService {
                 skipped.add(id);
             } else {
                 log.info("User with id: {} exists", id);
-                members.add(user.get());
-                log.info("User with id: {} added to members list", id);
+
+                if (!userRepository.existsUserInOtherDepartmentsAsMember(id)) {
+                    members.add(user.get());
+                    log.info("User with id: {} added to members list", id);
+                } else {
+                    skipped.add(id);
+                }
             }
         }
 
@@ -158,7 +147,7 @@ public class DepartmentServiceImpl implements DepartmentService {
             } else {
                 log.info("User with id: {} exists", id);
                 if(!members.remove(user.get())) {
-                    log.info("User with id: {} doens't represent in department members list with department id: {}", id, departmentId);
+                    log.info("User with id: {} doesn't represent in department members list with department id: {}", id, departmentId);
                     skipped.add(id);
                 }
                 kicked.add(id);
@@ -169,6 +158,27 @@ public class DepartmentServiceImpl implements DepartmentService {
         departmentRepository.save(existingDepartment);
 
         return new StatisticMembersDTO(kicked, skipped);
+    }
+
+    @Override
+    public void leaveFromDepartment(UUID id) {
+        User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User with id %s was not found".formatted(id)));
+
+        Department department = departmentRepository.getDepartmentWithUser(id).orElseThrow(() -> new NotDepartmentMemberException("You are not a member of any department"));
+
+        log.info("Removing user with id: {} from members of department", id);
+        department.getMembers().remove(user);
+
+        if (department.getManager() == user) {
+            log.info("Removing user with id: {} from managers of department", id);
+            department.setManager(null);
+        }
+
+        user.setDepartment(null);
+        user.setLeadDepartment(null);
+
+        departmentRepository.save(department);
+        userRepository.save(user);
     }
 
     @Override
