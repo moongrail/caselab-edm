@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.caselab.edm.backend.dto.approvementprocess.ApprovementProcessCreateDTO;
 import ru.caselab.edm.backend.dto.approvementprocess.ApprovementProcessDTO;
 import ru.caselab.edm.backend.entity.*;
@@ -40,6 +41,7 @@ public class ApprovementServiceImpl implements ApprovementService {
     private final ApplicationEventPublisher eventPublisher;
     private final DocumentService documentService;
 
+    @Transactional
     @Override
     public ApprovementProcessDTO createApprovementProcess(ApprovementProcessCreateDTO createProcess, UserInfoDetails authenticatedUser) {
         log.info("Started approval process for document version {}", createProcess.getDocumentId());
