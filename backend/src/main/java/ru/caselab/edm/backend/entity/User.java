@@ -13,6 +13,7 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -27,6 +28,7 @@ import java.util.UUID;
 @Builder
 @Getter
 @Setter
+@EqualsAndHashCode
 @NoArgsConstructor
 @AllArgsConstructor
 public class User {
@@ -54,11 +56,21 @@ public class User {
     @Column(name = "patronymic")
     private String patronymic;
 
+    @Column(name = "position")
+    private String position;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private Set<RefreshToken> refreshTokens = new HashSet<>();
 
     @OneToMany(mappedBy = "user")
     private Set<Document> documents;
+
+    @OneToMany(mappedBy = "managerUser")
+    private Set<ReplacementManager> replacementManagers;
+
+    @OneToMany(mappedBy = "tempManagerUser")
+    private Set<ReplacementManager> tempReplacementManagers;
+
 
 /*    @OneToMany(mappedBy = "user")
     private Set<Signature> signatures;*/
@@ -70,6 +82,12 @@ public class User {
             inverseJoinColumns = @JoinColumn(name = "role_id")
     )
     private Set<Role> roles;
+
+    @ManyToMany(mappedBy = "managers")
+    private Set<Department> leadsDepartments;
+
+    @ManyToMany(mappedBy = "members")
+    private Set<Department> departments;
 
     @OneToMany(mappedBy = "user")
     private List<ApprovementProcessItem> approvementProcessItems;
