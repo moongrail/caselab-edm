@@ -14,7 +14,7 @@ public record CreateDepartmentDTO(
         String description,
         @Schema(description = "Id of parent department(if exists)", example = "0")
         Long parentId,
-        @Schema(description = "Manager of this department")
+        @Schema(description = "ID of manager of this department")
         @NotBlank
         String manager
 ) {
