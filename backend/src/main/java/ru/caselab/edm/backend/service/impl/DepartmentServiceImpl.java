@@ -175,10 +175,10 @@ public class DepartmentServiceImpl implements DepartmentService {
     }
 
     @Override
-    public void leaveFromDepartment(UUID id) {
+    public void leaveFromDepartment(UUID id, Long departmentId) {
         User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User with id %s was not found".formatted(id)));
 
-        Department department = departmentRepository.getDepartmentWithUser(id).orElseThrow(() -> new NotDepartmentMemberException("You are not a member of any department"));
+        Department department = departmentRepository.findById(departmentId).orElseThrow(() -> new ResourceNotFoundException("Department with id %s not found".formatted(id)));
 
         log.info("Removing user with id: {} from members of department", id);
         department.getMembers().remove(user);

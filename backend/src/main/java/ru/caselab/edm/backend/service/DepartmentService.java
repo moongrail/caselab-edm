@@ -14,6 +14,6 @@ public interface DepartmentService {
     DepartmentPageDTO getAllSubordinateDepartments(int page, int size, UUID id);
     StatisticMembersDTO addMembersToDepartment(MembersDTO addMembersDTO, Long departmentId);
     StatisticMembersDTO kickMembersFromDepartment(MembersDTO kickMembersDTO, Long departmentId);
-    void leaveFromDepartment(UUID id);
+    void leaveFromDepartment(UUID id, Long departmentId);
     void deleteDepartment(Long id);
 }
