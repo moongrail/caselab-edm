@@ -156,10 +156,11 @@ public class DepartmentController {
                     content = @Content),
             @ApiResponse(responseCode = "409", description = "User is not a member of any department")
     })
-    @PostMapping("/leave")
+    @PostMapping("/leave/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public void leaveFromDepartment(@AuthenticationPrincipal UserInfoDetails user) {
-        departmentService.leaveFromDepartment(user.getId());
+    public void leaveFromDepartment(@PathVariable Long id,
+                                    @AuthenticationPrincipal UserInfoDetails user) {
+        departmentService.leaveFromDepartment(user.getId(), id);
     }
 
     @Operation(
