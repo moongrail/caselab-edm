@@ -40,7 +40,9 @@ public class DepartmentController {
             @ApiResponse(responseCode = "200", description="Department created",
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = DepartmentDTO.class))),
             @ApiResponse(responseCode = "404", description = "Manager with given id doesn't exists",
-                    content = @Content())
+                    content = @Content()),
+            @ApiResponse(responseCode = "409", description = "Given manager is already leading another department",
+                    content = @Content)
     })
     @PostMapping()
     @ResponseStatus(HttpStatus.OK)
