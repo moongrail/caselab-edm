@@ -20,6 +20,18 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     Optional<User> findUserByLogin(String username);
 
     @Query(value = """
+            SELECT * FROM  users u
+            WHERE u.department_id IN (select department_id from users u2 where id = :userId)
+            AND id !=:userId
+            """, countQuery = """
+            SELECT * FROM  users u
+            WHERE u.department_id IN (select department_id from users u2 where id = :userId)
+            AND id !=:userId
+            """,
+            nativeQuery = true)
+    Page<User> getAllUsersForReplacement(UUID userId, Pageable pageable);
+  
+   @Query(value = """
             SELECT u
             FROM User u
             WHERE u.leadDepartment.id = :departmentId
