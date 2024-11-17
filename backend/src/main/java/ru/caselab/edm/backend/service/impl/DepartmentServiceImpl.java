@@ -5,11 +5,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.caselab.edm.backend.dto.department.*;
 import ru.caselab.edm.backend.dto.user.UserDTO;
 import ru.caselab.edm.backend.dto.user.UserPageDTO;
 import ru.caselab.edm.backend.entity.Department;
 import ru.caselab.edm.backend.entity.User;
+import ru.caselab.edm.backend.exceptions.ManagerOfAnotherDepartmentException;
 import ru.caselab.edm.backend.exceptions.NotDepartmentMemberException;
 import ru.caselab.edm.backend.exceptions.ResourceNotFoundException;
 import ru.caselab.edm.backend.mapper.department.DepartmentMapper;
@@ -34,9 +36,13 @@ public class DepartmentServiceImpl implements DepartmentService {
     public DepartmentDTO createDepartment(CreateDepartmentDTO createDepartmentDTO) {
 
         log.info("Executing manager uuid");
-        UUID id = createDepartmentDTO.manager();
+        UUID id = UUID.fromString(createDepartmentDTO.manager());
 
         User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Manager with id %s doesn't exists".formatted(id)));
+
+        System.out.println(userRepository.existsUserAsManager(id) + " " + id);
+        if (userRepository.existsUserAsManager(id))
+            throw new ManagerOfAnotherDepartmentException("User with id %s is already a manager of another department".formatted(id));
 
         /*
             Обязательно ли руководитель должен быть в департаменте которым он руководит?
@@ -66,7 +72,7 @@ public class DepartmentServiceImpl implements DepartmentService {
     @Override
     public UserDTO getManagerOfDepartment(Long id) {
         log.info("Fetching manager with department id: {}",id);
-        User manager = userRepository.getDepartmentManager(id);
+        User manager = userRepository.getDepartmentManager(id).orElseThrow(() -> new ResourceNotFoundException("Department with id %s don't have any manager".formatted(id)));
         return userMapper.toDTO(manager);
     }
 
@@ -96,7 +102,7 @@ public class DepartmentServiceImpl implements DepartmentService {
 
         List<UUID> membersIds = addMembersDTO.members();
         List<UUID> skipped = new ArrayList<>();
-        List<User> members = new ArrayList<>();
+        List<UUID> added = new ArrayList<>();
 
         for (UUID id : membersIds) {
             log.info("Getting user by user id: {}", id);
@@ -105,11 +111,16 @@ public class DepartmentServiceImpl implements DepartmentService {
                 log.info("User with id: {} doesn't exists", id);
                 skipped.add(id);
             } else {
+                User existingUser = user.get();
+
                 log.info("User with id: {} exists", id);
 
                 if (!userRepository.existsUserInOtherDepartmentsAsMember(id)) {
-                    members.add(user.get());
+                    existingUser.setDepartment(existingDepartment);
+                    existingDepartment.getMembers().add(existingUser);
+                    added.add(id);
                     log.info("User with id: {} added to members list", id);
+                    userRepository.save(existingUser);
                 } else {
                     skipped.add(id);
                 }
@@ -117,12 +128,11 @@ public class DepartmentServiceImpl implements DepartmentService {
         }
 
         log.info("Adding members list in members list of department entity");
-        existingDepartment.getMembers().addAll(members);
         log.info("Updating department with id: {}", departmentId);
         departmentRepository.save(existingDepartment);
         log.info("Department with id: {} successfully updated", departmentId);
 
-        return new StatisticMembersDTO(membersIds, skipped);
+        return new StatisticMembersDTO(added, skipped);
     }
 
     @Override
@@ -145,12 +155,16 @@ public class DepartmentServiceImpl implements DepartmentService {
                 log.info("User with id: {} doesn't exists", id);
                 skipped.add(id);
             } else {
+                User existingUser = user.get();
                 log.info("User with id: {} exists", id);
                 if(!members.remove(user.get())) {
                     log.info("User with id: {} doesn't represent in department members list with department id: {}", id, departmentId);
                     skipped.add(id);
+                } else {
+                    existingUser.setDepartment(null);
+                    userRepository.save(existingUser);
+                    kicked.add(id);
                 }
-                kicked.add(id);
             }
         }
 
@@ -181,10 +195,38 @@ public class DepartmentServiceImpl implements DepartmentService {
         userRepository.save(user);
     }
 
+    @Transactional
     @Override
     public void deleteDepartment(Long id) {
+        Department department = departmentRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Department with id %s not found".formatted(id)));
+
+        if (department.getManager() != null) {
+            User manager = department.getManager();
+            manager.setLeadDepartment(null);
+            department.setManager(null);
+            userRepository.save(manager);
+        }
+
+        department.getMembers().forEach(user -> {
+            if (user.getDepartment() != null && user.getDepartment().getId() == id) {
+                user.setDepartment(null);
+                if (user.getLeadDepartment() != null && user.getLeadDepartment().getId() == id) {
+                    user.setLeadDepartment(null);
+                }
+                userRepository.save(user);
+            }
+        });
+
+        department.setMembers(new HashSet<>());
+        departmentRepository.flush();
+
         log.info("Trying to delete department with id: {}", id);
-        departmentRepository.deleteById(id);
+        departmentRepository.delete(department);
+        departmentRepository.flush();
+
         log.info("Department with id: {} was successfully deleted", id);
     }
+
+
 }
