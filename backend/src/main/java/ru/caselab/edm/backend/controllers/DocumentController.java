@@ -278,7 +278,8 @@ public class DocumentController {
                     Note: The link is only valid for 15 minutes. After the time has passed, a new one must be generated!
                     """
     )
-    @ApiResponse(responseCode = "200", description = "Download link was successfully returned", content = @Content)
+    @ApiResponse(responseCode = "200", description = "Download link was successfully returned",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = DocumentLinkDTO.class)))
     @GetMapping("/download")
     @ResponseStatus(HttpStatus.OK)
     public DocumentLinkDTO downloadDocument(
