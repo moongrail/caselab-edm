@@ -32,6 +32,7 @@ import ru.caselab.edm.backend.dto.approvementprocess.ApprovementProcessDTO;
 import ru.caselab.edm.backend.dto.approvementprocessitem.ApprovementProcessItemDTO;
 import ru.caselab.edm.backend.dto.document.DocumentCreateDTO;
 import ru.caselab.edm.backend.dto.document.DocumentDTO;
+import ru.caselab.edm.backend.dto.document.DocumentLinkDTO;
 import ru.caselab.edm.backend.dto.document.DocumentOutputAllDocumentsDTO;
 import ru.caselab.edm.backend.dto.document.DocumentPageDTO;
 import ru.caselab.edm.backend.dto.document.DocumentUpdateDTO;
@@ -280,10 +281,10 @@ public class DocumentController {
     @ApiResponse(responseCode = "200", description = "Download link was successfully returned", content = @Content)
     @GetMapping("/download")
     @ResponseStatus(HttpStatus.OK)
-    public String downloadDocument(
+    public DocumentLinkDTO downloadDocument(
             @Parameter(description = "The value of the contentUrl field of the document", example = "")
             @RequestParam("url") String url) {
-        return minioService.generateTemporaryUrlToObject(url);
+        return new DocumentLinkDTO(minioService.generateTemporaryUrlToObject(url));
     }
 
 }
