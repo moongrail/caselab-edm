@@ -7,6 +7,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import ru.caselab.edm.backend.entity.Department;
 import ru.caselab.edm.backend.enums.RoleName;
+import ru.caselab.edm.backend.validation.password.Password;
 import ru.caselab.edm.backend.validation.password.PasswordMatcher;
 import ru.caselab.edm.backend.validation.password.PasswordValidatable;
 
@@ -24,7 +25,7 @@ public record CreateUserDTO(
         @NotBlank @Email String email,
 
         @Schema(description = "Password", example = "password")
-        @NotBlank String password,
+        @NotBlank @Password String password,
 
         @Schema(description = "Password confirmation", example = "password")
         @NotBlank String passwordConfirmation,

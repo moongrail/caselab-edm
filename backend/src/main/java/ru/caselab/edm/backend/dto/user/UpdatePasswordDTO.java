@@ -2,6 +2,7 @@ package ru.caselab.edm.backend.dto.user;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
+import ru.caselab.edm.backend.validation.password.Password;
 import ru.caselab.edm.backend.validation.password.PasswordMatcher;
 import ru.caselab.edm.backend.validation.password.PasswordValidatable;
 
@@ -13,7 +14,7 @@ public record UpdatePasswordDTO(
         @NotBlank String oldPassword,
 
         @Schema(description = "New password", example = "newPassword")
-        @NotBlank String newPassword,
+        @NotBlank @Password String newPassword,
         @Schema(description = "New password confirmation", example = "newPassword")
         @NotBlank String newPasswordConfirmation
 
