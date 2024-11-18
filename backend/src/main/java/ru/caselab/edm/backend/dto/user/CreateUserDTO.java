@@ -5,11 +5,10 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import ru.caselab.edm.backend.entity.Department;
 import ru.caselab.edm.backend.enums.RoleName;
-import ru.caselab.edm.backend.validation.password.Password;
-import ru.caselab.edm.backend.validation.password.PasswordMatcher;
-import ru.caselab.edm.backend.validation.password.PasswordValidatable;
+import ru.caselab.edm.backend.validation.annotations.Password;
+import ru.caselab.edm.backend.validation.annotations.PasswordMatcher;
+import ru.caselab.edm.backend.validation.interfaces.PasswordValidatable;
 
 @Schema(description = "DTO for creating user")
 @PasswordMatcher

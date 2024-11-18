@@ -6,8 +6,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import ru.caselab.edm.backend.validation.password.PasswordMatcherValidator;
-import ru.caselab.edm.backend.validation.password.PasswordValidatable;
+import ru.caselab.edm.backend.validation.validators.PasswordMatcherValidator;
+import ru.caselab.edm.backend.validation.interfaces.PasswordValidatable;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;

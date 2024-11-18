@@ -2,9 +2,9 @@ package ru.caselab.edm.backend.dto.user;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
-import ru.caselab.edm.backend.validation.password.Password;
-import ru.caselab.edm.backend.validation.password.PasswordMatcher;
-import ru.caselab.edm.backend.validation.password.PasswordValidatable;
+import ru.caselab.edm.backend.validation.annotations.Password;
+import ru.caselab.edm.backend.validation.annotations.PasswordMatcher;
+import ru.caselab.edm.backend.validation.interfaces.PasswordValidatable;
 
 @Schema(description = "DTO for update password")
 @PasswordMatcher

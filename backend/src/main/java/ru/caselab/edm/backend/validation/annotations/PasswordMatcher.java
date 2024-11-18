@@ -1,7 +1,8 @@
-package ru.caselab.edm.backend.validation.password;
+package ru.caselab.edm.backend.validation.annotations;
 
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
+import ru.caselab.edm.backend.validation.validators.PasswordMatcherValidator;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

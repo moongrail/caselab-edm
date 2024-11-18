@@ -1,4 +1,4 @@
-package ru.caselab.edm.backend.validation.password;
+package ru.caselab.edm.backend.validation.interfaces;
 
 public interface PasswordValidatable {
 
