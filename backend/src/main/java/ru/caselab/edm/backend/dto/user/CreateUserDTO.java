@@ -15,7 +15,7 @@ import ru.caselab.edm.backend.validation.password.PasswordValidatable;
 public record CreateUserDTO(
 
         @Schema(description = "Department id", example = "1")
-        @NotBlank Long departmentId,
+        @NotNull Long departmentId,
 
         @Schema(description = "Login", example = "login")
         @NotBlank String login,
