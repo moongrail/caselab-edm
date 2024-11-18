@@ -20,7 +20,7 @@
                 documents
             (
                 id
-            ),
+            ) ON DELETE CASCADE,
                 document_name VARCHAR
             (
                 255
