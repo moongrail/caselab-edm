@@ -13,6 +13,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
 import ru.caselab.edm.backend.dto.user.CreateUserDTO;
 import ru.caselab.edm.backend.dto.user.UpdatePasswordDTO;
 import ru.caselab.edm.backend.enums.RoleName;
@@ -78,12 +79,8 @@ public class UserControllerTest {
                 new RoleName[]{RoleName.USER}
         );
 
-        mockMvc.perform(
-                post(BASE_URI)
-                        .contentType(JSON)
-                        .with(csrf())
-                        .content(writeAsJson(createUserDTO))
-        ).andDo(print())
+        perfomPostRequest(createUserDTO)
+                .andDo(print())
                 .andExpect(status().isOk());
 
         verify(userService).createUser(any(CreateUserDTO.class));
@@ -104,52 +101,10 @@ public class UserControllerTest {
                 new RoleName[]{RoleName.USER}
         );
 
-        mockMvc.perform(
-                post(BASE_URI)
-                        .contentType(JSON)
-                        .with(csrf())
-                        .content(writeAsJson(createUserDTO))
-        ).andDo(print()).andExpect(status().isBadRequest());
+        perfomPostRequest(createUserDTO)
+                .andDo(print()).andExpect(status().isBadRequest());
 
         verify(userService, never()).createUser(any(CreateUserDTO.class));
-    }
-
-    @Test
-    void updatePassword_validDto_shouldUpdatePassword() throws Exception {
-        UpdatePasswordDTO updatePasswordDTO = new UpdatePasswordDTO(
-                "old-pass",
-                "new-pa1!",
-                "new-pa1!"
-        );
-        UUID userId = UUID.randomUUID();
-
-        mockMvc.perform(
-                patch(BASE_URI + "/{userId}/password", userId)
-                        .contentType(JSON)
-                        .with(csrf())
-                        .content(writeAsJson(updatePasswordDTO))
-        ).andDo(print()).andExpect(status().isNoContent());
-
-        verify(userService).updatePassword(userId, updatePasswordDTO);
-    }
-
-    @Test
-    void updatePassword_invalidPasswordConfirmation_shouldUpdatePassword() throws Exception {
-        UpdatePasswordDTO updatePasswordDTO = new UpdatePasswordDTO(
-                "old-pass",
-                "new-pa1!",
-                "new-pa1!-confirmation"
-        );
-        UUID userId = UUID.randomUUID();
-
-        mockMvc.perform(
-                patch(BASE_URI + "/{userId}/password", userId)
-                        .contentType(JSON)
-                        .with(csrf())
-                        .content(writeAsJson(updatePasswordDTO))
-        ).andDo(print()).andExpect(status().isBadRequest());
-
-        verify(userService, never()).updatePassword(eq(userId), any(UpdatePasswordDTO.class));
     }
 
     @MethodSource("getInvalidPasswords")
@@ -168,17 +123,42 @@ public class UserControllerTest {
                 new RoleName[]{RoleName.USER}
         );
 
-        mockMvc.perform(
-                post(BASE_URI)
-                        .contentType(JSON)
-                        .with(csrf())
-                        .content(writeAsJson(createUserDTO))
-        ).andDo(print()).andExpect(status().isBadRequest());
+        perfomPostRequest(createUserDTO)
+                .andDo(print()).andExpect(status().isBadRequest());
 
         verify(userService, never()).createUser(any(CreateUserDTO.class));
 
     }
 
+    @Test
+    void updatePassword_validDto_shouldUpdatePassword() throws Exception {
+        UpdatePasswordDTO updatePasswordDTO = new UpdatePasswordDTO(
+                "old-pass",
+                "new-pa1!",
+                "new-pa1!"
+        );
+        UUID userId = UUID.randomUUID();
+
+        perfomPatchRequest(userId, updatePasswordDTO)
+                .andDo(print()).andExpect(status().isNoContent());
+
+        verify(userService).updatePassword(userId, updatePasswordDTO);
+    }
+
+    @Test
+    void updatePassword_invalidPasswordConfirmation_shouldUpdatePassword() throws Exception {
+        UpdatePasswordDTO updatePasswordDTO = new UpdatePasswordDTO(
+                "old-pass",
+                "new-pa1!",
+                "new-pa1!-confirmation"
+        );
+        UUID userId = UUID.randomUUID();
+
+        perfomPatchRequest(userId, updatePasswordDTO)
+                .andDo(print()).andExpect(status().isBadRequest());
+
+        verify(userService, never()).updatePassword(eq(userId), any(UpdatePasswordDTO.class));
+    }
 
     @MethodSource("getInvalidPasswords")
     @ParameterizedTest
@@ -190,19 +170,14 @@ public class UserControllerTest {
         );
         UUID userId = UUID.randomUUID();
 
-        mockMvc.perform(
-                patch(BASE_URI + "/{userId}/password", userId)
-                        .contentType(JSON)
-                        .with(csrf())
-                        .content(writeAsJson(updatePasswordDTO))
-        ).andDo(print()).andExpect(status().isBadRequest());
+        perfomPatchRequest(userId, updatePasswordDTO)
+                .andDo(print()).andExpect(status().isBadRequest());
 
         verify(userService, never()).updatePassword(eq(userId), any(UpdatePasswordDTO.class));
 
     }
 
-
-    static Stream<Arguments> getInvalidPasswords() {
+    private static Stream<Arguments> getInvalidPasswords() {
         return Stream.of(
                 arguments(named("Without special character", "pas1word")),
                 arguments(named("Without digits", "pas!word")),
@@ -210,6 +185,26 @@ public class UserControllerTest {
                 arguments(named("Too long", "pa1!wordpa1!wordpa1!wordpa1!wordpa1!wordpa1!wordpa1!wordpa1!word"))
 
         );
+    }
+
+    private ResultActions perfomPatchRequest(UUID userId, UpdatePasswordDTO updatePasswordDTO) throws Exception {
+        return mockMvc.perform(
+                patch(BASE_URI + "/{userId}/password", userId)
+                        .contentType(JSON)
+                        .with(csrf())
+                        .content(writeAsJson(updatePasswordDTO))
+        );
+
+    }
+
+    private ResultActions perfomPostRequest(CreateUserDTO createUserDTO) throws Exception {
+        return mockMvc.perform(
+                post(BASE_URI)
+                        .contentType(JSON)
+                        .with(csrf())
+                        .content(writeAsJson(createUserDTO))
+        );
+
     }
 
     private String writeAsJson(Object object) throws Exception {
