@@ -20,7 +20,7 @@
                 document_versions
             (
                 id
-            ),
+            ) ON DELETE CASCADE,
                 app_procc_id BIGINT REFERENCES approvement_process
             (
                 id
