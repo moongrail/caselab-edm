@@ -3,6 +3,9 @@ package ru.caselab.edm.backend.controllers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -19,7 +22,10 @@ import ru.caselab.edm.backend.security.service.JwtService;
 import ru.caselab.edm.backend.service.UserService;
 
 import java.util.UUID;
+import java.util.stream.Stream;
 
+import static org.junit.jupiter.api.Named.named;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
@@ -63,8 +69,8 @@ public class UserControllerTest {
                 1L,
                 "test-login",
                 "test@gmail.com",
-                "test-password",
-                "test-password",
+                "test-pa1!word",
+                "test-pa1!word",
                 "test-name",
                 "test-name",
                 "test-patronymic",
@@ -89,8 +95,8 @@ public class UserControllerTest {
                 1L,
                 null,
                 "test@gmail.com",
-                "password",
-                "confirmation",
+                "pas!1word",
+                "confir!1mation",
                 "test-name",
                 "test-name",
                 "test-patronymic",
@@ -112,8 +118,8 @@ public class UserControllerTest {
     void updatePassword_validDto_shouldUpdatePassword() throws Exception {
         UpdatePasswordDTO updatePasswordDTO = new UpdatePasswordDTO(
                 "old-pass",
-                "new-pass",
-                "new-pass"
+                "new-pa1!",
+                "new-pa1!"
         );
         UUID userId = UUID.randomUUID();
 
@@ -131,8 +137,8 @@ public class UserControllerTest {
     void updatePassword_invalidPasswordConfirmation_shouldUpdatePassword() throws Exception {
         UpdatePasswordDTO updatePasswordDTO = new UpdatePasswordDTO(
                 "old-pass",
-                "new-pass",
-                "dummy"
+                "new-pa1!",
+                "new-pa1!-confirmation"
         );
         UUID userId = UUID.randomUUID();
 
@@ -144,6 +150,66 @@ public class UserControllerTest {
         ).andDo(print()).andExpect(status().isBadRequest());
 
         verify(userService, never()).updatePassword(eq(userId), any(UpdatePasswordDTO.class));
+    }
+
+    @MethodSource("getInvalidPasswords")
+    @ParameterizedTest
+    void createUser_invalidPassword_shouldReturnStatusBadRequest(String invalidPassword) throws Exception {
+        CreateUserDTO createUserDTO = new CreateUserDTO(
+                1L,
+                null,
+                "test@gmail.com",
+                invalidPassword,
+                invalidPassword,
+                "test-name",
+                "test-name",
+                "test-patronymic",
+                "test-position",
+                new RoleName[]{RoleName.USER}
+        );
+
+        mockMvc.perform(
+                post(BASE_URI)
+                        .contentType(JSON)
+                        .with(csrf())
+                        .content(writeAsJson(createUserDTO))
+        ).andDo(print()).andExpect(status().isBadRequest());
+
+        verify(userService, never()).createUser(any(CreateUserDTO.class));
+
+    }
+
+
+    @MethodSource("getInvalidPasswords")
+    @ParameterizedTest
+    void updatePassword_invalidPassword_shouldReturnStatusBadRequest(String invalidPassword) throws Exception {
+        UpdatePasswordDTO updatePasswordDTO = new UpdatePasswordDTO(
+                "old-pass",
+                invalidPassword,
+                invalidPassword
+        );
+        UUID userId = UUID.randomUUID();
+
+        mockMvc.perform(
+                patch(BASE_URI + "/{userId}/password", userId)
+                        .contentType(JSON)
+                        .with(csrf())
+                        .content(writeAsJson(updatePasswordDTO))
+        ).andDo(print()).andExpect(status().isBadRequest());
+
+        verify(userService, never()).updatePassword(eq(userId), any(UpdatePasswordDTO.class));
+
+    }
+
+
+    static Stream<Arguments> getInvalidPasswords() {
+        return Stream.of(
+                arguments(named("Without special character", "pas1word")),
+                arguments(named("Without digits", "pas!word")),
+                arguments(named("Too short", "pa1!")),
+                arguments(named("Too long", "pa1!wordpa1!wordpa1!wordpa1!wordpa1!wordpa1!wordpa1!wordpa1!word"))
+
+        );
     }
 
     private String writeAsJson(Object object) throws Exception {
