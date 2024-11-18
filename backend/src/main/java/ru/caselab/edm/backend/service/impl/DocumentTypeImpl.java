@@ -85,8 +85,9 @@ public class DocumentTypeImpl implements DocumentTypeService {
             }
             documentType.setName(updateDocumentType.getName());
         }
-        documentType.setDescription(updateDocumentType.getDescription());
-
+        if (updateDocumentType.getDescription() != null) {
+            documentType.setDescription(updateDocumentType.getDescription().get());
+        }
         if (updateDocumentType.getAttributeIds() != null) {
             documentType.setAttributes(mapAttributeIdsToEntities(updateDocumentType.getAttributeIds()));
         }

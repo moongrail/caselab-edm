@@ -2,6 +2,7 @@ package ru.caselab.edm.backend.controllers;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.openapitools.jackson.nullable.JsonNullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -13,6 +14,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.web.servlet.MockMvc;
+import ru.caselab.edm.backend.configurations.JacksonConfig;
 import ru.caselab.edm.backend.dto.attribute.AttributeDTO;
 import ru.caselab.edm.backend.dto.documenttype.DocumentTypeCreateDTO;
 import ru.caselab.edm.backend.dto.documenttype.DocumentTypeDTO;
@@ -39,7 +41,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@Import({JwtServiceImpl.class, UserDetailsServiceImpl.class})
+@Import({JwtServiceImpl.class, UserDetailsServiceImpl.class, JacksonConfig.class})
 @WebMvcTest(controllers = DocumentTypeController.class)
 class DocumentTypeControllerTest {
     @MockBean
@@ -261,8 +263,7 @@ class DocumentTypeControllerTest {
         DocumentTypeUpdateDTO documentTypeUpdateDTO = new DocumentTypeUpdateDTO();
         documentTypeUpdateDTO.setAttributeIds(new HashSet<>(List.of(0L)));
         documentTypeUpdateDTO.setName("Новый документ");
-        documentTypeUpdateDTO.setDescription("Такого вы еще не видели");
-
+        documentTypeUpdateDTO.setDescription(JsonNullable.of("Такого вы еще не видели"));
 
         DocumentType testDocumenttype = new DocumentType();
 
@@ -275,7 +276,7 @@ class DocumentTypeControllerTest {
 
         testDocumenttype.setId(1L);
         testDocumenttype.setName("договор");
-        testDocumenttype.setDescription("какоей-то описание");
+        testDocumenttype.setDescription("какое-то описание");
 
         Long id = 1L;
 
