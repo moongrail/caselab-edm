@@ -2,9 +2,7 @@ package ru.caselab.edm.backend.dto.user;
 
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.*;
 import ru.caselab.edm.backend.enums.RoleName;
 import ru.caselab.edm.backend.validation.annotations.Password;
 import ru.caselab.edm.backend.validation.annotations.PasswordMatcher;
@@ -18,22 +16,31 @@ public record CreateUserDTO(
         @NotNull Long departmentId,
 
         @Schema(description = "Login", example = "login")
-        @NotBlank String login,
+        @NotBlank
+        @Size(min = 5, max = 20, message = "Login must be between {min} and {max} length")
+        String login,
 
         @Schema(description = "Email", example = "email@email.com")
-        @NotBlank @Email String email,
+        @NotBlank
+        @Email
+        String email,
 
         @Schema(description = "Password", example = "password")
-        @NotBlank @Password String password,
+        @NotBlank
+        @Password
+        String password,
 
         @Schema(description = "Password confirmation", example = "password")
-        @NotBlank String passwordConfirmation,
+        @NotBlank
+        String passwordConfirmation,
 
         @Schema(description = "First name", example = "first name")
-        @NotBlank String firstName,
+        @NotBlank
+        String firstName,
 
         @Schema(description = "Last name", example = "last name")
-        @NotBlank String lastName,
+        @NotBlank
+        String lastName,
 
         @Schema(description = "Patronymic", example = "patronymic", nullable = true)
         String patronymic,
@@ -43,7 +50,10 @@ public record CreateUserDTO(
         String position,
 
         @Schema(description = "Role", example = "[\"USER\", \"ADMIN\"]")
-        @NotNull RoleName[] roles
+        @NotNull
+        @NotEmpty(message = "User must contains at least 1 role")
+        RoleName[] roles
+
 ) implements PasswordValidatable {
         @Override
         public String getPassword() {
