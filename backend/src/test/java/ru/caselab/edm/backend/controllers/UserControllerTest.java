@@ -18,7 +18,9 @@ import ru.caselab.edm.backend.builder.user.CreateUserDtoBuilder;
 import ru.caselab.edm.backend.builder.user.UpdateUserDtoBuilder;
 import ru.caselab.edm.backend.dto.user.CreateUserDTO;
 import ru.caselab.edm.backend.dto.user.UpdatePasswordDTO;
+import ru.caselab.edm.backend.dto.user.UpdatePasswordForAdminDTO;
 import ru.caselab.edm.backend.dto.user.UpdateUserDTO;
+import ru.caselab.edm.backend.entity.UserInfoDetails;
 import ru.caselab.edm.backend.enums.RoleName;
 import ru.caselab.edm.backend.repository.RoleRepository;
 import ru.caselab.edm.backend.repository.elastic.AttributeSearchRepository;
@@ -32,9 +34,9 @@ import static org.junit.jupiter.api.Named.named;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -88,7 +90,8 @@ public class UserControllerTest {
                 .build();
 
         performPostRequest(createUserDTO)
-                .andDo(print()).andExpect(status().isBadRequest());
+                .andDo(print())
+                .andExpect(status().isBadRequest());
 
         verify(userService, never()).createUser(any(CreateUserDTO.class));
     }
@@ -205,11 +208,16 @@ public class UserControllerTest {
                 "new-pa1!",
                 "new-pa1!"
         );
+        UserInfoDetails mockUserDetails = mock(UserInfoDetails.class);
 
-        performPatchRequest(userId, updatePasswordDTO)
-                .andDo(print()).andExpect(status().isNoContent());
+        when(mockUserDetails.getId()).thenReturn(userId);
 
-        verify(userService).updatePassword(userId, updatePasswordDTO);
+        performPatchRequest(mockUserDetails, updatePasswordDTO)
+                .andDo(print())
+                .andExpect(status().isNoContent());
+
+        verify(mockUserDetails).getId();
+        verify(userService).updatePassword(eq(userId), any(UpdatePasswordDTO.class));
     }
 
     @Test
@@ -219,11 +227,14 @@ public class UserControllerTest {
                 "new-pa1!",
                 "new-pa1!-confirmation"
         );
+        UserInfoDetails mockUserDetails = mock(UserInfoDetails.class);
 
-        performPatchRequest(userId, updatePasswordDTO)
-                .andDo(print()).andExpect(status().isBadRequest());
+        performPatchRequest(mockUserDetails, updatePasswordDTO)
+                .andDo(print())
+                .andExpect(status().isBadRequest());
 
-        verify(userService, never()).updatePassword(eq(userId), any(UpdatePasswordDTO.class));
+        verify(mockUserDetails, never()).getId();
+        verify(userService, never()).updatePassword(any(UUID.class), any(UpdatePasswordDTO.class));
     }
 
     @Test
@@ -388,14 +399,14 @@ public class UserControllerTest {
         );
     }
 
-    private ResultActions performPatchRequest(UUID userId, UpdatePasswordDTO updatePasswordDTO) throws Exception {
+    private ResultActions performPatchRequest(UserInfoDetails userInfoDetails, UpdatePasswordDTO updatePasswordDTO) throws Exception {
         return mockMvc.perform(
-                patch(BASE_URI + "/{userId}/password", userId)
+                patch(BASE_URI + "/password", userId)
                         .contentType(JSON)
                         .with(csrf())
+                        .with(user(userInfoDetails))
                         .content(writeAsJson(updatePasswordDTO))
         );
-
     }
 
     private ResultActions performPostRequest(CreateUserDTO createUserDTO) throws Exception {
