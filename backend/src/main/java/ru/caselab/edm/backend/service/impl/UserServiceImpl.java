@@ -210,7 +210,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public void updatePassword(UUID id, UpdatePasswordDTO updatePasswordDTO) {
         log.info("Updating password for user with id: {}", id);
-        User user = userRepository.findById(id).get();
+        User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User with id %s was not found".formatted(id)));
         if (!passwordEncoder.matches(updatePasswordDTO.oldPassword(), user.getPassword())) {
             log.warn("Invalid old password for user with id: {}", id);
             throw new BadCredentialsException("Invalid old password");
