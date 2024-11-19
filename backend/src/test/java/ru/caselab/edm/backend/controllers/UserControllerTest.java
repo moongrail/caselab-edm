@@ -238,6 +238,49 @@ public class UserControllerTest {
     }
 
     @Test
+    void updatePasswordAsAdmin_validDto_shouldUpdatePassword() throws Exception {
+        UpdatePasswordForAdminDTO updatePasswordForAdminDTO = new UpdatePasswordForAdminDTO(
+                "pa1!word",
+                "pa1!word"
+        );
+
+        performPatchRequest(userId, updatePasswordForAdminDTO)
+                .andDo(print())
+                .andExpect(status().isNoContent());
+
+        verify(userService).updatePasswordAsAdmin(eq(userId), any(UpdatePasswordForAdminDTO.class));
+    }
+
+    @Test
+    void updatePasswordAsAdmin_invalidPasswordConfirmation_shouldReturnStatusBadRequest() throws Exception {
+        UpdatePasswordForAdminDTO updatePasswordForAdminDTO = new UpdatePasswordForAdminDTO(
+                "pa1!word",
+                "pa1!word-confirmation"
+        );
+
+        performPatchRequest(userId, updatePasswordForAdminDTO)
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+
+        verify(userService, never()).updatePasswordAsAdmin(eq(userId), any(UpdatePasswordForAdminDTO.class));
+    }
+
+    @MethodSource("getPasswordValidationCases")
+    @ParameterizedTest
+    void updatePasswordAsAdmin_invalidPassword_shouldReturnStatusBadRequest(String password) throws Exception {
+        UpdatePasswordForAdminDTO updatePasswordForAdminDTO = new UpdatePasswordForAdminDTO(
+                password,
+                password
+        );
+
+        performPatchRequest(userId, updatePasswordForAdminDTO)
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+
+        verify(userService, never()).updatePasswordAsAdmin(eq(userId), any(UpdatePasswordForAdminDTO.class));
+    }
+
+    @Test
     void updateUser_validDto_shouldUpdateUserWithStatusOk() throws Exception {
         UpdateUserDTO updateUserDTO = UpdateUserDtoBuilder.builder().build();
 
@@ -401,11 +444,20 @@ public class UserControllerTest {
 
     private ResultActions performPatchRequest(UserInfoDetails userInfoDetails, UpdatePasswordDTO updatePasswordDTO) throws Exception {
         return mockMvc.perform(
-                patch(BASE_URI + "/password", userId)
+                patch(BASE_URI + "/password")
                         .contentType(JSON)
                         .with(csrf())
                         .with(user(userInfoDetails))
                         .content(writeAsJson(updatePasswordDTO))
+        );
+    }
+
+    private ResultActions performPatchRequest(UUID userId, UpdatePasswordForAdminDTO updatePasswordForAdminDTO) throws Exception {
+        return mockMvc.perform(
+                patch(BASE_URI + "/{userId}/password", userId)
+                        .contentType(JSON)
+                        .with(csrf())
+                        .content(writeAsJson(updatePasswordForAdminDTO))
         );
     }
 
