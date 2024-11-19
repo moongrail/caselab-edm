@@ -54,7 +54,7 @@ services:
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
       - MINIO_ROOT_USER=minio-user
       - MINIO_ROOT_PASSWORD=minio-password
-      - MINIO_ENDPOINT=http://minio:9000
+      - MINIO_ENDPOINT=http://172.18.27.103:9000
       - ELASTIC_ENDPOINT=http://elasticsearch:9200
     restart: always
 
