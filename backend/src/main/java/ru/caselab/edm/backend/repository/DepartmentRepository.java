@@ -4,11 +4,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import ru.caselab.edm.backend.entity.Department;
-import ru.caselab.edm.backend.entity.User;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
@@ -35,4 +34,20 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
             """,
             nativeQuery = true)
     Page<Department> getSubordinateDepartments(UUID userId, Pageable pageable);
+
+    @Query(value = """
+            select dm.department_id from department_members dm
+            join users u on u.id = dm.member_id
+            where u.id = :userId
+            """,
+            nativeQuery = true)
+    Optional<Long> findDepartmentByMemberUuid(UUID userId);
+
+    @Query(value = """
+            select dm.department_id from department_managers dm
+            join users u on u.id = dm.user_id
+            where u.id = :userId
+            """,
+            nativeQuery = true)
+    Optional<Long> findDepartmentByManagerUuid(UUID userId);
 }

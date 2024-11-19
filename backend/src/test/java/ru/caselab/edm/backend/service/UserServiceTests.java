@@ -24,6 +24,7 @@ import ru.caselab.edm.backend.exceptions.ResourceNotFoundException;
 import ru.caselab.edm.backend.exceptions.UserAlreadyExistsException;
 import ru.caselab.edm.backend.mapper.user.UserMapper;
 import ru.caselab.edm.backend.repository.DepartmentRepository;
+import ru.caselab.edm.backend.repository.RefreshTokenRepository;
 import ru.caselab.edm.backend.repository.RoleRepository;
 import ru.caselab.edm.backend.repository.UserRepository;
 import ru.caselab.edm.backend.service.impl.UserServiceImpl;
@@ -54,6 +55,9 @@ public class UserServiceTests {
 
     @Mock
     private PasswordEncoder passwordEncoder;
+
+    @Mock
+    private RefreshTokenRepository refreshTokenRepository;
 
     @Mock
     private UserMapper userMapper;
@@ -260,7 +264,6 @@ public class UserServiceTests {
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(passwordEncoder.matches("test", user.getPassword())).thenReturn(true);
         when(passwordEncoder.encode("newTest")).thenReturn("newTestEncoded");
-
         userService.updatePassword(userId, updatePasswordDTO);
 
         verify(userRepository, times(1)).findById(userId);
@@ -280,7 +283,7 @@ public class UserServiceTests {
         verify(userRepository, times(1)).findById(userId);
         verify(passwordEncoder, times(1)).matches("invalidTest", user.getPassword());
     }
-
+    
     @Test
     void updatePassword_WhenUserNotFound_ShouldThrowResourceNotFoundException() {
         UpdatePasswordDTO updatePasswordDTO = new UpdatePasswordDTO("newTest", "newTest", "newTest");
@@ -291,6 +294,7 @@ public class UserServiceTests {
         verify(userRepository, times(1)).findById(userId);
     }
 
+  
     @Test
     void deleteUser_UserExists_ShouldReturnVoid() {
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));

@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import ru.caselab.edm.backend.entity.User;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -20,18 +21,6 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     Optional<User> findUserByLogin(String username);
 
     @Query(value = """
-            SELECT * FROM  users u
-            WHERE u.department_id IN (select department_id from users u2 where id = :userId)
-            AND id !=:userId
-            """, countQuery = """
-            SELECT * FROM  users u
-            WHERE u.department_id IN (select department_id from users u2 where id = :userId)
-            AND id !=:userId
-            """,
-            nativeQuery = true)
-    Page<User> getAllUsersForReplacement(UUID userId, Pageable pageable);
-  
-   @Query(value = """
             SELECT u.id, u.login, u.email, u.first_name, u.last_name, u.patronymic, u.password, u.position
             FROM users u
             JOIN department_managers dm
@@ -50,4 +39,29 @@ public interface UserRepository extends JpaRepository<User, UUID> {
             """,
             nativeQuery = true)
     Page<User> getDepartmentMembers(@Param("departmentId") Long departmentId, Pageable pageable);
+
+    @Query(value = """
+            select u.* from users u
+            join department_members dm on u.id = dm.member_id
+            where dm.department_id =:departmentId
+            and u.id !=:userId
+            """,
+            nativeQuery = true)
+    List<User> getDepartmentMembersForReplacement(UUID userId, Long departmentId);
+
+    @Query(value = """
+            select u.* from users u
+            join department_managers dm on u.id =dm.user_id
+            where dm.department_id =:departmentId
+            """,
+            nativeQuery = true)
+    List<User> getDepartmentManagersForReplacementDepartmentMember(Long departmentId);
+
+    @Query(value = """
+            select u.* from users u
+            join department_members dm on u.id = dm.member_id
+            where dm.department_id = :departmentId
+            """,
+            nativeQuery = true)
+    List<User> getDepartmentMembersForReplacementManager(Long departmentId);
 }
