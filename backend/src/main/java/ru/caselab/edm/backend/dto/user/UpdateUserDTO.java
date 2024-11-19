@@ -1,9 +1,7 @@
 package ru.caselab.edm.backend.dto.user;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.*;
 import ru.caselab.edm.backend.entity.Department;
 import ru.caselab.edm.backend.enums.RoleName;
 
@@ -11,24 +9,36 @@ import ru.caselab.edm.backend.enums.RoleName;
 public record UpdateUserDTO(
 
         @Schema(description = "Login", example = "login")
-        @NotBlank String login,
+        @NotBlank
+        @Size(min = 5, max = 20, message = "Login must be between {min} and {max} character length")
+        String login,
 
         @Schema(description = "Email", example = "email@email.com")
-        @NotBlank @Email String email,
+        @NotBlank
+        @Email
+        String email,
 
         @Schema(description = "First name", example = "first name")
-        @NotBlank String firstName,
+        @NotBlank
+        @Size(min = 2, max = 20, message = "First name must be between {min} and {max} character length")
+        String firstName,
 
         @Schema(description = "Last name", example = "last name")
-        @NotBlank String lastName,
+        @NotBlank
+        @Size(min = 2, max = 20, message = "Last name must be between {min} and {max} character length")
+        String lastName,
 
         @Schema(description = "Patronymic", example = "patronymic", nullable = true)
+        @Size(max = 20, message = "Patronymic must not be greater than {max} character length")
         String patronymic,
 
         @Schema(description = "Position", example = "Developer")
         @NotBlank
+        @Size(min = 2, max = 20, message = "Position must be between {min} and {max} character length")
         String position,
 
         @Schema(description = "Role", example = "[\"USER\", \"ADMIN\"]")
-        @NotNull RoleName[] roles) {
+        @NotNull
+        @NotEmpty(message = "User must contain at least 1 role")
+        RoleName[] roles) {
 }
