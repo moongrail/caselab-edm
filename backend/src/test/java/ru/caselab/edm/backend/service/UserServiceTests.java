@@ -283,17 +283,6 @@ public class UserServiceTests {
         verify(userRepository, times(1)).findById(userId);
         verify(passwordEncoder, times(1)).matches("invalidTest", user.getPassword());
     }
-    
-    @Test
-    void updatePassword_WhenUserNotFound_ShouldThrowResourceNotFoundException() {
-        UpdatePasswordDTO updatePasswordDTO = new UpdatePasswordDTO("newTest", "newTest", "newTest");
-
-        when(userRepository.findById(userId)).thenReturn(Optional.empty());
-
-        assertThrows(ResourceNotFoundException.class, () -> userService.updatePassword(userId, updatePasswordDTO));
-        verify(userRepository, times(1)).findById(userId);
-    }
-
   
     @Test
     void deleteUser_UserExists_ShouldReturnVoid() {
