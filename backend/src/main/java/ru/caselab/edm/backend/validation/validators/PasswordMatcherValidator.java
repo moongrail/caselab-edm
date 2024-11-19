@@ -14,7 +14,14 @@ public class PasswordMatcherValidator implements ConstraintValidator<PasswordMat
 
     @Override
     public boolean isValid(PasswordValidatable value, ConstraintValidatorContext context) {
-        return value != null && value.getPassword()
-                .equals(value.getPasswordConfirmation());
+        return value != null && passwordsValuesAreNotNull(value) && passwordsValuesAreEquals(value);
+    }
+
+    private boolean passwordsValuesAreNotNull(PasswordValidatable value) {
+        return value.getPassword() != null && value.getPasswordConfirmation() != null;
+    }
+
+    private boolean passwordsValuesAreEquals(PasswordValidatable value) {
+        return value.getPassword().equals(value.getPasswordConfirmation());
     }
 }
