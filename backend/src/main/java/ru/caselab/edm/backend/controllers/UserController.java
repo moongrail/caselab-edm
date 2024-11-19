@@ -12,6 +12,7 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -24,9 +25,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import ru.caselab.edm.backend.dto.user.CreateUserDTO;
 import ru.caselab.edm.backend.dto.user.UpdatePasswordDTO;
+import ru.caselab.edm.backend.dto.user.UpdatePasswordForAdminDTO;
 import ru.caselab.edm.backend.dto.user.UpdateUserDTO;
 import ru.caselab.edm.backend.dto.user.UserDTO;
 import ru.caselab.edm.backend.dto.user.UserPageDTO;
+import ru.caselab.edm.backend.entity.UserInfoDetails;
 import ru.caselab.edm.backend.service.UserService;
 
 import java.util.UUID;
@@ -131,7 +134,7 @@ public class UserController {
 
     @Operation(
             summary = "Update user password",
-            description = "Change the password of an existing user by ID."
+            description = "Change the password of an authenticated user."
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Password updated successfully",
@@ -139,18 +142,37 @@ public class UserController {
             @ApiResponse(responseCode = "400", description = "Invalid password details provided",
                     content = @Content),
             @ApiResponse(responseCode = "401", description = "Invalid old password provided",
+                    content = @Content)
+    })
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    @PatchMapping("/password")
+    public ResponseEntity<Void> updatePassword(
+            @Parameter(description = "New password details")
+            @RequestBody @Valid UpdatePasswordDTO updatePasswordDTO,
+            @AuthenticationPrincipal UserInfoDetails user) {
+        userService.updatePassword(user.getId(), updatePasswordDTO);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(
+            summary = "Update user password",
+            description = "Change the password of an existing user by ID. Only admin has access to this operation"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Password updated successfully",
+                    content = @Content),
+            @ApiResponse(responseCode = "400", description = "Invalid password details provided",
                     content = @Content),
             @ApiResponse(responseCode = "404", description = "User not found with the given ID",
                     content = @Content)
     })
     @PatchMapping("/{id}/password")
-    public ResponseEntity<Void> updatePassword(
+    public ResponseEntity<Void> updatePasswordAsAdmin(
             @Parameter(description = "ID of the user whose password is to be updated", example = "123e4567-e89b-12d3-a456-426614174000")
             @PathVariable("id") UUID id,
-
             @Parameter(description = "New password details")
-            @RequestBody @Valid UpdatePasswordDTO updatePasswordDTO) {
-        userService.updatePassword(id, updatePasswordDTO);
+            @RequestBody @Valid UpdatePasswordForAdminDTO updatePasswordDTO) {
+        userService.updatePasswordAsAdmin(id, updatePasswordDTO);
         return ResponseEntity.noContent().build();
     }
 
