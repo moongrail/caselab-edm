@@ -226,6 +226,17 @@ public class UserControllerTest {
         verify(userService, never()).updatePassword(eq(userId), any(UpdatePasswordDTO.class));
     }
 
+    @Test
+    void updateUser_validDto_shouldUpdateUserWithStatusOk() throws Exception {
+        UpdateUserDTO updateUserDTO = UpdateUserDtoBuilder.builder().build();
+
+        performPutRequest(userId, updateUserDTO)
+                .andDo(print())
+                .andExpect(status().isOk());
+
+        verify(userService).updateUser(eq(userId), any(UpdateUserDTO.class));
+    }
+
     @MethodSource("getFirstNameValidationCases")
     @ParameterizedTest
     void updateUser_invalidFirstName_shouldReturnBadRequest(String firstName) throws Exception {
