@@ -6,7 +6,6 @@ import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import ru.caselab.edm.backend.entity.Department;
@@ -33,4 +32,20 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
             WHERE m.id = :userId
             """)
     Page<Department> getSubordinateDepartments(@Param("userId") UUID userId, Pageable pageable);
+
+    @Query(value = """
+            select dm.department_id from department_members dm
+            join users u on u.id = dm.member_id
+            where u.id = :userId
+            """,
+            nativeQuery = true)
+    Optional<Long> findDepartmentByMemberUuid(UUID userId);
+
+    @Query(value = """
+            select dm.department_id from department_managers dm
+            join users u on u.id = dm.user_id
+            where u.id = :userId
+            """,
+            nativeQuery = true)
+    Optional<Long> findDepartmentByManagerUuid(UUID userId);
 }

@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import ru.caselab.edm.backend.entity.User;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -63,4 +64,29 @@ public interface UserRepository extends JpaRepository<User, UUID> {
         ) AS result;
     """, nativeQuery = true)
     boolean existsUserAsManager(@Param("userId") UUID userId);
+           
+    @Query(value = """
+            select u.* from users u
+            join department_members dm on u.id = dm.member_id
+            where dm.department_id =:departmentId
+            and u.id !=:userId
+            """,
+            nativeQuery = true)
+    List<User> getDepartmentMembersForReplacement(UUID userId, Long departmentId);
+
+    @Query(value = """
+            select u.* from users u
+            join department_managers dm on u.id =dm.user_id
+            where dm.department_id =:departmentId
+            """,
+            nativeQuery = true)
+    List<User> getDepartmentManagersForReplacementDepartmentMember(Long departmentId);
+
+    @Query(value = """
+            select u.* from users u
+            join department_members dm on u.id = dm.member_id
+            where dm.department_id = :departmentId
+            """,
+            nativeQuery = true)
+    List<User> getDepartmentMembersForReplacementManager(Long departmentId);
 }
