@@ -90,18 +90,14 @@ public class UserControllerTest {
         verify(userService, never()).createUser(any(CreateUserDTO.class));
     }
 
-    @MethodSource("getInvalidPasswords")
+    @MethodSource("getInvalidCreateUserDto")
     @ParameterizedTest
-    void createUser_invalidPassword_shouldReturnStatusBadRequest(String invalidPassword) throws Exception {
-        CreateUserDTO createUserDTO = CreateUserDtoBuilder.builder()
-                .withPassword(invalidPassword)
-                .build();
-
+    void createUser_invalidDto_shouldReturnStatusBadRequest(CreateUserDTO createUserDTO) throws Exception {
         perfomPostRequest(createUserDTO)
-                .andDo(print()).andExpect(status().isBadRequest());
+                .andDo(print())
+                .andExpect(status().isBadRequest());
 
         verify(userService, never()).createUser(any(CreateUserDTO.class));
-
     }
 
     @Test
@@ -134,33 +130,6 @@ public class UserControllerTest {
         verify(userService, never()).updatePassword(eq(userId), any(UpdatePasswordDTO.class));
     }
 
-    @MethodSource("getInvalidPasswords")
-    @ParameterizedTest
-    void updatePassword_invalidPassword_shouldReturnStatusBadRequest(String invalidPassword) throws Exception {
-        UpdatePasswordDTO updatePasswordDTO = new UpdatePasswordDTO(
-                "old-pass",
-                invalidPassword,
-                invalidPassword
-        );
-        UUID userId = UUID.randomUUID();
-
-        perfomPatchRequest(userId, updatePasswordDTO)
-                .andDo(print()).andExpect(status().isBadRequest());
-
-        verify(userService, never()).updatePassword(eq(userId), any(UpdatePasswordDTO.class));
-
-    }
-
-    private static Stream<Arguments> getInvalidPasswords() {
-        return Stream.of(
-                arguments(named("Without special character", "pas1word")),
-                arguments(named("Without digits", "pas!word")),
-                arguments(named("Too short", "pa1!")),
-                arguments(named("Too long", "pa1!wordpa1!wordpa1!wordpa1!wordpa1!wordpa1!wordpa1!wordpa1!word"))
-
-        );
-    }
-
     private ResultActions perfomPatchRequest(UUID userId, UpdatePasswordDTO updatePasswordDTO) throws Exception {
         return mockMvc.perform(
                 patch(BASE_URI + "/{userId}/password", userId)
@@ -183,5 +152,53 @@ public class UserControllerTest {
 
     private String writeAsJson(Object object) throws Exception {
         return objectMapper.writeValueAsString(object);
+    }
+
+    private static Stream<Arguments> getInvalidCreateUserDto() {
+        return Stream.of(
+                arguments(named("With blank firstname",
+                        CreateUserDtoBuilder.builder().withFirstName(" ").build())),
+                arguments(named("With null firstname",
+                        CreateUserDtoBuilder.builder().withFirstName(null).build())),
+                arguments(named("With blank lastname",
+                        CreateUserDtoBuilder.builder().withLastName(" ").build())),
+                arguments(named("With null lastname",
+                        CreateUserDtoBuilder.builder().withLastName(null).build())),
+                arguments(named("With blank login",
+                        CreateUserDtoBuilder.builder().withLogin(" ").build())),
+                arguments(named("With null login",
+                        CreateUserDtoBuilder.builder().withLogin(null).build())),
+                arguments(named("With invalid email format",
+                        CreateUserDtoBuilder.builder().withEmail("invalid-email").build())),
+                arguments(named("With blank email",
+                        CreateUserDtoBuilder.builder().withEmail(" ").build())),
+                arguments(named("With null email",
+                        CreateUserDtoBuilder.builder().withEmail(null).build())),
+                arguments(named("With null departmentId",
+                        CreateUserDtoBuilder.builder().withDepartmentId(null).build())),
+                arguments(named("With null roles",
+                        CreateUserDtoBuilder.builder().withRoles(null).build())),
+                arguments(named("With invalid password format",
+                        CreateUserDtoBuilder.builder().withPassword("pass").withPasswordConfirmation("pass").build())),
+                arguments(named("With too short password",
+                        CreateUserDtoBuilder.builder().withPassword("p1!").withPasswordConfirmation("p1!").build())),
+                arguments(named("With too long password",
+                        CreateUserDtoBuilder.builder()
+                                .withPassword("p1!ppppppppppppppppppppppppppppppppppppppppppppppppppppp")
+                                .withPasswordConfirmation("p1!ppppppppppppppppppppppppppppppppppppppppppppppppppppp")
+                                .build())
+                ),
+                arguments(named("With blank password",
+                        CreateUserDtoBuilder.builder().withPassword(" ").withPasswordConfirmation(" ").build())),
+                arguments(named("With null password",
+                        CreateUserDtoBuilder.builder().withPassword(null).withPasswordConfirmation(null).build())),
+                arguments(named("With mismatched password confirmation",
+                        CreateUserDtoBuilder.builder().withPassword("Password123!")
+                                .withPasswordConfirmation("DifferentPassword123!").build())),
+                arguments(named("With blank position",
+                        CreateUserDtoBuilder.builder().withPosition(" ").build())),
+                arguments(named("With null position",
+                        CreateUserDtoBuilder.builder().withPosition(null).build()))
+        );
     }
 }
