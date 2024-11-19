@@ -31,8 +31,8 @@ public class PasswordMatcherValidatorTest {
 
         boolean result = passwordMatcherValidator.isValid(passwordValidatable, context);
 
-        verify(passwordValidatable).getPassword();
-        verify(passwordValidatable).getPasswordConfirmation();
+        verify(passwordValidatable, times(2)).getPassword();
+        verify(passwordValidatable, times(2)).getPasswordConfirmation();
         assertThat(result).isTrue();
     }
 
@@ -43,8 +43,8 @@ public class PasswordMatcherValidatorTest {
 
         boolean result = passwordMatcherValidator.isValid(passwordValidatable, context);
 
-        verify(passwordValidatable).getPassword();
-        verify(passwordValidatable).getPasswordConfirmation();
+        verify(passwordValidatable, times(2)).getPassword();
+        verify(passwordValidatable, times(2)).getPasswordConfirmation();
         assertThat(result).isFalse();
     }
 
