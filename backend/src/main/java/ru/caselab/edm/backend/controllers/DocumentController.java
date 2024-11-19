@@ -37,6 +37,7 @@ import ru.caselab.edm.backend.dto.document.DocumentOutputAllDocumentsDTO;
 import ru.caselab.edm.backend.dto.document.DocumentPageDTO;
 import ru.caselab.edm.backend.dto.document.DocumentUpdateDTO;
 import ru.caselab.edm.backend.dto.documentversion.DocumentVersionDTO;
+import ru.caselab.edm.backend.dto.documentversion.DocumentVersionDtoWithAuthor;
 import ru.caselab.edm.backend.dto.signature.SignatureCreateDTO;
 import ru.caselab.edm.backend.entity.DocumentVersion;
 import ru.caselab.edm.backend.entity.UserInfoDetails;
@@ -130,9 +131,9 @@ public class DocumentController {
     })
     @PostMapping()
     @ResponseStatus(HttpStatus.CREATED)
-    public DocumentVersionDTO createDocument(@Valid @RequestBody DocumentCreateDTO documentCreateDTO,
-                                             @AuthenticationPrincipal UserInfoDetails user) {
-        return documentVersionMapper.toDto(documentService.saveDocument(documentCreateDTO, user.getId()));
+    public DocumentVersionDtoWithAuthor createDocument(@Valid @RequestBody DocumentCreateDTO documentCreateDTO,
+                                                       @AuthenticationPrincipal UserInfoDetails user) {
+        return documentVersionMapper.toDtoWithAuthor(documentService.saveDocument(documentCreateDTO, user.getId()));
     }
 
     @Operation(summary = "Returning last version all documents of the current user")
