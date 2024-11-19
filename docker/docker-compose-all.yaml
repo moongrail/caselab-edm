@@ -58,6 +58,29 @@ services:
       - MINIO_ENDPOINT=http://minio:9000
     restart: always
 
+  elasticsearch:
+    image: elasticsearch:8.7.1
+    container_name: elasticsearch
+    environment:
+      - username=user
+      - password=pass
+      - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+      - xpack.security.enabled=false
+    ports:
+      - "9200:9200"
+      - "9600:9600"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: [ "CMD", "curl", "--fail", "http://localhost:9200" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: always
+
+
 volumes:
   postgres_data:
   minio_data:
+  elasticsearch_data:

@@ -7,8 +7,6 @@
 
     <changeSet id="db.1.0-create_document_types_script" author="Maevgal" runOnChange="true">
         <sql>
-
-
             CREATE TABLE IF NOT EXISTS document_types
             (
                 id

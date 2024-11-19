@@ -1,16 +1,21 @@
 package ru.caselab.edm.backend;
 
+import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.MinIOContainer;
+import ru.caselab.edm.backend.repository.elastic.AttributeSearchRepository;
 
 @ActiveProfiles("test")
 @SpringBootTest
+@RequiredArgsConstructor
 class BackendApplicationTests {
-
+    @MockBean
+    AttributeSearchRepository attributeSearchRepository;
     private static final String MINIO_IMAGE = "minio/minio:RELEASE.2024-02-17T01-15-57Z.fips";
     private static final String MINIO_ENDPOINT = "minio.config.endpoint";
     private static final String MINIO_USERNAME = "minio.config.username";
