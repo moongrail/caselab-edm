@@ -18,7 +18,9 @@ import ru.caselab.edm.backend.builder.user.CreateUserDtoBuilder;
 import ru.caselab.edm.backend.builder.user.UpdateUserDtoBuilder;
 import ru.caselab.edm.backend.dto.user.CreateUserDTO;
 import ru.caselab.edm.backend.dto.user.UpdatePasswordDTO;
+import ru.caselab.edm.backend.dto.user.UpdatePasswordForAdminDTO;
 import ru.caselab.edm.backend.dto.user.UpdateUserDTO;
+import ru.caselab.edm.backend.entity.UserInfoDetails;
 import ru.caselab.edm.backend.enums.RoleName;
 import ru.caselab.edm.backend.repository.RoleRepository;
 import ru.caselab.edm.backend.repository.elastic.AttributeSearchRepository;
@@ -32,9 +34,9 @@ import static org.junit.jupiter.api.Named.named;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -69,7 +71,7 @@ public class UserControllerTest {
     }
 
     @Test
-    void createUser_validDto_shouldCreateUser() throws Exception {
+    void createUser_validDto_shouldCreateUserWithStatusOk() throws Exception {
         CreateUserDTO createUserDTO = CreateUserDtoBuilder.builder()
                 .build();
 
@@ -88,14 +90,15 @@ public class UserControllerTest {
                 .build();
 
         performPostRequest(createUserDTO)
-                .andDo(print()).andExpect(status().isBadRequest());
+                .andDo(print())
+                .andExpect(status().isBadRequest());
 
         verify(userService, never()).createUser(any(CreateUserDTO.class));
     }
 
     @MethodSource("getFirstNameValidationCases")
     @ParameterizedTest
-    void createUser_invalidFirstName_shouldReturnBadRequest(String firstName) throws Exception {
+    void createUser_invalidFirstName_shouldReturnStatusBadRequest(String firstName) throws Exception {
         CreateUserDTO createUserDTO = CreateUserDtoBuilder.builder().withFirstName(firstName).build();
 
         performPostRequest(createUserDTO)
@@ -107,7 +110,7 @@ public class UserControllerTest {
 
     @MethodSource("getLastNameValidationCases")
     @ParameterizedTest
-    void createUser_invalidLastName_shouldReturnBadRequest(String lastName) throws Exception {
+    void createUser_invalidLastName_shouldReturnStatusBadRequest(String lastName) throws Exception {
         CreateUserDTO createUserDTO = CreateUserDtoBuilder.builder().withLastName(lastName).build();
 
         performPostRequest(createUserDTO)
@@ -119,7 +122,7 @@ public class UserControllerTest {
 
     @MethodSource("getPatronymicValidationCases")
     @ParameterizedTest
-    void createUser_invalidPatronymic_shouldReturnBadRequest(String patronymic) throws Exception {
+    void createUser_invalidPatronymic_shouldReturnStatusBadRequest(String patronymic) throws Exception {
         CreateUserDTO createUserDTO = CreateUserDtoBuilder.builder()
                 .withPatronymic(patronymic)
                 .build();
@@ -133,7 +136,7 @@ public class UserControllerTest {
 
     @MethodSource("getLoginValidationCases")
     @ParameterizedTest
-    void createUser_invalidLogin_shouldReturnBadRequest(String login) throws Exception {
+    void createUser_invalidLogin_shouldReturnStatusBadRequest(String login) throws Exception {
         CreateUserDTO createUserDTO = CreateUserDtoBuilder.builder().withLogin(login).build();
 
         performPostRequest(createUserDTO)
@@ -145,7 +148,7 @@ public class UserControllerTest {
 
     @MethodSource("getPositionValidationCases")
     @ParameterizedTest
-    void createUser_invalidPosition_shouldReturnBadRequest(String position) throws Exception {
+    void createUser_invalidPosition_shouldReturnStatusBadRequest(String position) throws Exception {
         CreateUserDTO createUserDTO = CreateUserDtoBuilder.builder()
                 .withPosition(position)
                 .build();
@@ -159,7 +162,7 @@ public class UserControllerTest {
 
     @MethodSource("getEmailValidationCases")
     @ParameterizedTest
-    void createUser_invalidEmail_shouldReturnBadRequest(String email) throws Exception {
+    void createUser_invalidEmail_shouldReturnStatusBadRequest(String email) throws Exception {
         CreateUserDTO createUserDTO = CreateUserDtoBuilder.builder().withEmail(email).build();
 
         performPostRequest(createUserDTO)
@@ -171,7 +174,7 @@ public class UserControllerTest {
 
     @MethodSource("getRolesValidationCases")
     @ParameterizedTest
-    void createUser_invalidRoles_shouldReturnBadRequest(RoleName[] roles) throws Exception {
+    void createUser_invalidRoles_shouldReturnStatusBadRequest(RoleName[] roles) throws Exception {
         CreateUserDTO createUserDTO = CreateUserDtoBuilder.builder()
                 .withRoles(roles)
                 .build();
@@ -185,7 +188,7 @@ public class UserControllerTest {
 
     @MethodSource("getPasswordValidationCases")
     @ParameterizedTest
-    void createUser_invalidPassword_shouldReturnBadRequest(String password) throws Exception {
+    void createUser_invalidPassword_shouldReturnStatusBadRequest(String password) throws Exception {
         CreateUserDTO createUserDTO = CreateUserDtoBuilder.builder()
                 .withPassword(password)
                 .withPasswordConfirmation(password)
@@ -199,31 +202,82 @@ public class UserControllerTest {
     }
 
     @Test
-    void updatePassword_validDto_shouldUpdatePassword() throws Exception {
+    void updatePassword_validDto_shouldUpdatePasswordWithStatusNoContent() throws Exception {
         UpdatePasswordDTO updatePasswordDTO = new UpdatePasswordDTO(
                 "old-pass",
                 "new-pa1!",
                 "new-pa1!"
         );
+        UserInfoDetails mockUserDetails = mock(UserInfoDetails.class);
 
-        performPatchRequest(userId, updatePasswordDTO)
-                .andDo(print()).andExpect(status().isNoContent());
+        when(mockUserDetails.getId()).thenReturn(userId);
 
-        verify(userService).updatePassword(userId, updatePasswordDTO);
+        performPatchRequest(mockUserDetails, updatePasswordDTO)
+                .andDo(print())
+                .andExpect(status().isNoContent());
+
+        verify(mockUserDetails).getId();
+        verify(userService).updatePassword(eq(userId), any(UpdatePasswordDTO.class));
     }
 
     @Test
-    void updatePassword_invalidPasswordConfirmation_shouldUpdatePassword() throws Exception {
+    void updatePassword_invalidPasswordConfirmation_shouldReturnStatusBadRequest() throws Exception {
         UpdatePasswordDTO updatePasswordDTO = new UpdatePasswordDTO(
                 "old-pass",
                 "new-pa1!",
                 "new-pa1!-confirmation"
         );
+        UserInfoDetails mockUserDetails = mock(UserInfoDetails.class);
 
-        performPatchRequest(userId, updatePasswordDTO)
-                .andDo(print()).andExpect(status().isBadRequest());
+        performPatchRequest(mockUserDetails, updatePasswordDTO)
+                .andDo(print())
+                .andExpect(status().isBadRequest());
 
-        verify(userService, never()).updatePassword(eq(userId), any(UpdatePasswordDTO.class));
+        verify(mockUserDetails, never()).getId();
+        verify(userService, never()).updatePassword(any(UUID.class), any(UpdatePasswordDTO.class));
+    }
+
+    @Test
+    void updatePasswordAsAdmin_validDto_shouldUpdatePasswordWithStatusNoContent() throws Exception {
+        UpdatePasswordForAdminDTO updatePasswordForAdminDTO = new UpdatePasswordForAdminDTO(
+                "pa1!word",
+                "pa1!word"
+        );
+
+        performPatchRequest(userId, updatePasswordForAdminDTO)
+                .andDo(print())
+                .andExpect(status().isNoContent());
+
+        verify(userService).updatePasswordAsAdmin(eq(userId), any(UpdatePasswordForAdminDTO.class));
+    }
+
+    @Test
+    void updatePasswordAsAdmin_invalidPasswordConfirmation_shouldReturnStatusBadRequest() throws Exception {
+        UpdatePasswordForAdminDTO updatePasswordForAdminDTO = new UpdatePasswordForAdminDTO(
+                "pa1!word",
+                "pa1!word-confirmation"
+        );
+
+        performPatchRequest(userId, updatePasswordForAdminDTO)
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+
+        verify(userService, never()).updatePasswordAsAdmin(eq(userId), any(UpdatePasswordForAdminDTO.class));
+    }
+
+    @MethodSource("getPasswordValidationCases")
+    @ParameterizedTest
+    void updatePasswordAsAdmin_invalidPassword_shouldReturnStatusBadRequest(String password) throws Exception {
+        UpdatePasswordForAdminDTO updatePasswordForAdminDTO = new UpdatePasswordForAdminDTO(
+                password,
+                password
+        );
+
+        performPatchRequest(userId, updatePasswordForAdminDTO)
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+
+        verify(userService, never()).updatePasswordAsAdmin(eq(userId), any(UpdatePasswordForAdminDTO.class));
     }
 
     @Test
@@ -239,7 +293,7 @@ public class UserControllerTest {
 
     @MethodSource("getFirstNameValidationCases")
     @ParameterizedTest
-    void updateUser_invalidFirstName_shouldReturnBadRequest(String firstName) throws Exception {
+    void updateUser_invalidFirstName_shouldReturnStatusBadRequest(String firstName) throws Exception {
         UpdateUserDTO updateUserDTO = UpdateUserDtoBuilder.builder().withFirstName(firstName).build();
 
         performPutRequest(userId, updateUserDTO)
@@ -251,7 +305,7 @@ public class UserControllerTest {
 
     @MethodSource("getLastNameValidationCases")
     @ParameterizedTest
-    void updateUser_invalidLastName_shouldReturnBadRequest(String lastName) throws Exception {
+    void updateUser_invalidLastName_shouldReturnStatusBadRequest(String lastName) throws Exception {
         UpdateUserDTO updateUserDTO = UpdateUserDtoBuilder.builder().withLastName(lastName).build();
 
         performPutRequest(userId, updateUserDTO)
@@ -263,7 +317,7 @@ public class UserControllerTest {
 
     @MethodSource("getPatronymicValidationCases")
     @ParameterizedTest
-    void updateUser_invalidPatronymic_shouldReturnBadRequest(String patronymic) throws Exception {
+    void updateUser_invalidPatronymic_shouldReturnStatusBadRequest(String patronymic) throws Exception {
         UpdateUserDTO updateUserDTO = UpdateUserDtoBuilder.builder().withPatronymic(patronymic).build();
 
         performPutRequest(userId, updateUserDTO)
@@ -275,7 +329,7 @@ public class UserControllerTest {
 
     @MethodSource("getLoginValidationCases")
     @ParameterizedTest
-    void updateUser_invalidLogin_shouldReturnBadRequest(String login) throws Exception {
+    void updateUser_invalidLogin_shouldReturnStatusBadRequest(String login) throws Exception {
         UpdateUserDTO updateUserDTO = UpdateUserDtoBuilder.builder().withLogin(login).build();
 
         performPutRequest(userId, updateUserDTO)
@@ -287,7 +341,7 @@ public class UserControllerTest {
 
     @MethodSource("getPositionValidationCases")
     @ParameterizedTest
-    void updateUser_invalidPosition_shouldReturnBadRequest(String position) throws Exception {
+    void updateUser_invalidPosition_shouldReturnStatusBadRequest(String position) throws Exception {
         UpdateUserDTO updateUserDTO = UpdateUserDtoBuilder.builder().withPosition(position).build();
 
         performPutRequest(userId, updateUserDTO)
@@ -299,7 +353,7 @@ public class UserControllerTest {
 
     @MethodSource("getEmailValidationCases")
     @ParameterizedTest
-    void updateUser_invalidEmail_shouldReturnBadRequest(String email) throws Exception {
+    void updateUser_invalidEmail_shouldReturnStatusBadRequest(String email) throws Exception {
         UpdateUserDTO updateUserDTO = UpdateUserDtoBuilder.builder().withEmail(email).build();
 
         performPutRequest(userId, updateUserDTO)
@@ -311,7 +365,7 @@ public class UserControllerTest {
 
     @MethodSource("getRolesValidationCases")
     @ParameterizedTest
-    void updateUser_invalidRoles_shouldReturnBadRequest(RoleName[] roles) throws Exception {
+    void updateUser_invalidRoles_shouldReturnStatusBadRequest(RoleName[] roles) throws Exception {
         UpdateUserDTO updateUserDTO = UpdateUserDtoBuilder.builder().withRoles(roles).build();
 
         performPutRequest(userId, updateUserDTO)
@@ -388,14 +442,23 @@ public class UserControllerTest {
         );
     }
 
-    private ResultActions performPatchRequest(UUID userId, UpdatePasswordDTO updatePasswordDTO) throws Exception {
+    private ResultActions performPatchRequest(UserInfoDetails userInfoDetails, UpdatePasswordDTO updatePasswordDTO) throws Exception {
+        return mockMvc.perform(
+                patch(BASE_URI + "/password")
+                        .contentType(JSON)
+                        .with(csrf())
+                        .with(user(userInfoDetails))
+                        .content(writeAsJson(updatePasswordDTO))
+        );
+    }
+
+    private ResultActions performPatchRequest(UUID userId, UpdatePasswordForAdminDTO updatePasswordForAdminDTO) throws Exception {
         return mockMvc.perform(
                 patch(BASE_URI + "/{userId}/password", userId)
                         .contentType(JSON)
                         .with(csrf())
-                        .content(writeAsJson(updatePasswordDTO))
+                        .content(writeAsJson(updatePasswordForAdminDTO))
         );
-
     }
 
     private ResultActions performPostRequest(CreateUserDTO createUserDTO) throws Exception {
