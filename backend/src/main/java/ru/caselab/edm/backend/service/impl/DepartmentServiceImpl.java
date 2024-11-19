@@ -44,6 +44,20 @@ public class DepartmentServiceImpl implements DepartmentService {
         if (userRepository.existsUserAsManager(id))
             throw new ManagerOfAnotherDepartmentException("User with id %s is already a manager of another department".formatted(id));
 
+        if (createDepartmentDTO.parentId() != 0) {
+            log.info("Getting parent department");
+            Department parentDepartment = departmentRepository.findById(createDepartmentDTO.parentId()).orElseThrow(() -> new ResourceNotFoundException("Parent department with id %s doesn't exists".formatted(createDepartmentDTO.parentId())));
+
+            if (!userRepository.existsUserInOtherDepartmentsAsMember(UUID.fromString(createDepartmentDTO.manager()))) {
+                // Здесь get без проблем, т.к в верхних строчках мы проверяем существование этого пользователя
+                log.info("Adding manager of current department to members of parent department");
+                parentDepartment.getMembers().add(userRepository.findById(UUID.fromString(createDepartmentDTO.manager())).get());
+
+                log.info("Saving parent department to repository");
+                departmentRepository.save(parentDepartment);
+                log.info("Parent department with id: {} saved", parentDepartment.getId());
+            }
+        }
         /*
             Обязательно ли руководитель должен быть в департаменте которым он руководит?
             Мб добавить роль MANAGER для каждого юзера являющегося руководителем?
