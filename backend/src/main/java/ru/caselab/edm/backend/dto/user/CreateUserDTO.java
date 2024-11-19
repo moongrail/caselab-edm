@@ -13,11 +13,12 @@ import ru.caselab.edm.backend.validation.interfaces.PasswordValidatable;
 public record CreateUserDTO(
 
         @Schema(description = "Department id", example = "1")
-        @NotNull Long departmentId,
+        @NotNull
+        Long departmentId,
 
         @Schema(description = "Login", example = "login")
         @NotBlank
-        @Size(min = 5, max = 20, message = "Login must be between {min} and {max} length")
+        @Size(min = 5, max = 20, message = "Login must be between {min} and {max} character length")
         String login,
 
         @Schema(description = "Email", example = "email@email.com")
@@ -36,17 +37,21 @@ public record CreateUserDTO(
 
         @Schema(description = "First name", example = "first name")
         @NotBlank
+        @Size(min = 2, max = 20, message = "First name must be between {min} and {max} character length")
         String firstName,
 
         @Schema(description = "Last name", example = "last name")
         @NotBlank
+        @Size(min = 2, max = 20, message = "Last name must be between {min} and {max} character length")
         String lastName,
 
         @Schema(description = "Patronymic", example = "patronymic", nullable = true)
+        @Size(max = 20, message = "Patronymic must not be greater than {max} character length")
         String patronymic,
 
         @Schema(description = "Position", example = "Developer")
         @NotBlank
+        @Size(min = 2, max = 20, message = "Position must be between {min} and {max} character length")
         String position,
 
         @Schema(description = "Role", example = "[\"USER\", \"ADMIN\"]")
