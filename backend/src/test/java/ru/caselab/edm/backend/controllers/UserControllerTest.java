@@ -14,6 +14,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
+import ru.caselab.edm.backend.builder.user.CreateUserDtoBuilder;
 import ru.caselab.edm.backend.dto.user.CreateUserDTO;
 import ru.caselab.edm.backend.dto.user.UpdatePasswordDTO;
 import ru.caselab.edm.backend.enums.RoleName;
@@ -66,18 +67,8 @@ public class UserControllerTest {
 
     @Test
     void createUser_validDto_shouldCreateUser() throws Exception {
-        CreateUserDTO createUserDTO = new CreateUserDTO(
-                1L,
-                "test-login",
-                "test@gmail.com",
-                "test-pa1!word",
-                "test-pa1!word",
-                "test-name",
-                "test-name",
-                "test-patronymic",
-                "test-position",
-                new RoleName[]{RoleName.USER}
-        );
+        CreateUserDTO createUserDTO = CreateUserDtoBuilder.builder()
+                .build();
 
         perfomPostRequest(createUserDTO)
                 .andDo(print())
@@ -88,18 +79,10 @@ public class UserControllerTest {
 
     @Test
     void createUser_passwordsDoNotMatch_shouldReturnStatusBadRequest() throws Exception {
-        CreateUserDTO createUserDTO = new CreateUserDTO(
-                1L,
-                null,
-                "test@gmail.com",
-                "pas!1word",
-                "confir!1mation",
-                "test-name",
-                "test-name",
-                "test-patronymic",
-                "test-position",
-                new RoleName[]{RoleName.USER}
-        );
+        CreateUserDTO createUserDTO = CreateUserDtoBuilder.builder()
+                .withPassword("pass1!word")
+                .withPasswordConfirmation("pass1!wordConfirmation")
+                .build();
 
         perfomPostRequest(createUserDTO)
                 .andDo(print()).andExpect(status().isBadRequest());
@@ -110,18 +93,9 @@ public class UserControllerTest {
     @MethodSource("getInvalidPasswords")
     @ParameterizedTest
     void createUser_invalidPassword_shouldReturnStatusBadRequest(String invalidPassword) throws Exception {
-        CreateUserDTO createUserDTO = new CreateUserDTO(
-                1L,
-                null,
-                "test@gmail.com",
-                invalidPassword,
-                invalidPassword,
-                "test-name",
-                "test-name",
-                "test-patronymic",
-                "test-position",
-                new RoleName[]{RoleName.USER}
-        );
+        CreateUserDTO createUserDTO = CreateUserDtoBuilder.builder()
+                .withPassword(invalidPassword)
+                .build();
 
         perfomPostRequest(createUserDTO)
                 .andDo(print()).andExpect(status().isBadRequest());
