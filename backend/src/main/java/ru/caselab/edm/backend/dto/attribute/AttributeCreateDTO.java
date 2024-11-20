@@ -2,6 +2,7 @@ package ru.caselab.edm.backend.dto.attribute;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 import java.util.Set;
@@ -10,12 +11,14 @@ import java.util.Set;
 @Schema(description = "DTO for create attribute")
 public class AttributeCreateDTO {
 
-    @NotBlank
     @Schema(description = "Attribute name", example = "attribute")
+    @NotBlank
+    @Size(min = 1, max = 255, message = "Attribute name must be between {min} and {max} character length")
     private String name;
 
-    @NotBlank
     @Schema(description = "Attribute data type", example = "pdf")
+    @NotBlank
+    @Size(min = 1, max = 255, message = "Attribute data type must be between {min} and {max} character length")
     private String dataType;
 
     @Schema(description = "Is it required attribute", example = "true")
