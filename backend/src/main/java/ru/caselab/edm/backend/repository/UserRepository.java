@@ -90,27 +90,24 @@ public interface UserRepository extends JpaRepository<User, UUID> {
             nativeQuery = true)
     List<User> getDepartmentMembersForReplacementManager(Long departmentId);
 
-    @Query(value = """
-            SELECT u.id, u.login, u.email, u.first_name, u.last_name, u.patronymic, u.password, u.position
-            FROM users u
-            JOIN department_members dm
-            ON u.id = dm.member_id
-            WHERE dm.department_id IN (:departmentIds) 
-              AND u.id not in (:notAvailableUsers)
-            
-            """,
-            nativeQuery = true)
-    Page<User> getAvailableUsersForDelegation(@Param("departmentIds") List<Long> departmentIds, @Param("notAvailableUsers") List<UUID> notAvailableUsers, Pageable pageable);
+    @Query("""
+    SELECT u
+    FROM User u
+    JOIN u.department d
+    WHERE 
+      d.id = :departmentId
+      AND u.id NOT IN :notAvailableUsers
+""")
+    Page<User> getAvailableUsersForDelegation(@Param("departmentId") Long departmentId, @Param("notAvailableUsers") List<UUID> notAvailableUsers, Pageable pageable);
 
-    @Query(value = """
-            SELECT u.id, u.login, u.email, u.first_name, u.last_name, u.patronymic, u.password, u.position
-            FROM users u
-            JOIN department_members dm ON u.id = dm.member_id
-            WHERE u.id = :userId
-              AND dm.department_id IN (:departmentIds)
-              AND u.id NOT IN (:notAvailableUsers)
-            """,
-            nativeQuery = true)
-    Optional<User> findUserByIdAndDepartmentAndNotInNotAvailableList(UUID userId, List<Long> departmentIds, List<UUID> notAvailableUsers);
+    @Query("""
+    SELECT u
+    FROM User u
+    JOIN u.department d
+    WHERE u.id = :userId
+      AND d.id = :departmentId
+      AND u.id NOT IN :notAvailableUsers
+""")
+    Optional<User> findUserByIdAndDepartmentAndNotInNotAvailableList(UUID userId, @Param("departmentId")  Long departmentId, List<UUID> notAvailableUsers);
 
 }
