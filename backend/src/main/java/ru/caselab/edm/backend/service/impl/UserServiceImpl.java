@@ -31,7 +31,6 @@ import ru.caselab.edm.backend.security.service.JwtService;
 import ru.caselab.edm.backend.security.service.RefreshTokenService;
 import ru.caselab.edm.backend.service.UserService;
 
-import java.time.Instant;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -126,34 +125,50 @@ public class UserServiceImpl implements UserService {
         Optional<User> user = userRepository.findById(id);
         if (user.isPresent()) {
             User existingUser = user.get();
-            if (!existingUser.getLogin().equals(updatedUser.login())
+
+            if (updatedUser.login() != null && !updatedUser.login().isBlank()) {
+                if (!existingUser.getLogin().equals(updatedUser.login())
                     && userRepository.existsByLogin(updatedUser.login())) {
-                log.warn("User already exists with login: {}", updatedUser.login());
-                throw new UserAlreadyExistsException("User already exists with this login = %s".formatted(updatedUser.login()));
-            }
-            if (!existingUser.getEmail().equals(updatedUser.email())
-                    && userRepository.existsByEmail(updatedUser.email())) {
-                log.warn("User already exists with email: {}", updatedUser.login());
-                throw new UserAlreadyExistsException("User already exists with this email = %s".formatted(updatedUser.email()));
-            }
-            Set<Role> roles = new HashSet<>();
-            for (RoleName role : updatedUser.roles()) {
-                Optional<Role> roleOptional = roleRepository.findByName(role);
-                if (roleOptional.isPresent()) {
-                    roles.add(roleOptional.get());
-                } else {
-                    log.warn("Role not found with name: {}", role.name());
-                    throw new ResourceNotFoundException("Role not found with this name = %s".formatted(role.name()));
+                    log.warn("User already exists with login: {}", updatedUser.login());
+                    throw new UserAlreadyExistsException("User already exists with this login = %s".formatted(updatedUser.login()));
                 }
+                existingUser.setLogin(updatedUser.login());
             }
-            existingUser.setLogin(updatedUser.login());
-            existingUser.setEmail(updatedUser.email());
-            existingUser.setFirstName(updatedUser.firstName());
-            existingUser.setLastName(updatedUser.lastName());
+
+            if (updatedUser.email() != null && !updatedUser.email().isBlank()) {
+                if (!existingUser.getEmail().equals(updatedUser.email())
+                    && userRepository.existsByEmail(updatedUser.email())) {
+                    log.warn("User already exists with email: {}", updatedUser.login());
+                    throw new UserAlreadyExistsException("User already exists with this email = %s".formatted(updatedUser.email()));
+                }
+                existingUser.setEmail(updatedUser.email());
+            }
+
+            if (updatedUser.firstName() != null && !updatedUser.firstName().isBlank()) {
+                existingUser.setFirstName(updatedUser.firstName());
+            }
+
+            if (updatedUser.lastName() != null && !updatedUser.lastName().isBlank()) {
+                existingUser.setLastName(updatedUser.lastName());
+            }
+
+            if (updatedUser.roles() != null) {
+                Set<Role> roles = new HashSet<>();
+                for (RoleName role : updatedUser.roles()) {
+                    Optional<Role> roleOptional = roleRepository.findByName(role);
+                    if (roleOptional.isPresent()) {
+                        roles.add(roleOptional.get());
+                    } else {
+                        log.warn("Role not found with name: {}", role.name());
+                        throw new ResourceNotFoundException("Role not found with this name = %s".formatted(role.name()));
+                    }
+                }
+                existingUser.setRoles(roles);
+            }
             if (updatedUser.patronymic() != null) {
                 existingUser.setPatronymic(updatedUser.patronymic());
             }
-            existingUser.setRoles(roles);
+
             userRepository.save(existingUser);
             log.info("User with id: {} successfully updated", id);
             return userMapper.toDTO(existingUser);
@@ -161,7 +176,6 @@ public class UserServiceImpl implements UserService {
             log.warn("User not found with id: {}", id);
             throw new ResourceNotFoundException("User not found with this id = %s".formatted(id));
         }
-
     }
 
     @Transactional
