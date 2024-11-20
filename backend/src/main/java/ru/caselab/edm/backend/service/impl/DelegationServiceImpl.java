@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import ru.caselab.edm.backend.dto.user.UserPageDTO;
 import ru.caselab.edm.backend.entity.*;
+import ru.caselab.edm.backend.exceptions.DelegationNotAvailableException;
 import ru.caselab.edm.backend.exceptions.ResourceNotFoundException;
 import ru.caselab.edm.backend.mapper.user.UserMapper;
 import ru.caselab.edm.backend.repository.ApprovementItemRepository;
@@ -37,19 +38,20 @@ public class DelegationServiceImpl implements DelegationService {
 
 
         DocumentVersion lastDocumentVersion = getLastVersionForDocument(documentId);
-        if(user.getLeadsDepartments()==null || user.getLeadsDepartments().isEmpty()) {throw new ResourceNotFoundException("This user has no root for delegation"); }
+        if(user.getLeadDepartment()==null)
+        {throw new DelegationNotAvailableException("This user has no root for delegation"); }
         Optional<ApprovementProcessItem> optionalItem = approvementItemRepository.findByDocumentVersionIdAndUserId(lastDocumentVersion.getId(), userId);
         if(optionalItem.isPresent()){
             ApprovementProcessItem item = optionalItem.get();
             List<UUID> notAvailableUsersForDelegation = new ArrayList<>();
-            List<Long> departmentIds = user.getDepartments().stream().map(Department::getId).toList();
+            Long departmentId = user.getLeadDepartment().getId();
             notAvailableUsersForDelegation.add(userId);
             if(item.getApprovementProcess()==null){
-                return userMapper.toPageDTO(getUsersForDelegation(departmentIds,PageRequest.of(page,size),notAvailableUsersForDelegation));
+                return userMapper.toPageDTO(getUsersForDelegation(departmentId,PageRequest.of(page,size),notAvailableUsersForDelegation));
             }else{
                 ApprovementProcess process = approvementProcessRepository.getApprovementProcessByDocumentVersion(lastDocumentVersion).get();
                 notAvailableUsersForDelegation.addAll(process.getApprovementProcessItems().stream().map(i->i.getUser().getId()).toList());
-                return userMapper.toPageDTO(getUsersForDelegation(departmentIds,PageRequest.of(page,size),notAvailableUsersForDelegation));
+                return userMapper.toPageDTO(getUsersForDelegation(departmentId,PageRequest.of(page,size),notAvailableUsersForDelegation));
             }
         }else{
             throw new ResourceNotFoundException("Approvement item doesn't found");
@@ -65,9 +67,9 @@ public class DelegationServiceImpl implements DelegationService {
                 .orElseThrow(() -> new ResourceNotFoundException("Process item for user not found "));
 
         User userFromDelegate = item.getUser();
-        if(userFromDelegate.getLeadsDepartments()==null || userFromDelegate.getLeadsDepartments().isEmpty()) {throw new ResourceNotFoundException("This user has no root for delegation"); }
+        if(userFromDelegate.getLeadDepartment()==null) {throw new DelegationNotAvailableException("This user has no root for delegation"); }
 
-        List<Long> departmentIds = userFromDelegate.getDepartments().stream().map(Department::getId).toList();
+        Long departmentId = userFromDelegate.getLeadDepartment().getId();
         List<UUID> notAvailableUsersForDelegation = new ArrayList<>();
         notAvailableUsersForDelegation.add(userIdFromDelegate);
         if(item.getApprovementProcess()!=null) {
@@ -75,17 +77,15 @@ public class DelegationServiceImpl implements DelegationService {
             notAvailableUsersForDelegation.addAll(process.getApprovementProcessItems().stream().map(i->i.getUser().getId()).toList());
         }
 
-        User user = userRepository.findUserByIdAndDepartmentAndNotInNotAvailableList(userIdToDelegate,departmentIds,notAvailableUsersForDelegation)
-                .orElseThrow(() -> new ResourceNotFoundException("Forbidden to delegate sigh to this user"));
+        User user = userRepository.findUserByIdAndDepartmentAndNotInNotAvailableList(userIdToDelegate,departmentId,notAvailableUsersForDelegation)
+                .orElseThrow(() -> new DelegationNotAvailableException("Forbidden to delegate sigh to this user"));
 
         item.setUser(user);
         approvementItemRepository.save(item);
     }
 
-
-
-    private Page<User> getUsersForDelegation(List<Long> departmentIds, Pageable pageable, List<UUID> userIds  ) {
-        return userRepository.getAvailableUsersForDelegation(departmentIds,userIds, pageable);
+    private Page<User> getUsersForDelegation(Long departmentId, Pageable pageable, List<UUID> userIds  ) {
+        return userRepository.getAvailableUsersForDelegation(departmentId,userIds, pageable);
     }
 
     private DocumentVersion getLastVersionForDocument(Long documentId){
