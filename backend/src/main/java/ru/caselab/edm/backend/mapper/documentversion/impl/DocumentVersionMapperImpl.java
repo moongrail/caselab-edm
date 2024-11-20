@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import ru.caselab.edm.backend.dto.attributevalue.DocumentAttributeValueDTO;
 import ru.caselab.edm.backend.dto.documentversion.DocumentVersionDTO;
+import ru.caselab.edm.backend.dto.documentversion.DocumentVersionDtoWithAuthor;
 import ru.caselab.edm.backend.entity.ApprovementProcess;
 import ru.caselab.edm.backend.entity.ApprovementProcessItem;
 import ru.caselab.edm.backend.entity.DocumentAttributeValue;
@@ -29,6 +30,21 @@ public class DocumentVersionMapperImpl implements DocumentVersionMapper {
         documentVersionDTO.setContentUrl(documentVersion.getContentUrl());
         documentVersionDTO.setState(documentVersion.getStatus());
         return documentVersionDTO;
+    }
+
+    @Override
+    public DocumentVersionDtoWithAuthor toDtoWithAuthor(DocumentVersion documentVersion) {
+        DocumentVersionDtoWithAuthor documentVersionDtoWithAuthor = new DocumentVersionDtoWithAuthor();
+        documentVersionDtoWithAuthor.setId(documentVersion.getId());
+        documentVersionDtoWithAuthor.setDocumentId(documentVersion.getDocument().getId());
+        documentVersionDtoWithAuthor.setDocumentName(documentVersion.getDocumentName());
+        documentVersionDtoWithAuthor.setAttributeValues(toAttrDtos(documentVersion.getDocumentAttributeValue()));
+        documentVersionDtoWithAuthor.setCreatedAt(documentVersion.getCreatedAt());
+        documentVersionDtoWithAuthor.setContentUrl(documentVersion.getContentUrl());
+        documentVersionDtoWithAuthor.setState(documentVersion.getStatus());
+        documentVersionDtoWithAuthor.setAuthor(documentVersion.getDocument().getUser().getLogin());
+
+        return documentVersionDtoWithAuthor;
     }
 
     @OneToMany(mappedBy = "documentVersion")
