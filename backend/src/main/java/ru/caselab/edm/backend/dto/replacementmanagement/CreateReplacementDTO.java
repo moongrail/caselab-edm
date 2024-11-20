@@ -16,10 +16,12 @@ public record CreateReplacementDTO(
         UUID userId,
 
         @Schema(description = "Start of the replacement", example = "2024-11-21T20:35:18")
+        @NotNull
         @FutureOrPresent
         Instant start,
 
         @Schema(description = "Start of the replacement", example = "2024-11-30T20:35:18")
+        @NotNull
         @Future
         Instant end) {
 }
