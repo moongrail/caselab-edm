@@ -100,7 +100,7 @@ public class AttributeController {
             @PathVariable Long id,
 
             @Parameter(description = "Updated attribute details")
-            @RequestBody AttributeUpdateDTO updateAttributeDTO) {
+            @Valid @RequestBody AttributeUpdateDTO updateAttributeDTO) {
         AttributeDTO updatedAttribute = attributeService.updateAttribute(id, updateAttributeDTO);
         return new ResponseEntity<>(updatedAttribute, HttpStatus.OK);
     }
