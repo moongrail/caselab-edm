@@ -8,6 +8,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.openapitools.jackson.nullable.JsonNullable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -112,7 +113,7 @@ class DocumentTypeTest {
         DocumentTypeUpdateDTO documentTypeUpdateDTO = new DocumentTypeUpdateDTO();
         documentTypeUpdateDTO.setAttributeIds(new HashSet<>(List.of(0L)));
         documentTypeUpdateDTO.setName("Новый документ");
-        documentTypeUpdateDTO.setDescription("Такого вы еще не видели");
+        documentTypeUpdateDTO.setDescription(JsonNullable.of("Такого вы еще не видели"));
 
         AttributeDTO testAttributeDto1 = getDocumentsAttributesDTO(0L, "подписант");
         Set<Long> documentsAttributesDTOSet1 = new HashSet<>();
