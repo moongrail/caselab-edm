@@ -64,7 +64,7 @@ public interface UserRepository extends JpaRepository<User, UUID> {
         ) AS result;
     """, nativeQuery = true)
     boolean existsUserAsManager(@Param("userId") UUID userId);
-           
+
     @Query(value = """
             select u.* from users u
             join department_members dm on u.id = dm.member_id
@@ -89,4 +89,25 @@ public interface UserRepository extends JpaRepository<User, UUID> {
             """,
             nativeQuery = true)
     List<User> getDepartmentMembersForReplacementManager(Long departmentId);
+
+    @Query("""
+    SELECT u
+    FROM User u
+    JOIN u.department d
+    WHERE 
+      d.id = :departmentId
+      AND u.id NOT IN :notAvailableUsers
+""")
+    Page<User> getAvailableUsersForDelegation(@Param("departmentId") Long departmentId, @Param("notAvailableUsers") List<UUID> notAvailableUsers, Pageable pageable);
+
+    @Query("""
+    SELECT u
+    FROM User u
+    JOIN u.department d
+    WHERE u.id = :userId
+      AND d.id = :departmentId
+      AND u.id NOT IN :notAvailableUsers
+""")
+    Optional<User> findUserByIdAndDepartmentAndNotInNotAvailableList(UUID userId, @Param("departmentId")  Long departmentId, List<UUID> notAvailableUsers);
+
 }

@@ -12,6 +12,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -19,8 +20,12 @@ import org.springframework.web.bind.annotation.*;
 import ru.caselab.edm.backend.dto.department.*;
 import ru.caselab.edm.backend.dto.user.UserDTO;
 import ru.caselab.edm.backend.dto.user.UserPageDTO;
+import ru.caselab.edm.backend.entity.User;
 import ru.caselab.edm.backend.entity.UserInfoDetails;
+import ru.caselab.edm.backend.service.DelegationService;
 import ru.caselab.edm.backend.service.DepartmentService;
+
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/department")
@@ -29,10 +34,12 @@ import ru.caselab.edm.backend.service.DepartmentService;
 public class DepartmentController {
 
     private final DepartmentService departmentService;
+    private final DelegationService delegationService;
 
     @Autowired
-    public DepartmentController(DepartmentService departmentService) {
+    public DepartmentController(DepartmentService departmentService, DelegationService delegationService) {
         this.departmentService = departmentService;
+        this.delegationService = delegationService;
     }
 
     @Operation(
@@ -175,4 +182,42 @@ public class DepartmentController {
     public void deleteDepartment(@PathVariable Long id) {
         departmentService.deleteDepartment(id);
     }
+
+
+    @Operation(
+            summary = "Get page of available users for delegation sign document's"
+    )
+    @ApiResponse(responseCode = "200", description = "List of users",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserPageDTO.class)))
+
+    @GetMapping("/document/{documentId}")
+    public ResponseEntity<UserPageDTO> getUsersForDelegation(
+            @RequestParam(name = "page", defaultValue = "0")
+            @Min(value = 0) int page,
+            @RequestParam(name = "size", defaultValue = "10")
+            @Min(value = 1) @Max(value = 100) int size,
+            @AuthenticationPrincipal UserInfoDetails user,
+            @Parameter(description = "Document id", required = true, example = "1")
+            @PathVariable Long documentId){
+
+        return new ResponseEntity<>(delegationService.getAvailableUsersForDelegation(user.getId(),documentId,size,page), HttpStatus.OK);
+    }
+
+    @Operation(
+            summary = "Delegate sign document's for another user in yours departments"
+    )
+    @ApiResponse(responseCode = "200", description = "Delegation was successfully done")
+
+   @GetMapping("/document/{documentId}/delegate")
+    public ResponseEntity delegateSignForUser(
+           @AuthenticationPrincipal UserInfoDetails user,
+           @Parameter(description = "Document id", required = true, example = "1")
+           @PathVariable Long documentId,
+           @Parameter(description = "User id to delegate", required = true, example = "9858b2f2-1aaf-4dbc-98b2-f21aafedbc2e")
+           @RequestParam(name = "userId") UUID userToDelegate
+   )
+   {
+       delegationService.delegateSign(userToDelegate,user.getId(),documentId);
+       return new ResponseEntity<>(HttpStatus.OK);
+   }
 }

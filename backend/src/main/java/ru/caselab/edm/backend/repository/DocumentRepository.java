@@ -116,4 +116,6 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
             """,
             nativeQuery = true)
     Page<Document> getAllDocumentForUser(UUID userId, Pageable pageable);
+
+    Optional<Document> getDocumentById(Long id);
 }
