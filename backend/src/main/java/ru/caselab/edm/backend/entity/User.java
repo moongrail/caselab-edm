@@ -98,7 +98,7 @@ public class User {
         if (o == null || getClass() != o.getClass()) return false;
 
         User user = (User) o;
-        return id.equals(user.id) && login.equals(user.login) &&
+        return Objects.equals(id, user.id) && login.equals(user.login) &&
                 email.equals(user.email) && password.equals(user.password) &&
                 firstName.equals(user.firstName) && lastName.equals(user.lastName)
                 && Objects.equals(patronymic, user.patronymic) && Objects.equals(position, user.position)
@@ -107,7 +107,7 @@ public class User {
 
     @Override
     public int hashCode() {
-        int result = id.hashCode();
+        int result = Objects.hashCode(id);
         result = 31 * result + login.hashCode();
         result = 31 * result + email.hashCode();
         result = 31 * result + password.hashCode();
