@@ -20,6 +20,7 @@ import lombok.Setter;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
@@ -28,7 +29,6 @@ import java.util.UUID;
 @Builder
 @Getter
 @Setter
-@EqualsAndHashCode
 @NoArgsConstructor
 @AllArgsConstructor
 public class User {
@@ -91,4 +91,31 @@ public class User {
 
     @OneToMany(mappedBy = "user")
     private List<ApprovementProcessItem> approvementProcessItems;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        User user = (User) o;
+        return Objects.equals(id, user.id) && login.equals(user.login) &&
+                email.equals(user.email) && password.equals(user.password) &&
+                firstName.equals(user.firstName) && lastName.equals(user.lastName)
+                && Objects.equals(patronymic, user.patronymic) && Objects.equals(position, user.position)
+                && roles.equals(user.roles);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = Objects.hashCode(id);
+        result = 31 * result + login.hashCode();
+        result = 31 * result + email.hashCode();
+        result = 31 * result + password.hashCode();
+        result = 31 * result + firstName.hashCode();
+        result = 31 * result + lastName.hashCode();
+        result = 31 * result + Objects.hashCode(patronymic);
+        result = 31 * result + Objects.hashCode(position);
+        result = 31 * result + roles.hashCode();
+        return result;
+    }
 }

@@ -146,7 +146,6 @@ public class UserServiceTests {
         when(departmentRepository.findById(1L)).thenReturn(Optional.of(department));
         when(passwordEncoder.encode("test")).thenReturn("encodedTest");
         when(userMapper.toDTO(any(User.class))).thenReturn(userDTO);
-
         UserDTO result = userService.createUser(createUserDTO);
 
         verify(userRepository, times(1)).existsByEmail("test@test.ru");

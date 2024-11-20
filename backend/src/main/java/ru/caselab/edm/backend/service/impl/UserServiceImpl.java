@@ -130,6 +130,7 @@ public class UserServiceImpl implements UserService {
                 .firstName(createdUser.firstName())
                 .lastName(createdUser.lastName())
                 .patronymic(createdUser.patronymic())
+                .position(createdUser.position())
                 .roles(roles)
                 .departments(departments)
                 .build();
@@ -137,10 +138,10 @@ public class UserServiceImpl implements UserService {
         if (existingDepartment.getMembers() == null)
             existingDepartment.setMembers(new HashSet<>());
 
+        userRepository.save(newUser);
         existingDepartment.getMembers().add(newUser);
 
         departmentRepository.save(existingDepartment);
-        userRepository.save(newUser);
         log.info("User created with id: {}", newUser.getId());
         return userMapper.toDTO(newUser);
     }

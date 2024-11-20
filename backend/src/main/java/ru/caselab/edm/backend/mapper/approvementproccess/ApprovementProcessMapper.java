@@ -14,6 +14,7 @@ public interface ApprovementProcessMapper {
 
     @Mapping(source = "approvementProcessItems", target = "approvementProcessItemsIds")
     @Mapping(source = "documentVersion.id", target = "documentVersionId")
+    @Mapping(source = "agreementProcent", target = "agreementPercent")
     ApprovementProcessDTO toDTO(ApprovementProcess approvementProcess);
 
     default List<Long> mapApprovementProcessItemsToIds(List<ApprovementProcessItem> approvementProcessItems) {
