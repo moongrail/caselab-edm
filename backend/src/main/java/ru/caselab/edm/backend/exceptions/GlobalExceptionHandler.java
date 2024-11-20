@@ -101,4 +101,9 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.FORBIDDEN);
     }
 
+    @ExceptionHandler(NotDepartmentMemberException.class)
+    ResponseEntity<String> handleNotDepartmentMemberException(NotDepartmentMemberException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.CONFLICT);
+    }
+
 }

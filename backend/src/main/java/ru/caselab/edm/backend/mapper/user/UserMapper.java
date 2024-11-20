@@ -1,6 +1,7 @@
 package ru.caselab.edm.backend.mapper.user;
 
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.springframework.data.domain.Page;
 import ru.caselab.edm.backend.dto.user.UserDTO;
 import ru.caselab.edm.backend.dto.user.UserPageDTO;
@@ -20,6 +21,7 @@ public interface UserMapper {
         return department != null ? department.getId() : null;
     }
 
+    @Mapping(target = "page", source = "number")
     UserPageDTO toPageDTO(Page<User> user);
 
     List<UserDTO> toListDTO(List<User> users);
