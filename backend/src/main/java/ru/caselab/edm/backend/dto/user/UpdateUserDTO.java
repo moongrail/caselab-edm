@@ -9,19 +9,19 @@ import ru.caselab.edm.backend.enums.RoleName;
 @Schema(description = "DTO for update user")
 public record UpdateUserDTO(
         @Schema(description = "Login", example = "login")
-        @NotBlank String login,
+        String login,
 
         @Schema(description = "Email", example = "email@email.com")
-        @NotBlank @Email String email,
+        @Email String email,
 
         @Schema(description = "First name", example = "first name")
-        @NotBlank String firstName,
+        String firstName,
 
         @Schema(description = "Last name", example = "last name")
-        @NotBlank String lastName,
+        String lastName,
 
         @Schema(description = "Patronymic", example = "patronymic", nullable = true)
         String patronymic,
         @Schema(description = "Role", example = "[\"USER\", \"ADMIN\"]")
-        @NotNull RoleName[] roles) {
+        RoleName[] roles) {
 }
