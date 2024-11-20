@@ -101,9 +101,24 @@ public class AttributeServiceImpl implements AttributeService {
                     return new ResourceNotFoundException("Attribute not found");
                 });
         log.debug("Current attribute details: {}", attribute);
-        attribute.setName(updateAttributeDTO.getName());
-        attribute.setDataType(updateAttributeDTO.getDataType());
-        attribute.setRequired(updateAttributeDTO.isRequired());
+
+        if (updateAttributeDTO.getName() != null && !updateAttributeDTO.getName().isBlank()) {
+            if (!attribute.getName().equals(updateAttributeDTO.getName())
+                && !attributeRepository.findByName(updateAttributeDTO.getName()).isEmpty()) {
+                log.warn("Attribute already exists with name: {}", updateAttributeDTO.getName());
+                throw new AttributeAlreadyExistsException("Attribute with  name: %s is already exist".formatted(updateAttributeDTO.getName()));
+            }
+            attribute.setName(updateAttributeDTO.getName());
+        }
+
+        if (updateAttributeDTO.getDataType() != null && !updateAttributeDTO.getDataType().isBlank()) {
+            attribute.setDataType(updateAttributeDTO.getDataType());
+        }
+
+        if (updateAttributeDTO.getRequired() != null) {
+            attribute.setRequired(updateAttributeDTO.getRequired().booleanValue());
+        }
+
         log.debug("Updating document types for attribute with ID: {}", id);
 
         if (updateAttributeDTO.getDocumentTypeIds() != null && !updateAttributeDTO.getDocumentTypeIds().isEmpty()) {
