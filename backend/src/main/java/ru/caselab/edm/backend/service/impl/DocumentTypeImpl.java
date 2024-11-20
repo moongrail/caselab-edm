@@ -79,7 +79,8 @@ public class DocumentTypeImpl implements DocumentTypeService {
                 });
 
         if (updateDocumentType.getName() != null && !updateDocumentType.getName().isBlank()) {
-            if (!documentTypeRepository.findByName(updateDocumentType.getName()).isEmpty()) {
+            if (!documentType.getName().equals(updateDocumentType.getName()) &&
+                !documentTypeRepository.findByName(updateDocumentType.getName()).isEmpty()) {
                 throw new DocumentTypeAlreadyExistsException("Document type with name %s already exists"
                         .formatted(updateDocumentType.getName()));
             }
