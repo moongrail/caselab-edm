@@ -3,7 +3,6 @@ package ru.caselab.edm.backend.dto.department;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 
-import java.util.List;
 import java.util.UUID;
 
 @Schema(description = "DTO for creating department")
@@ -15,9 +14,9 @@ public record CreateDepartmentDTO(
         String description,
         @Schema(description = "Id of parent department(if exists)", example = "0")
         Long parentId,
-        @Schema(description = "List of managers of this department")
+        @Schema(description = "ID of manager of this department")
         @NotBlank
-        List<UUID> managers
+        String manager
 ) {
 
 }

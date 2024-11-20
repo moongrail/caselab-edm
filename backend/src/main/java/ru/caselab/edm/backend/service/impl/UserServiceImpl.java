@@ -120,8 +120,6 @@ public class UserServiceImpl implements UserService {
             }
         }
 
-        Set<Department> departments = new HashSet<>();
-        departments.add(existingDepartment);
 
         User newUser = User.builder()
                 .login(createdUser.login())
@@ -132,7 +130,7 @@ public class UserServiceImpl implements UserService {
                 .patronymic(createdUser.patronymic())
                 .position(createdUser.position())
                 .roles(roles)
-                .departments(departments)
+                .department(existingDepartment)
                 .build();
 
         if (existingDepartment.getMembers() == null)
@@ -213,7 +211,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public void updatePassword(UUID id, UpdatePasswordDTO updatePasswordDTO) {
         log.info("Updating password for user with id: {}", id);
-        User user = userRepository.findById(id).get();
+        User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User with id %s was not found".formatted(id)));
         if (!passwordEncoder.matches(updatePasswordDTO.oldPassword(), user.getPassword())) {
             log.warn("Invalid old password for user with id: {}", id);
             throw new BadCredentialsException("Invalid old password");

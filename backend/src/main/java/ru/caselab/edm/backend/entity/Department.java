@@ -29,20 +29,15 @@ public class Department {
     @Column(name = "parent_id")
     private Long parentId;
 
-    @ManyToMany
-    @JoinTable(
-            name = "department_members",
-            joinColumns = @JoinColumn(name = "department_id"),
-            inverseJoinColumns = @JoinColumn(name = "member_id")
-    )
+    @OneToMany(mappedBy = "department")
     private Set<User> members;
 
-    @ManyToMany
+    @OneToOne
     @JoinTable(
             name = "department_managers",
-            joinColumns = @JoinColumn(name = "department_id"),
-            inverseJoinColumns = @JoinColumn(name = "user_id")
+            joinColumns = @JoinColumn(name = "department_id", referencedColumnName = "id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id")
     )
-    private Set<User> managers;
+    private User manager;
 
 }

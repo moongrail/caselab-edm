@@ -106,4 +106,8 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.CONFLICT);
     }
 
+    @ExceptionHandler(ManagerOfAnotherDepartmentException.class)
+    ResponseEntity<String> handleManagerOfAnotherDepartmentException(ManagerOfAnotherDepartmentException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.CONFLICT);
+    }
 }
