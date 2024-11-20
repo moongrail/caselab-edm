@@ -82,6 +82,8 @@
               ON DELETE CASCADE NOT NULL
                 );
 
-        </sql>
+            CREATE SEQUENCE IF NOT EXISTS department_seq
+    START WITH 3
+    INCREMENT BY 1;        </sql>
     </changeSet>
 </databaseChangeLog>

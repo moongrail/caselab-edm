@@ -8,15 +8,15 @@ import ru.caselab.edm.backend.validation.interfaces.PasswordValidatable;
 
 @Schema(description = "DTO for update password")
 @PasswordMatcher
-public record UpdatePasswordDTO(
-
-        @Schema(description = "Old password", example = "oldPassword")
-        @NotBlank String oldPassword,
+public record UpdatePasswordForAdminDTO(
 
         @Schema(description = "New password", example = "newPassword")
-        @NotBlank @Password String newPassword,
+        @NotBlank
+        @Password
+        String newPassword,
         @Schema(description = "New password confirmation", example = "newPassword")
-        @NotBlank String newPasswordConfirmation
+        @NotBlank
+        String newPasswordConfirmation
 
 
 ) implements PasswordValidatable {

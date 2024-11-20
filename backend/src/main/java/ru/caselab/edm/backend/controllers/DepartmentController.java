@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
@@ -17,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import ru.caselab.edm.backend.dto.department.*;
+import ru.caselab.edm.backend.dto.user.UserDTO;
 import ru.caselab.edm.backend.dto.user.UserPageDTO;
 import ru.caselab.edm.backend.entity.User;
 import ru.caselab.edm.backend.entity.UserInfoDetails;
@@ -28,8 +30,8 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/department")
 @Tag(name = "Department", description = "Operations for department")
-public class
-DepartmentController {
+@SecurityRequirement(name = "bearer-jwt")
+public class DepartmentController {
 
     private final DepartmentService departmentService;
     private final DelegationService delegationService;
@@ -43,8 +45,14 @@ DepartmentController {
     @Operation(
             summary = "Creating department"
     )
-    @ApiResponse(responseCode = "200", description = "Department created",
-            content = @Content(mediaType = "application/json", schema = @Schema(implementation = DepartmentDTO.class)))
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description="Department created",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = DepartmentDTO.class))),
+            @ApiResponse(responseCode = "404", description = "Manager with given id doesn't exists",
+                    content = @Content()),
+            @ApiResponse(responseCode = "409", description = "Given manager is already leading another department",
+                    content = @Content)
+    })
     @PostMapping()
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<DepartmentDTO> createDepartment(
@@ -54,33 +62,29 @@ DepartmentController {
     }
 
     @Operation(
-            summary = "Returning all departments that this user belongs to"
+            summary = "Returning department that this user belongs to"
     )
-    @ApiResponse(responseCode = "200", description = "Departments with current user was successfully returned",
-            content = @Content(mediaType = "application/json", schema = @Schema(implementation = DepartmentPageDTO.class)))
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description="Departments with current user was successfully returned",
+                content = @Content(mediaType = "application/json", schema = @Schema(implementation = DepartmentPageDTO.class))),
+            @ApiResponse(responseCode = "409", description = "User is not a member of any department",
+                    content = @Content)
+    })
     @GetMapping()
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<DepartmentPageDTO> getAllDepartmentsWithUser(@RequestParam(name = "page", defaultValue = "0")
-                                                                           @Min(value = 0) int page,
-                                                                       @RequestParam(name = "size", defaultValue = "10")
-                                                                           @Min(value = 1) @Max(value = 100) int size,
-                                                                       @AuthenticationPrincipal UserInfoDetails user) {
-        return ResponseEntity.ok(departmentService.getAllDepartmentsWithUser(page, size, user.getId()));
+    public ResponseEntity<DepartmentDTO> getDepartmentWithUser(@AuthenticationPrincipal UserInfoDetails user) {
+        return ResponseEntity.ok(departmentService.getDepartmentWithUser(user.getId()));
     }
 
     @Operation(
-            summary = "Returning all managers of current department"
+            summary = "Returning manager of current department"
     )
     @ApiResponse(responseCode = "200", description = "Managers of current department was successfully returned",
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserPageDTO.class)))
     @GetMapping("/{id}/managers")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<UserPageDTO> getAllManagersOfDepartment(@RequestParam(name = "page", defaultValue = "0")
-                                                                            @Min(value = 0) int page,
-                                                                  @RequestParam(name = "size", defaultValue = "10")
-                                                                            @Min(value = 1) @Max(value = 100) int size,
-                                                                  @PathVariable Long id) {
-        return ResponseEntity.ok(departmentService.getAllManagersDepartment(page, size, id));
+    public ResponseEntity<UserDTO> getManagerOfDepartment(@PathVariable Long id) {
+        return ResponseEntity.ok(departmentService.getManagerOfDepartment(id));
     }
 
     @Operation(
@@ -149,6 +153,23 @@ DepartmentController {
                                                                          @Parameter(description = "Department id", required = true, example = "1")
                                                                          @PathVariable Long id) {
         return ResponseEntity.ok(departmentService.kickMembersFromDepartment(kickMembersDTO, id));
+    }
+
+    @Operation(
+            summary = "Leaving from department"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "User was successfully leaved",
+                    content = @Content),
+            @ApiResponse(responseCode = "404", description = "User was not found",
+                    content = @Content),
+            @ApiResponse(responseCode = "409", description = "User is not a member of any department")
+    })
+    @PostMapping("/leave/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public void leaveFromDepartment(@PathVariable Long id,
+                                    @AuthenticationPrincipal UserInfoDetails user) {
+        departmentService.leaveFromDepartment(user.getId(), id);
     }
 
     @Operation(

@@ -6,21 +6,19 @@
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
 
 
-    <changeSet id="db.1.0-add_department" author="ndtm1" runOnChange="true">
+    <changeSet id="db.1.0-add_department_v1" author="ndtm1" runOnChange="true">
         <sql>
             INSERT INTO departments(id, name, description, parent_id)
-            VALUES ('0', 'IT', 'IT guys', null),
-                   ('1', 'Sub IT', 'Sub IT guys', '0');
+            VALUES ('1', 'IT', 'IT guys', null),
+                   ('2', 'Sub IT', 'Sub IT guys', '1');
 
             INSERT INTO department_members(department_id, member_id)
-            VALUES ('0', '852633e8-d6c3-4cf6-8e9e-eb9690537b61'),
-                   ('1', '852633e8-d6c3-4cf6-8e9e-eb9690537b61'),
-                   ('0', '9858b2f2-1aaf-4dbc-98b2-f21aafedbc2e'),
+            VALUES ('2', '852633e8-d6c3-4cf6-8e9e-eb9690537b61'),
                    ('1', '9858b2f2-1aaf-4dbc-98b2-f21aafedbc2e');
 
             INSERT INTO department_managers(user_id, department_id)
-            VALUES('9858b2f2-1aaf-4dbc-98b2-f21aafedbc2e', '0'),
-                  ('9858b2f2-1aaf-4dbc-98b2-f21aafedbc2e', '1');
+            VALUES ('852633e8-d6c3-4cf6-8e9e-eb9690537b61', '1'),
+                   ('9858b2f2-1aaf-4dbc-98b2-f21aafedbc2e', '2')
 
         </sql>
     </changeSet>

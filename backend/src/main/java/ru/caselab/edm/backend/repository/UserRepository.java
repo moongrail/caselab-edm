@@ -33,25 +33,62 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     Page<User> getAllUsersForReplacement(UUID userId, Pageable pageable);
   
    @Query(value = """
-            SELECT u.id, u.login, u.email, u.first_name, u.last_name, u.patronymic, u.password, u.position
-            FROM users u
-            JOIN department_managers dm
-            ON u.id = dm.user_id
-            WHERE dm.department_id = :departmentId
-            """,
-            nativeQuery = true)
-    Page<User> getDepartmentManagers(@Param("departmentId") Long departmentId, Pageable pageable);
+            SELECT u
+            FROM User u
+            WHERE u.leadDepartment.id = :departmentId
+            """)
+    Optional<User> getDepartmentManager(@Param("departmentId") Long departmentId);
 
     @Query(value = """
-            SELECT u.id, u.login, u.email, u.first_name, u.last_name, u.patronymic, u.password, u.position
-            FROM users u
-            JOIN department_members dm
-            ON u.id = dm.member_id
-            WHERE dm.department_id = :departmentId
-            """,
-            nativeQuery = true)
+            SELECT u
+            FROM User u
+            JOIN u.department d
+            WHERE d.id = :departmentId
+            """)
     Page<User> getDepartmentMembers(@Param("departmentId") Long departmentId, Pageable pageable);
 
+    @Query(value = """
+        SELECT EXISTS (
+            SELECT 1
+            FROM department_members dm
+            WHERE member_id = :userId
+        ) AS result;
+    """, nativeQuery = true)
+    boolean existsUserInOtherDepartmentsAsMember(@Param("userId") UUID userId);
+
+    @Query(value = """
+        SELECT EXISTS (
+            SELECT 1
+            FROM department_managers dm
+            WHERE dm.user_id = :userId
+        ) AS result;
+    """, nativeQuery = true)
+    boolean existsUserAsManager(@Param("userId") UUID userId);
+
+    @Query(value = """
+            select u.* from users u
+            join department_members dm on u.id = dm.member_id
+            where dm.department_id =:departmentId
+            and u.id !=:userId
+            """,
+            nativeQuery = true)
+    List<User> getDepartmentMembersForReplacement(UUID userId, Long departmentId);
+
+    @Query(value = """
+            select u.* from users u
+            join department_managers dm on u.id =dm.user_id
+            where dm.department_id =:departmentId
+            """,
+            nativeQuery = true)
+    List<User> getDepartmentManagersForReplacementDepartmentMember(Long departmentId);
+
+    @Query(value = """
+            select u.* from users u
+            join department_members dm on u.id = dm.member_id
+            where dm.department_id = :departmentId
+            """,
+            nativeQuery = true)
+    List<User> getDepartmentMembersForReplacementManager(Long departmentId);
 
     @Query(value = """
             SELECT u.id, u.login, u.email, u.first_name, u.last_name, u.patronymic, u.password, u.position

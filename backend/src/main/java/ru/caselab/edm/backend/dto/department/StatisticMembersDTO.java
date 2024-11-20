@@ -9,7 +9,7 @@ import java.util.UUID;
 public record StatisticMembersDTO(
 
         @Schema(description = "Added/deleted members")
-        List<UUID> added,
+        List<UUID> success,
 
         @Schema(description = "Skipped members")
         List<UUID> skipped

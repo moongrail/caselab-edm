@@ -10,6 +10,7 @@ import ru.caselab.edm.backend.repository.UserRepository;
 import ru.caselab.edm.backend.security.service.RefreshTokenService;
 
 import java.time.Instant;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -51,8 +52,9 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     public User getUserByToken(String token) {
         RefreshToken refreshToken = refreshTokenRepository.findRefreshTokenByToken(token)
                 .orElseThrow(() -> new ResourceNotFoundException("Token not found with this token = %s".formatted(token)));
+        RefreshToken validToken = verifyExpirationDate(refreshToken);
 
-        return refreshToken.getUser();
+        return validToken.getUser();
     }
 
 
