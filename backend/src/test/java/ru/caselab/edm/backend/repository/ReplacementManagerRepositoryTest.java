@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import ru.caselab.edm.backend.entity.Department;
 import ru.caselab.edm.backend.entity.ReplacementManager;
@@ -22,7 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @ActiveProfiles("test")
 @DataJpaTest
-public class ReplacementManagerRepositoryIT {
+public class ReplacementManagerRepositoryTest {
 
     @Autowired
     private DepartmentRepository departmentRepository;
