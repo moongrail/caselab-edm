@@ -366,7 +366,7 @@ public class UserControllerTest extends BaseControllerTest {
                 arguments(named("FirstName is blank", " ")),
                 arguments(named("FirstName is null", null)),
                 arguments(named("FirstName is too short", "n")),
-                arguments(named("FirstName is too long", generateStringWithInvalidLength(INVALID_FIRST_NAME_LENGTH)))
+                arguments(named("FirstName is too long", generateStringWithLength(INVALID_FIRST_NAME_LENGTH)))
         );
     }
 
@@ -375,14 +375,14 @@ public class UserControllerTest extends BaseControllerTest {
                 arguments(named("LastName is blank", " ")),
                 arguments(named("LastName is null", null)),
                 arguments(named("LastName is too short", "n")),
-                arguments(named("LastName is too long", generateStringWithInvalidLength(INVALID_LAST_NAME_LENGTH)))
+                arguments(named("LastName is too long", generateStringWithLength(INVALID_LAST_NAME_LENGTH)))
 
         );
     }
 
     private static Stream<Arguments> getPatronymicValidationCases() {
         return Stream.of(
-                arguments(named("Patronymic is too long", generateStringWithInvalidLength(INVALID_PATRONYMIC_LENGTH)))
+                arguments(named("Patronymic is too long", generateStringWithLength(INVALID_PATRONYMIC_LENGTH)))
         );
     }
 
@@ -391,7 +391,7 @@ public class UserControllerTest extends BaseControllerTest {
                 arguments(named("Login is blank", " ")),
                 arguments(named("Login is null", null)),
                 arguments(named("Login is too short", "log")),
-                arguments(named("Login is too long", generateStringWithInvalidLength(INVALID_LOGIN_LENGTH)))
+                arguments(named("Login is too long", generateStringWithLength(INVALID_LOGIN_LENGTH)))
         );
     }
 
@@ -400,7 +400,7 @@ public class UserControllerTest extends BaseControllerTest {
                 arguments(named("Position is blank", " ")),
                 arguments(named("Position is null", null)),
                 arguments(named("Position is too short", "p")),
-                arguments(named("Position is too long", generateStringWithInvalidLength(INVALID_POSITION_LENGTH)))
+                arguments(named("Position is too long", generateStringWithLength(INVALID_POSITION_LENGTH)))
         );
     }
 
@@ -427,7 +427,7 @@ public class UserControllerTest extends BaseControllerTest {
         );
     }
 
-    private static String generateStringWithInvalidLength(int length) {
+    private static String generateStringWithLength(int length) {
         return RandomStringUtils.random(length);
     }
 }
