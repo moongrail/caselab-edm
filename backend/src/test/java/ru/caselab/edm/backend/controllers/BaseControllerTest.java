@@ -8,13 +8,10 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
-import org.testcontainers.shaded.org.apache.commons.lang3.RandomStringUtils;
 import ru.caselab.edm.backend.entity.UserInfoDetails;
 import ru.caselab.edm.backend.repository.RoleRepository;
 import ru.caselab.edm.backend.repository.elastic.AttributeSearchRepository;
 import ru.caselab.edm.backend.security.service.JwtService;
-
-import java.util.UUID;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
@@ -35,13 +32,8 @@ public abstract class BaseControllerTest {
 
 
     protected ResultActions performRequest(MockHttpServletRequestBuilder requestBuilder, Object requestBody, UserInfoDetails userInfoDetails) throws Exception {
-        return mockMvc.perform(
-                requestBuilder
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .with(csrf())
-                        .with(user(userInfoDetails))
-                        .content(writeAsJson(requestBody))
-        );
+        requestBuilder.with(user(userInfoDetails));
+        return performRequest(requestBuilder, requestBody);
     }
 
     protected ResultActions performRequest(MockHttpServletRequestBuilder requestBuilder, Object requestBody) throws Exception {
