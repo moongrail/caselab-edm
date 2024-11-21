@@ -8,7 +8,6 @@ import lombok.AllArgsConstructor;
 import java.util.UUID;
 
 @Schema(description = "DTO for creating department")
-@AllArgsConstructor
 public record CreateDepartmentDTO(
         @Schema(description = "Name of department", example = "Yandex GO")
         @NotBlank
