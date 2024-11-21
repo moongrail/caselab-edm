@@ -1,5 +1,6 @@
 package ru.caselab.edm.backend.service;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -16,19 +17,17 @@ import org.springframework.data.jpa.domain.JpaSort;
 import ru.caselab.edm.backend.dto.document.DocumentCreateDTO;
 import ru.caselab.edm.backend.dto.document.DocumentOutputAllDocumentsDTO;
 import ru.caselab.edm.backend.dto.document.DocumentUpdateDTO;
-import ru.caselab.edm.backend.entity.Document;
-import ru.caselab.edm.backend.entity.DocumentType;
-import ru.caselab.edm.backend.entity.DocumentVersion;
-import ru.caselab.edm.backend.entity.User;
+import ru.caselab.edm.backend.entity.*;
 import ru.caselab.edm.backend.enums.DocumentSortingType;
 import ru.caselab.edm.backend.exceptions.ResourceNotFoundException;
 import ru.caselab.edm.backend.repository.DocumentRepository;
 import ru.caselab.edm.backend.repository.DocumentTypeRepository;
 import ru.caselab.edm.backend.repository.DocumentVersionRepository;
 import ru.caselab.edm.backend.repository.UserRepository;
-import ru.caselab.edm.backend.repository.elastic.AttributeSearchRepository;
 import ru.caselab.edm.backend.service.impl.DocumentServiceImpl;
 import ru.caselab.edm.backend.service.impl.DocumentVersionServiceImpl;
+import ru.caselab.edm.backend.state.DocumentState;
+import ru.caselab.edm.backend.state.DocumentStatus;
 
 import java.time.Instant;
 import java.util.*;
@@ -41,8 +40,7 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
 class DocumentServiceTests {
-    @MockBean
-    AttributeSearchRepository attributeSearchRepository;
+
     @Mock
     private DocumentRepository documentRepository;
 
@@ -53,6 +51,9 @@ class DocumentServiceTests {
     private DocumentTypeRepository documentTypeRepository;
     @Mock
     private DocumentVersionRepository documentVersionRepository;
+    @Mock
+    private DocumentState documentState;
+
 
     @InjectMocks
     private DocumentServiceImpl documentService;
@@ -322,12 +323,27 @@ class DocumentServiceTests {
 
     @Test
     @DisplayName("Delete Document")
-    void deleteDocument_Success() {
-        doNothing().when(documentRepository).deleteById(1L);
+    void deleteDocument_Success() {// Подготовка данных
+        UUID userId = UUID.randomUUID();
+        long documentId = 1L;
 
-        documentService.deleteDocument(1L);
+        Document mockDocument = new Document();
+        mockDocument.setId(documentId);
+        mockDocument.setArchived(false);
 
-        verify(documentRepository).deleteById(1L);
+        DocumentVersion mockVersion = new DocumentVersion();
+        mockVersion.setId(1L);
+        mockVersion.setDocument(mockDocument);
+        mockVersion.setState(DocumentStatus.DRAFT);
+
+        mockDocument.setDocumentVersion(List.of(mockVersion));
+
+        when(documentRepository.findById(documentId)).thenReturn(Optional.of(mockDocument));
+        when(documentRepository.save(any(Document.class))).thenReturn(mockDocument);
+
+        documentService.deleteDocument(documentId, userId);
+
+        assertTrue("Документ должен быть заархивирован", mockDocument.isArchived());
     }
 
     @Test
