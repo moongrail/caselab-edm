@@ -17,7 +17,7 @@ import lombok.Setter;
 import java.time.Instant;
 
 @Entity
-@Table(name = "\"refresh_token\"")
+@Table(name = "refresh_token")
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
