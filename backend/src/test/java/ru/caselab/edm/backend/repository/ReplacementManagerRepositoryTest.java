@@ -12,9 +12,8 @@ import ru.caselab.edm.backend.entity.User;
 import ru.caselab.edm.backend.repository.elastic.AttributeSearchRepository;
 
 import java.time.Instant;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -45,7 +44,8 @@ public class ReplacementManagerRepositoryTest {
 
     @Test
     void findActiveReplacementByManagerUser_existsReplacementForUserId_shouldReturnReplacementManager() {
-        Optional<ReplacementManager> replacementManagerOptional = replacementManagerRepository.findActiveReplacementByManagerUserId(managerUser.getId());
+        Optional<ReplacementManager> replacementManagerOptional = replacementManagerRepository
+                .findActiveReplacementByManagerUserId(managerUser.getId());
 
         assertThat(replacementManagerOptional).isPresent();
         ReplacementManager replacementManager = replacementManagerOptional.get();
@@ -54,7 +54,8 @@ public class ReplacementManagerRepositoryTest {
 
     @Test
     void findActiveReplacementByManagerUser_nonExistsReplacementForUserId_shouldReturnEmptyOptional() {
-        Optional<ReplacementManager> replacementManagerOptional = replacementManagerRepository.findActiveReplacementByManagerUserId(tempManagerUser .getId());
+        Optional<ReplacementManager> replacementManagerOptional = replacementManagerRepository
+                .findActiveReplacementByManagerUserId(tempManagerUser .getId());
 
         assertThat(replacementManagerOptional).isEmpty();
     }
@@ -66,7 +67,8 @@ public class ReplacementManagerRepositoryTest {
         User anotherManager = saveTestManager("anotherManager", "anotherManager@gmail.com", department);
         saveTestReplacementManager(anotherManager, tempManagerUser, startDate, endDate);
 
-        Optional<ReplacementManager> replacementManagerOptional = replacementManagerRepository.findActiveReplacementByManagerUserId(anotherManager.getId());
+        Optional<ReplacementManager> replacementManagerOptional = replacementManagerRepository
+                .findActiveReplacementByManagerUserId(anotherManager.getId());
 
         assertThat(replacementManagerOptional).isEmpty();
 
@@ -76,8 +78,9 @@ public class ReplacementManagerRepositoryTest {
     void findActiveReplacementByManagerUserIds_noActiveReplacementForUser_shouldReturnEmptyList() {
         User newUser = saveTestManager("newManagerUser", "newManagerUser@example.com", department);
 
-        List<ReplacementManager> replacementManagers =
-                replacementManagerRepository.findActiveReplacementsByManagerUserIds(Set.of(newUser.getId()));
+        Set<UUID> managerIdSet = Set.of(newUser.getId());
+        List<ReplacementManager> replacementManagers = replacementManagerRepository
+                .findActiveReplacementsByManagerUserIds(managerIdSet);
 
         assertThat(replacementManagers).isEmpty();
     }
@@ -102,14 +105,16 @@ public class ReplacementManagerRepositoryTest {
         saveTestReplacementManager(thirdManagerUser, tempManagerUser, startDate3, endDate3);
 
         //Act
-        List<ReplacementManager> replacementManagers = replacementManagerRepository.findActiveReplacementsByManagerUserIds
-                        (Set.of(managerUser.getId(), secondManagerUser.getId(), thirdManagerUser.getId()));
+        Set<UUID> managerIdSet = Set.of(managerUser.getId(), secondManagerUser.getId(), thirdManagerUser.getId());
+        List<ReplacementManager> replacementManagers = replacementManagerRepository
+                .findActiveReplacementsByManagerUserIds(managerIdSet);
 
         //Asserts
         assertThat(replacementManagers).hasSize(3);
-        assertThat(replacementManagers.stream().anyMatch(rm -> rm.getManagerUser().equals(managerUser))).isTrue();
-        assertThat(replacementManagers.stream().anyMatch(rm -> rm.getManagerUser().equals(secondManagerUser))).isTrue();
-        assertThat(replacementManagers.stream().anyMatch(rm -> rm.getManagerUser().equals(thirdManagerUser))).isTrue();
+        assertThat(replacementManagers.stream()
+                .map(ReplacementManager::getManagerUser)
+                .collect(Collectors.toSet()))
+                .containsExactlyInAnyOrder(managerUser, secondManagerUser, thirdManagerUser);
     }
 
     @Test
@@ -119,8 +124,9 @@ public class ReplacementManagerRepositoryTest {
         User anotherManager = saveTestManager("anotherManager", "anotherManager@gmail.com", department);
         saveTestReplacementManager(anotherManager, tempManagerUser, startDate, endDate);
 
-        List<ReplacementManager> replacementManagers = replacementManagerRepository.findActiveReplacementsByManagerUserIds(
-                Set.of(anotherManager.getId()));
+        Set<UUID> managerIdSet = Set.of(anotherManager.getId());
+        List<ReplacementManager> replacementManagers = replacementManagerRepository
+                .findActiveReplacementsByManagerUserIds(managerIdSet);
 
         assertThat(replacementManagers).isEmpty();
     }
@@ -173,6 +179,7 @@ public class ReplacementManagerRepositoryTest {
                 .firstName("test-name")
                 .lastName("test-lastname")
                 .position("test-position")
+                .roles(new HashSet<>())
                 .build());
     }
 
