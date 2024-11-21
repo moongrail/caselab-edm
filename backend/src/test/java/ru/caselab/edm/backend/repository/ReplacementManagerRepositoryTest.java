@@ -114,9 +114,6 @@ public class ReplacementManagerRepositoryTest {
 
         //Asserts
         assertThat(replacementManagers).hasSize(3);
-        assertThat(replacementManagers.stream().anyMatch(rm -> rm.getManagerUser().equals(managerUser))).isTrue();
-        assertThat(replacementManagers.stream().anyMatch(rm -> rm.getManagerUser().equals(secondManagerUser))).isTrue();
-        assertThat(replacementManagers.stream().anyMatch(rm -> rm.getManagerUser().equals(thirdManagerUser))).isTrue();
         assertThat(replacementManagers.stream()
                 .map(ReplacementManager::getManagerUser)
                 .collect(Collectors.toSet()))
