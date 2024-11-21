@@ -1,83 +1,70 @@
 package ru.caselab.edm.backend.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.NullSource;
 import org.mockito.Mock;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.MediaType;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.test.context.ActiveProfiles;
 import org.testcontainers.shaded.org.apache.commons.lang3.RandomStringUtils;
+import ru.caselab.edm.backend.dto.approvementprocess.ApprovementProcessCreateDTO;
 import ru.caselab.edm.backend.dto.document.DocumentCreateDTO;
 import ru.caselab.edm.backend.dto.document.DocumentUpdateDTO;
 import ru.caselab.edm.backend.entity.UserInfoDetails;
 import ru.caselab.edm.backend.mapper.documentversion.DocumentVersionMapper;
-import ru.caselab.edm.backend.repository.RoleRepository;
-import ru.caselab.edm.backend.repository.elastic.AttributeSearchRepository;
-import ru.caselab.edm.backend.security.service.JwtService;
 import ru.caselab.edm.backend.service.ApprovementService;
 import ru.caselab.edm.backend.service.DocumentService;
 import ru.caselab.edm.backend.service.MinioService;
 import ru.caselab.edm.backend.service.SignatureService;
 
+import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Named.named;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.Mockito.*;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@ActiveProfiles("test")
 @WithMockUser(roles = "ADMIN")
 @WebMvcTest(DocumentController.class)
-public class DocumentControllerTest {
+public class DocumentControllerTest extends BaseControllerTest {
 
     private static final String BASE_URI = "/document";
-    private static final MediaType JSON = MediaType.APPLICATION_JSON;
     private static final Long ID = 1L;
     private static final int INVALID_LENGTH = 256;
 
-    @Autowired
-    private MockMvc mockMvc;
     @MockBean
     private DocumentService documentService;
-    @Mock
-    private UserInfoDetails userInfoDetails;
-    private ObjectMapper objectMapper;
-    private UUID userId;
-
-    @MockBean
-    private SignatureService signatureService;
-    @MockBean
-    private DocumentVersionMapper documentVersionMapper;
     @MockBean
     private ApprovementService approvementService;
     @MockBean
+    private SignatureService signatureService;
+    @MockBean
     private MinioService minioService;
     @MockBean
-    private AttributeSearchRepository attributeSearchRepository;
-    @MockBean
-    private UserDetailsService userDetailsService;
-    @MockBean
-    private RoleRepository roleRepository;
-    @MockBean
-    private JwtService jwtService;
+    private DocumentVersionMapper documentVersionMapper;
+    @Mock
+    private UserInfoDetails userInfoDetails;
+    private UUID userId;
 
     @BeforeEach
     void setUp() {
         objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
         userId = UUID.randomUUID();
     }
 
@@ -92,7 +79,7 @@ public class DocumentControllerTest {
 
         when(userInfoDetails.getId()).thenReturn(userId);
 
-        performPostRequest(createDto, userInfoDetails)
+        performRequest(post(BASE_URI), createDto, userInfoDetails)
                 .andDo(print())
                 .andExpect(status().isCreated());
 
@@ -110,7 +97,7 @@ public class DocumentControllerTest {
                 null
         );
 
-        performPostRequest(createDto, userInfoDetails)
+        performRequest(post(BASE_URI), createDto, userInfoDetails)
                 .andDo(print())
                 .andExpect(status().isBadRequest());
 
@@ -129,7 +116,7 @@ public class DocumentControllerTest {
 
         when(userInfoDetails.getId()).thenReturn(userId);
 
-        performPutRequest(ID, updateDto, userInfoDetails)
+        performRequest(put(BASE_URI + "/{id}", ID), updateDto, userInfoDetails)
                 .andDo(print())
                 .andExpect(status().isOk());
 
@@ -146,13 +133,96 @@ public class DocumentControllerTest {
                 null
         );
 
-        performPutRequest(ID, updateDto, userInfoDetails)
+        performRequest(put(BASE_URI + "/{id}", ID), updateDto, userInfoDetails)
                 .andDo(print())
                 .andExpect(status().isBadRequest());
 
         verify(userInfoDetails, never()).getId();
         verify(documentService, never()).updateDocument(eq(ID), any(DocumentUpdateDTO.class), eq(userId));
 
+    }
+
+    @Test
+    void startApprovement_validDto_shouldReturnStatusBadRequest() throws Exception {
+        ApprovementProcessCreateDTO approvementProcessCreateDTO = new ApprovementProcessCreateDTO(
+                ID,
+                LocalDateTime.now().plusDays(10),
+                10,
+                Set.of(userId)
+        );
+
+        performRequest(post(BASE_URI + "/approvement/start"), approvementProcessCreateDTO, userInfoDetails)
+                .andDo(print())
+                .andExpect(status().isOk());
+
+        verify(approvementService).createApprovementProcess(any(ApprovementProcessCreateDTO.class), eq(userInfoDetails));
+    }
+
+    @MethodSource("getAgreementPercentValidationCases")
+    @ParameterizedTest
+    void startApprovement_invalidAgreementPercent_shouldReturnStatusBadRequest(float agreementPercent) throws Exception {
+        ApprovementProcessCreateDTO approvementProcessCreateDTO = new ApprovementProcessCreateDTO(
+                ID,
+                LocalDateTime.now().plusDays(10),
+                agreementPercent,
+                Set.of(userId)
+        );
+
+        performRequest(post(BASE_URI + "/approvement/start"), approvementProcessCreateDTO, userInfoDetails)
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+
+        verify(approvementService, never()).createApprovementProcess(any(ApprovementProcessCreateDTO.class), eq(userInfoDetails));
+    }
+
+    @NullSource
+    @ParameterizedTest
+    void startApprovement_documentIdIsNull_shouldReturnStatusBadRequest(Long documentId) throws Exception {
+        ApprovementProcessCreateDTO approvementProcessCreateDTO = new ApprovementProcessCreateDTO(
+                documentId,
+                LocalDateTime.now().plusDays(10),
+                10,
+                Set.of(userId)
+        );
+
+        performRequest(post(BASE_URI + "/approvement/start"), approvementProcessCreateDTO, userInfoDetails)
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+
+        verify(approvementService, never()).createApprovementProcess(any(ApprovementProcessCreateDTO.class), eq(userInfoDetails));
+    }
+
+    @Test
+    void startApprovement_userIdsIsEmpty_shouldReturnStatusBadRequest() throws Exception {
+        ApprovementProcessCreateDTO approvementProcessCreateDTO = new ApprovementProcessCreateDTO(
+                ID,
+                LocalDateTime.now().plusDays(10),
+                10,
+                new HashSet<>()
+        );
+
+        performRequest(post(BASE_URI + "/approvement/start"), approvementProcessCreateDTO, userInfoDetails)
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+
+        verify(approvementService, never()).createApprovementProcess(any(ApprovementProcessCreateDTO.class), eq(userInfoDetails));
+    }
+
+
+    @Test
+    void startApprovement_deadlineIsInThePast_shouldReturnStatusBadRequest() throws Exception {
+        ApprovementProcessCreateDTO approvementProcessCreateDTO = new ApprovementProcessCreateDTO(
+                ID,
+                LocalDateTime.now().minusDays(10),
+                10,
+                new HashSet<>()
+        );
+
+        performRequest(post(BASE_URI + "/approvement/start"), approvementProcessCreateDTO, userInfoDetails)
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+
+        verify(approvementService, never()).createApprovementProcess(any(ApprovementProcessCreateDTO.class), eq(userInfoDetails));
     }
 
     private static Stream<Arguments> getNameValidationCases() {
@@ -164,32 +234,14 @@ public class DocumentControllerTest {
         );
     }
 
+    private static Stream<Arguments> getAgreementPercentValidationCases() {
+        return Stream.of(
+                arguments(named("Percent less than min value", 0)),
+                arguments(named("Percent greater than max value", 101))
+        );
+    }
+
     private static String generateStringWithInvalidLength() {
         return RandomStringUtils.random(INVALID_LENGTH);
     }
-
-    private ResultActions performPostRequest(DocumentCreateDTO documentCreateDTO, UserInfoDetails userInfoDetails) throws Exception {
-        return mockMvc.perform(
-                post(BASE_URI)
-                        .contentType(JSON)
-                        .with(csrf())
-                        .with(user(userInfoDetails))
-                        .content(writeAsJson(documentCreateDTO))
-        );
-    }
-
-    private ResultActions performPutRequest(Long documentId, DocumentUpdateDTO documentUpdateDTO, UserInfoDetails userInfoDetails) throws Exception {
-        return mockMvc.perform(
-                put(BASE_URI + "/{id}", documentId)
-                        .contentType(JSON)
-                        .with(csrf())
-                        .with(user(userInfoDetails))
-                        .content(writeAsJson(documentUpdateDTO))
-        );
-    }
-
-    private String writeAsJson(Object object) throws Exception {
-        return objectMapper.writeValueAsString(object);
-    }
-
 }
