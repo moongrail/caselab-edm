@@ -38,7 +38,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@ActiveProfiles("test")
 @WithMockUser(roles = "ADMIN")
 @WebMvcTest(DocumentController.class)
 public class DocumentControllerTest extends BaseControllerTest {
@@ -143,7 +142,7 @@ public class DocumentControllerTest extends BaseControllerTest {
     }
 
     @Test
-    void startApprovement_validDto_shouldReturnStatusBadRequest() throws Exception {
+    void startApprovement_validDto_shouldStartWithStatusOk() throws Exception {
         ApprovementProcessCreateDTO approvementProcessCreateDTO = new ApprovementProcessCreateDTO(
                 ID,
                 LocalDateTime.now().plusDays(10),
