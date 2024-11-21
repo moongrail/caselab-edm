@@ -12,6 +12,9 @@ import ru.caselab.edm.backend.entity.User;
 import ru.caselab.edm.backend.repository.elastic.AttributeSearchRepository;
 
 import java.time.Instant;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -111,6 +114,9 @@ public class ReplacementManagerRepositoryTest {
 
         //Asserts
         assertThat(replacementManagers).hasSize(3);
+        assertThat(replacementManagers.stream().anyMatch(rm -> rm.getManagerUser().equals(managerUser))).isTrue();
+        assertThat(replacementManagers.stream().anyMatch(rm -> rm.getManagerUser().equals(secondManagerUser))).isTrue();
+        assertThat(replacementManagers.stream().anyMatch(rm -> rm.getManagerUser().equals(thirdManagerUser))).isTrue();
         assertThat(replacementManagers.stream()
                 .map(ReplacementManager::getManagerUser)
                 .collect(Collectors.toSet()))
@@ -192,3 +198,4 @@ public class ReplacementManagerRepositoryTest {
                 .build());
     }
 }
+
