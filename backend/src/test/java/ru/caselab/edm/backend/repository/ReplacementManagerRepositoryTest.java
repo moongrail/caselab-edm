@@ -12,7 +12,6 @@ import ru.caselab.edm.backend.entity.User;
 import ru.caselab.edm.backend.repository.elastic.AttributeSearchRepository;
 
 import java.time.Instant;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -154,18 +153,14 @@ public class ReplacementManagerRepositoryTest {
 
     private User saveTestManager(String login, String email, Department department) {
         User manager = buildTestUserWithoutDepartments(login, email);
-        Set<Department> departments = new HashSet<>();
-        departments.add(department);
-        manager.setLeadsDepartments(departments);
+        manager.setLeadDepartment(department);
 
         return userRepository.save(manager);
     }
 
     private User saveTestMember(String login, String email, Department department) {
         User member = buildTestUserWithoutDepartments(login, email);
-        Set<Department> departments = new HashSet<>();
-        departments.add(department);
-        member.setDepartments(departments);
+        member.setDepartment(department);
 
         return userRepository.save(member);
     }
@@ -174,12 +169,13 @@ public class ReplacementManagerRepositoryTest {
         return userRepository.save(User.builder()
                 .login(login)
                 .email(email)
-                .password("test-password")
+                .password("test-pass!1word")
                 .firstName("test-name")
                 .lastName("test-lastname")
                 .position("test-position")
                 .build());
     }
+
     private ReplacementManager saveTestReplacementManager(User managerUser, User tempManagerUser, Instant startDate, Instant endDate) {
         return replacementManagerRepository.save(ReplacementManager.builder()
                 .managerUser(managerUser)
