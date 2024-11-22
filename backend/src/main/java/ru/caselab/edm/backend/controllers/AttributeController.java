@@ -64,6 +64,7 @@ public class AttributeController {
             @ApiResponse(responseCode = "404", description = "Document attribute not found by given id",
                     content = @Content)
     })
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     @GetMapping("/{id}")
     public ResponseEntity<AttributeDTO> getAttributeById(
             @Parameter(description = "ID of the document attribute to be deleted", example = "1")
@@ -78,6 +79,7 @@ public class AttributeController {
             @ApiResponse(responseCode = "200", description = "Successfully retrieved the list of attributes",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = AttributeDTO.class))),
     })
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     @GetMapping
     public ResponseEntity<Page<AttributeDTO>> getAllAttributes(
             @Parameter(description = "Page number starting from 0", example = "0")
