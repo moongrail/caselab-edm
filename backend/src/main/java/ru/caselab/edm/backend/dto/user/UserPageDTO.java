@@ -7,7 +7,7 @@ import java.util.List;
 @Schema(description = "DTO for representing page of users")
 public record UserPageDTO(
         @Schema(description = "Page number", example = "1", minimum = "0")
-        int page,
+        int number,
         @Schema(description = "Number of elements per page", example = "10")
         int size,
         @Schema(description = "Total number of pages", example = "10")
