@@ -67,6 +67,7 @@ public class DocumentTypeController {
                             schema = @Schema(implementation = DocumentTypeDTO.class)))
     })
     @GetMapping("")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     @ResponseStatus(HttpStatus.OK)
     public Page<DocumentTypeDTO> showAllDocumentTypes(
             @Parameter(description = "Page number starting from 0", example = "0")
@@ -88,6 +89,7 @@ public class DocumentTypeController {
                     content = @Content)
     })
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     @ResponseStatus(HttpStatus.OK)
     public DocumentTypeDTO showDocumentType(
             @Parameter(description = "ID of the document type to be retrieved", example = "1")
