@@ -31,8 +31,8 @@ public interface UserRepository extends JpaRepository<User, UUID> {
             """,
             nativeQuery = true)
     Page<User> getAllUsersForReplacement(UUID userId, Pageable pageable);
-  
-   @Query(value = """
+
+    @Query(value = """
             SELECT u
             FROM User u
             WHERE u.leadDepartment.id = :departmentId
@@ -48,66 +48,65 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     Page<User> getDepartmentMembers(@Param("departmentId") Long departmentId, Pageable pageable);
 
     @Query(value = """
-        SELECT EXISTS (
-            SELECT 1
-            FROM department_members dm
-            WHERE member_id = :userId
-        ) AS result;
-    """, nativeQuery = true)
+                SELECT EXISTS (
+                    SELECT 1
+                    FROM department_members dm
+                    WHERE member_id = :userId
+                ) AS result;
+            """, nativeQuery = true)
     boolean existsUserInOtherDepartmentsAsMember(@Param("userId") UUID userId);
 
     @Query(value = """
-        SELECT EXISTS (
-            SELECT 1
-            FROM department_managers dm
-            WHERE dm.user_id = :userId
-        ) AS result;
-    """, nativeQuery = true)
+                SELECT EXISTS (
+                    SELECT 1
+                    FROM department_managers dm
+                    WHERE dm.user_id = :userId
+                ) AS result;
+            """, nativeQuery = true)
     boolean existsUserAsManager(@Param("userId") UUID userId);
 
     @Query(value = """
-            select u.* from users u
-            join department_members dm on u.id = dm.member_id
-            where dm.department_id =:departmentId
-            and u.id !=:userId
-            """,
-            nativeQuery = true)
+            SELECT u
+            FROM User u
+            JOIN u.department d
+            WHERE d.id = :departmentId
+            AND u.id <> :userId
+            """)
     List<User> getDepartmentMembersForReplacement(UUID userId, Long departmentId);
 
     @Query(value = """
-            select u.* from users u
-            join department_managers dm on u.id =dm.user_id
-            where dm.department_id =:departmentId
-            """,
-            nativeQuery = true)
+            SELECT u
+            FROM User u
+            WHERE u.leadDepartment.id = :departmentId
+            """)
     List<User> getDepartmentManagersForReplacementDepartmentMember(Long departmentId);
 
     @Query(value = """
-            select u.* from users u
-            join department_members dm on u.id = dm.member_id
-            where dm.department_id = :departmentId
-            """,
-            nativeQuery = true)
+            SELECT u
+            FROM User u
+            JOIN u.department d
+            WHERE d.id = :departmentId
+            """)
     List<User> getDepartmentMembersForReplacementManager(Long departmentId);
 
     @Query("""
-    SELECT u
-    FROM User u
-    JOIN u.department d
-    WHERE 
-      d.id = :departmentId
-      AND u.id NOT IN :notAvailableUsers
-""")
+                SELECT u
+                FROM User u
+                JOIN u.department d
+                WHERE 
+                  d.id = :departmentId
+                  AND u.id NOT IN :notAvailableUsers
+            """)
     Page<User> getAvailableUsersForDelegation(@Param("departmentId") Long departmentId, @Param("notAvailableUsers") List<UUID> notAvailableUsers, Pageable pageable);
 
     @Query("""
-    SELECT u
-    FROM User u
-    JOIN u.department d
-    WHERE u.id = :userId
-      AND d.id = :departmentId
-      AND u.id NOT IN :notAvailableUsers
-""")
-    Optional<User> findUserByIdAndDepartmentAndNotInNotAvailableList(UUID userId, @Param("departmentId")  Long departmentId, List<UUID> notAvailableUsers);
+                SELECT u
+                FROM User u
+                JOIN u.department d
+                WHERE u.id = :userId
+                  AND d.id = :departmentId
+                  AND u.id NOT IN :notAvailableUsers
+            """)
+    Optional<User> findUserByIdAndDepartmentAndNotInNotAvailableList(UUID userId, @Param("departmentId") Long departmentId, List<UUID> notAvailableUsers);
 
 }
