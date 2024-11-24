@@ -23,6 +23,16 @@ public interface DocumentService {
                                                                            UUID userId,
                                                                            DocumentSortingType sortingType);
 
+    Page<DocumentOutputAllDocumentsDTO> getAllDocumentWhereUserSignatoriesBeforeSigner(int page,
+                                                                                       int size,
+                                                                                       UUID userId,
+                                                                                       DocumentSortingType sortingType);
+
+    Page<DocumentOutputAllDocumentsDTO> getAllDocumentWhereUserSignatoriesAfterSigner(int page,
+                                                                                      int size,
+                                                                                      UUID userId,
+                                                                                      DocumentSortingType sortingType);
+
     DocumentVersion getLastVersionDocumentForUser(long id, UUID userId);
 
     DocumentVersion getLastVersionDocumentWhereUserSignatories(long id, UUID userId);
