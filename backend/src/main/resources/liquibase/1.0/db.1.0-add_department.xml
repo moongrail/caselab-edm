@@ -8,9 +8,9 @@
 
     <changeSet id="db.1.0-add_department_v1" author="ndtm1" runOnChange="true">
         <sql>
-            INSERT INTO departments(id, name, description, parent_id)
-            VALUES ('1', 'IT', 'IT guys', null),
-                   ('2', 'Sub IT', 'Sub IT guys', '1');
+            INSERT INTO departments(name, description, parent_id)
+            VALUES ('IT', 'IT guys', null),
+                   ('Sub IT', 'Sub IT guys', '1');
 
             INSERT INTO department_members(department_id, member_id)
             VALUES ('2', '852633e8-d6c3-4cf6-8e9e-eb9690537b61'),
