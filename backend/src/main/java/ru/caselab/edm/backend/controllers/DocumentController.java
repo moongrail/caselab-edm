@@ -29,6 +29,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import ru.caselab.edm.backend.dto.approvementprocess.ApprovementProcessCreateDTO;
 import ru.caselab.edm.backend.dto.approvementprocess.ApprovementProcessDTO;
+import ru.caselab.edm.backend.dto.approvementprocess.ApprovementProcessResultDTO;
 import ru.caselab.edm.backend.dto.approvementprocessitem.ApprovementProcessItemDTO;
 import ru.caselab.edm.backend.dto.document.DocumentCreateDTO;
 import ru.caselab.edm.backend.dto.document.DocumentDTO;
@@ -65,7 +66,7 @@ public class DocumentController {
     private final MinioService minioService;
 
     @Operation(
-            summary = "Start approval process for current document version"
+            summary = "Start approval process for current document"
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Approval process was startes",
@@ -81,6 +82,22 @@ public class DocumentController {
             @AuthenticationPrincipal UserInfoDetails authenticatedUser
     ) {
         return new ResponseEntity<>(approvementService.createApprovementProcess(processCreateDTO, authenticatedUser), HttpStatus.OK);
+    }
+
+    @Operation(
+            summary = "Result approval process for current document "
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Approval process was startes",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApprovementProcessDTO.class))),
+            @ApiResponse(responseCode = "404", description = "Document with provided version ID not found or user not found with provided ID",
+                    content = @Content),
+    })
+    @PostMapping("/approvement/{documentId}/result")
+    public ResponseEntity<ApprovementProcessResultDTO> resultApprovement(
+            @PathVariable Long documentId
+    ) {
+        return new ResponseEntity<>(approvementService.resultOfApprovementProcess(documentId), HttpStatus.OK);
     }
 
 
