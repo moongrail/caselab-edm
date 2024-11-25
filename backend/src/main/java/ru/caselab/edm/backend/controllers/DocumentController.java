@@ -88,9 +88,9 @@ public class DocumentController {
             summary = "Result approval process for current document "
     )
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Approval process was startes",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApprovementProcessDTO.class))),
-            @ApiResponse(responseCode = "404", description = "Document with provided version ID not found or user not found with provided ID",
+            @ApiResponse(responseCode = "200", description = "Result of approval process for current document id",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApprovementProcessResultDTO.class))),
+            @ApiResponse(responseCode = "404", description = "Document with provided  ID not found",
                     content = @Content),
     })
     @PostMapping("/approvement/{documentId}/result")
