@@ -22,6 +22,10 @@ public class PasswordMatcherValidatorTest {
     private PasswordValidatable passwordValidatable;
     @Mock
     private ConstraintValidatorContext context;
+    @Mock
+    private ConstraintValidatorContext.ConstraintViolationBuilder constraintViolationBuilder;
+    @Mock
+    private ConstraintValidatorContext.ConstraintViolationBuilder.NodeBuilderCustomizableContext nodeBuilderCustomizableContext;
 
     @Test
     void isValid_passwordsAreEquals_shouldReturnTrue() {
@@ -33,18 +37,30 @@ public class PasswordMatcherValidatorTest {
 
         verify(passwordValidatable, times(2)).getPassword();
         verify(passwordValidatable, times(2)).getPasswordConfirmation();
+
         assertThat(result).isTrue();
     }
 
     @Test
     void isValid_passwordsDoNotEquals_shouldReturnFalse() {
+        String defaultMessage = "message";
+        String propertyNode = "passwordConfirmation";
+
         when(passwordValidatable.getPassword()).thenReturn("password");
         when(passwordValidatable.getPasswordConfirmation()).thenReturn("password-confirmation");
+
+        when(context.getDefaultConstraintMessageTemplate()).thenReturn(defaultMessage);
+        when(context.buildConstraintViolationWithTemplate(defaultMessage)).thenReturn(constraintViolationBuilder);
+        when(constraintViolationBuilder.addPropertyNode(propertyNode)).thenReturn(nodeBuilderCustomizableContext);
 
         boolean result = passwordMatcherValidator.isValid(passwordValidatable, context);
 
         verify(passwordValidatable, times(2)).getPassword();
         verify(passwordValidatable, times(2)).getPasswordConfirmation();
+        verify(context).getDefaultConstraintMessageTemplate();
+        verify(context).buildConstraintViolationWithTemplate(defaultMessage);
+        verify(constraintViolationBuilder).addPropertyNode(propertyNode);
+
         assertThat(result).isFalse();
     }
 
