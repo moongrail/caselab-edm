@@ -171,16 +171,32 @@ public class DocumentController {
     @Operation(summary = "Returning last version of all documents of the sent to the user for approval or signature")
     @ApiResponse(responseCode = "200", description = "Documents of the current user were successfully returned",
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = DocumentPageDTO.class)))
-    @GetMapping("/signer")
+    @GetMapping("/signer/before_signer")
     @ResponseStatus(HttpStatus.OK)
-    public Page<DocumentOutputAllDocumentsDTO> getAllDocumentsWhereUserSignatories(@RequestParam(name = "page", defaultValue = "0")
+    public Page<DocumentOutputAllDocumentsDTO> getAllDocumentsWhereUserSignatoriesBeforeSigner(@RequestParam(name = "page", defaultValue = "0")
                                                                                    @Min(value = 0) int page,
                                                                                    @RequestParam(name = "size", defaultValue = "10")
                                                                                    @Min(value = 1) @Max(value = 100) int size,
                                                                                    @RequestParam(name = "sort_type", defaultValue = "WITHOUT")
                                                                                    DocumentSortingType sortingType,
                                                                                    @AuthenticationPrincipal UserInfoDetails user) {
-        return documentService.getAllDocumentWhereUserSignatories(page, size, user.getId(), sortingType);
+        return documentService.getAllDocumentWhereUserSignatoriesBeforeSigner(page, size, user.getId(), sortingType);
+    }
+
+
+    @Operation(summary = "Returning last version of all documents of the sent to the user for approval or signature after signer user")
+    @ApiResponse(responseCode = "200", description = "Documents of the current user were successfully returned",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = DocumentPageDTO.class)))
+    @GetMapping("/signer/after_signer")
+    @ResponseStatus(HttpStatus.OK)
+    public Page<DocumentOutputAllDocumentsDTO> getAllDocumentsWhereUserSignatoriesAfterSigner(@RequestParam(name = "page", defaultValue = "0")
+                                                                                   @Min(value = 0) int page,
+                                                                                   @RequestParam(name = "size", defaultValue = "10")
+                                                                                   @Min(value = 1) @Max(value = 100) int size,
+                                                                                   @RequestParam(name = "sort_type", defaultValue = "WITHOUT")
+                                                                                   DocumentSortingType sortingType,
+                                                                                   @AuthenticationPrincipal UserInfoDetails user) {
+        return documentService.getAllDocumentWhereUserSignatoriesAfterSigner(page, size, user.getId(), sortingType);
     }
 
     @Operation(summary = "Returning last version document of the sent to the user for approval or signature")

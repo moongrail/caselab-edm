@@ -101,6 +101,43 @@ public class DocumentServiceImpl implements DocumentService {
     }
 
     @Override
+    public Page<DocumentOutputAllDocumentsDTO> getAllDocumentWhereUserSignatoriesBeforeSigner(int page,
+                                                                                              int size,
+                                                                                              UUID userId,
+                                                                                              DocumentSortingType sortingType) {
+        log.info("Get all document for user with sorting- page: {}, size: {}, userId: {}, sortingType: {}",
+                page, size, userId, sortingType);
+        PageRequest pageable = PageRequest.of(page, size);
+        if (!DocumentSortingType.WITHOUT.equals(sortingType)) {
+            pageable = pageable.withSort(JpaSort.unsafe(sortingType.getDirection(), sortingType.getFieldName()));
+        }
+        Page<DocumentOutputAllDocumentsDTO> allDocumentWithNameAndStatusProjectionWhereUserSignatories =
+                documentRepository.getAllDocumentWithNameAndStatusProjectionWhereUserSignatoriesBeforeSigner(userId, pageable);
+
+        log.info("Get {} document", allDocumentWithNameAndStatusProjectionWhereUserSignatories.getTotalElements());
+        return allDocumentWithNameAndStatusProjectionWhereUserSignatories;
+    }
+
+    @Override
+    public Page<DocumentOutputAllDocumentsDTO> getAllDocumentWhereUserSignatoriesAfterSigner(int page,
+                                                                                             int size,
+                                                                                             UUID userId,
+                                                                                             DocumentSortingType sortingType) {
+        log.info("Get all document for user with sorting- page: {}, size: {}, userId: {}, sortingType: {}",
+                page, size, userId, sortingType);
+        PageRequest pageable = PageRequest.of(page, size);
+        if (!DocumentSortingType.WITHOUT.equals(sortingType)) {
+            pageable = pageable.withSort(JpaSort.unsafe(sortingType.getDirection(), sortingType.getFieldName()));
+        }
+        Page<DocumentOutputAllDocumentsDTO> allDocumentWithNameAndStatusProjectionWhereUserSignatories =
+                documentRepository.getAllDocumentWithNameAndStatusProjectionWhereUserSignatoriesAfterSigner(userId, pageable);
+
+        log.info("Get {} document", allDocumentWithNameAndStatusProjectionWhereUserSignatories.getTotalElements());
+        return allDocumentWithNameAndStatusProjectionWhereUserSignatories;
+    }
+
+
+    @Override
     public DocumentVersion getLastVersionDocumentForUser(long id, UUID userId) {
         log.info("Get document with id: {} for user: {}", id, userId);
         Document document = documentRepository.getDocumentForUser(id, userId)
