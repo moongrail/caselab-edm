@@ -107,7 +107,7 @@ class DocumentRepositoryTest {
         Pageable pageable = PageRequest.of(0, 5);
 
         List<DocumentOutputAllDocumentsDTO> expected = List.of(
-                new DocumentOutputAllDocumentsDTO(2L, "Test1",
+                new DocumentOutputAllDocumentsDTO(2L, "Test2",
                         LocalDateTime.parse("2024-01-15T00:00:00").atZone(ZoneId.systemDefault()).toInstant(),
                         "document_name_test2",
                         "test_url1",
