@@ -6,14 +6,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.MediaType;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.ResultActions;
+import org.testcontainers.shaded.org.apache.commons.lang3.RandomStringUtils;
 import ru.caselab.edm.backend.builder.user.CreateUserDtoBuilder;
 import ru.caselab.edm.backend.builder.user.UpdateUserDtoBuilder;
 import ru.caselab.edm.backend.dto.user.CreateUserDTO;
@@ -22,9 +18,6 @@ import ru.caselab.edm.backend.dto.user.UpdatePasswordForAdminDTO;
 import ru.caselab.edm.backend.dto.user.UpdateUserDTO;
 import ru.caselab.edm.backend.entity.UserInfoDetails;
 import ru.caselab.edm.backend.enums.RoleName;
-import ru.caselab.edm.backend.repository.RoleRepository;
-import ru.caselab.edm.backend.repository.elastic.AttributeSearchRepository;
-import ru.caselab.edm.backend.security.service.JwtService;
 import ru.caselab.edm.backend.service.UserService;
 
 import java.util.UUID;
@@ -35,34 +28,26 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WithMockUser(roles = "ADMIN")
 @WebMvcTest(UserController.class)
-public class UserControllerTest {
+public class UserControllerTest extends BaseControllerTest {
 
     private static final String BASE_URI = "/users";
-    private static final MediaType JSON = MediaType.APPLICATION_JSON;
 
-    @Autowired
-    private MockMvc mockMvc;
+    private static final int INVALID_FIRST_NAME_LENGTH = 21;
+    private static final int INVALID_LAST_NAME_LENGTH = 21;
+    private static final int INVALID_PATRONYMIC_LENGTH = 21;
+    private static final int INVALID_LOGIN_LENGTH = 21;
+    private static final int INVALID_POSITION_LENGTH = 21;
+
+
     @MockBean
     private UserService userService;
-    private ObjectMapper objectMapper;
     private UUID userId;
-
-    @MockBean
-    private AttributeSearchRepository attributeSearchRepository;
-    @MockBean
-    private UserDetailsService userDetailsService;
-    @MockBean
-    private RoleRepository roleRepository;
-    @MockBean
-    private JwtService jwtService;
 
     @BeforeEach
     void setUp() {
@@ -75,7 +60,7 @@ public class UserControllerTest {
         CreateUserDTO createUserDTO = CreateUserDtoBuilder.builder()
                 .build();
 
-        performPostRequest(createUserDTO)
+        performRequest(post(BASE_URI), createUserDTO)
                 .andDo(print())
                 .andExpect(status().isOk());
 
@@ -89,7 +74,7 @@ public class UserControllerTest {
                 .withPasswordConfirmation("pass1!wordConfirmation")
                 .build();
 
-        performPostRequest(createUserDTO)
+        performRequest(post(BASE_URI), createUserDTO)
                 .andDo(print())
                 .andExpect(status().isBadRequest());
 
@@ -101,7 +86,7 @@ public class UserControllerTest {
     void createUser_invalidFirstName_shouldReturnStatusBadRequest(String firstName) throws Exception {
         CreateUserDTO createUserDTO = CreateUserDtoBuilder.builder().withFirstName(firstName).build();
 
-        performPostRequest(createUserDTO)
+        performRequest(post(BASE_URI), createUserDTO)
                 .andDo(print())
                 .andExpect(status().isBadRequest());
 
@@ -113,7 +98,7 @@ public class UserControllerTest {
     void createUser_invalidLastName_shouldReturnStatusBadRequest(String lastName) throws Exception {
         CreateUserDTO createUserDTO = CreateUserDtoBuilder.builder().withLastName(lastName).build();
 
-        performPostRequest(createUserDTO)
+        performRequest(post(BASE_URI), createUserDTO)
                 .andDo(print())
                 .andExpect(status().isBadRequest());
 
@@ -127,7 +112,7 @@ public class UserControllerTest {
                 .withPatronymic(patronymic)
                 .build();
 
-        performPostRequest(createUserDTO)
+        performRequest(post(BASE_URI), createUserDTO)
                 .andDo(print())
                 .andExpect(status().isBadRequest());
 
@@ -139,7 +124,7 @@ public class UserControllerTest {
     void createUser_invalidLogin_shouldReturnStatusBadRequest(String login) throws Exception {
         CreateUserDTO createUserDTO = CreateUserDtoBuilder.builder().withLogin(login).build();
 
-        performPostRequest(createUserDTO)
+        performRequest(post(BASE_URI), createUserDTO)
                 .andDo(print())
                 .andExpect(status().isBadRequest());
 
@@ -153,7 +138,7 @@ public class UserControllerTest {
                 .withPosition(position)
                 .build();
 
-        performPostRequest(createUserDTO)
+        performRequest(post(BASE_URI), createUserDTO)
                 .andDo(print())
                 .andExpect(status().isBadRequest());
 
@@ -165,7 +150,7 @@ public class UserControllerTest {
     void createUser_invalidEmail_shouldReturnStatusBadRequest(String email) throws Exception {
         CreateUserDTO createUserDTO = CreateUserDtoBuilder.builder().withEmail(email).build();
 
-        performPostRequest(createUserDTO)
+        performRequest(post(BASE_URI), createUserDTO)
                 .andDo(print())
                 .andExpect(status().isBadRequest());
 
@@ -179,7 +164,7 @@ public class UserControllerTest {
                 .withRoles(roles)
                 .build();
 
-        performPostRequest(createUserDTO)
+        performRequest(post(BASE_URI), createUserDTO)
                 .andDo(print())
                 .andExpect(status().isBadRequest());
 
@@ -194,7 +179,7 @@ public class UserControllerTest {
                 .withPasswordConfirmation(password)
                 .build();
 
-        performPostRequest(createUserDTO)
+        performRequest(post(BASE_URI), createUserDTO)
                 .andDo(print())
                 .andExpect(status().isBadRequest());
 
@@ -212,7 +197,7 @@ public class UserControllerTest {
 
         when(mockUserDetails.getId()).thenReturn(userId);
 
-        performPatchRequest(mockUserDetails, updatePasswordDTO)
+        performRequest(patch(BASE_URI + "/password"), updatePasswordDTO, mockUserDetails)
                 .andDo(print())
                 .andExpect(status().isNoContent());
 
@@ -229,7 +214,7 @@ public class UserControllerTest {
         );
         UserInfoDetails mockUserDetails = mock(UserInfoDetails.class);
 
-        performPatchRequest(mockUserDetails, updatePasswordDTO)
+        performRequest(patch(BASE_URI + "/password"), updatePasswordDTO, mockUserDetails)
                 .andDo(print())
                 .andExpect(status().isBadRequest());
 
@@ -244,7 +229,7 @@ public class UserControllerTest {
                 "pa1!word"
         );
 
-        performPatchRequest(userId, updatePasswordForAdminDTO)
+        performRequest(patch(BASE_URI + "/{userId}/password", userId), updatePasswordForAdminDTO)
                 .andDo(print())
                 .andExpect(status().isNoContent());
 
@@ -258,7 +243,7 @@ public class UserControllerTest {
                 "pa1!word-confirmation"
         );
 
-        performPatchRequest(userId, updatePasswordForAdminDTO)
+        performRequest(patch(BASE_URI + "/{userId}/password", userId), updatePasswordForAdminDTO)
                 .andDo(print())
                 .andExpect(status().isBadRequest());
 
@@ -273,7 +258,7 @@ public class UserControllerTest {
                 password
         );
 
-        performPatchRequest(userId, updatePasswordForAdminDTO)
+        performRequest(patch(BASE_URI + "/{userId}/password", userId), updatePasswordForAdminDTO)
                 .andDo(print())
                 .andExpect(status().isBadRequest());
 
@@ -284,7 +269,7 @@ public class UserControllerTest {
     void updateUser_validDto_shouldUpdateUserWithStatusOk() throws Exception {
         UpdateUserDTO updateUserDTO = UpdateUserDtoBuilder.builder().build();
 
-        performPutRequest(userId, updateUserDTO)
+        performRequest(put(BASE_URI + "/{userId}", userId), updateUserDTO)
                 .andDo(print())
                 .andExpect(status().isOk());
 
@@ -296,7 +281,7 @@ public class UserControllerTest {
     void updateUser_invalidFirstName_shouldReturnStatusBadRequest(String firstName) throws Exception {
         UpdateUserDTO updateUserDTO = UpdateUserDtoBuilder.builder().withFirstName(firstName).build();
 
-        performPutRequest(userId, updateUserDTO)
+        performRequest(put(BASE_URI + "/{userId}", userId), updateUserDTO)
                 .andDo(print())
                 .andExpect(status().isBadRequest());
 
@@ -308,7 +293,7 @@ public class UserControllerTest {
     void updateUser_invalidLastName_shouldReturnStatusBadRequest(String lastName) throws Exception {
         UpdateUserDTO updateUserDTO = UpdateUserDtoBuilder.builder().withLastName(lastName).build();
 
-        performPutRequest(userId, updateUserDTO)
+        performRequest(put(BASE_URI + "/{userId}", userId), updateUserDTO)
                 .andDo(print())
                 .andExpect(status().isBadRequest());
 
@@ -320,7 +305,7 @@ public class UserControllerTest {
     void updateUser_invalidPatronymic_shouldReturnStatusBadRequest(String patronymic) throws Exception {
         UpdateUserDTO updateUserDTO = UpdateUserDtoBuilder.builder().withPatronymic(patronymic).build();
 
-        performPutRequest(userId, updateUserDTO)
+        performRequest(put(BASE_URI + "/{userId}", userId), updateUserDTO)
                 .andDo(print())
                 .andExpect(status().isBadRequest());
 
@@ -332,7 +317,7 @@ public class UserControllerTest {
     void updateUser_invalidLogin_shouldReturnStatusBadRequest(String login) throws Exception {
         UpdateUserDTO updateUserDTO = UpdateUserDtoBuilder.builder().withLogin(login).build();
 
-        performPutRequest(userId, updateUserDTO)
+        performRequest(put(BASE_URI + "/{userId}", userId), updateUserDTO)
                 .andDo(print())
                 .andExpect(status().isBadRequest());
 
@@ -344,7 +329,7 @@ public class UserControllerTest {
     void updateUser_invalidPosition_shouldReturnStatusBadRequest(String position) throws Exception {
         UpdateUserDTO updateUserDTO = UpdateUserDtoBuilder.builder().withPosition(position).build();
 
-        performPutRequest(userId, updateUserDTO)
+        performRequest(put(BASE_URI + "/{userId}", userId), updateUserDTO)
                 .andDo(print())
                 .andExpect(status().isBadRequest());
 
@@ -356,7 +341,7 @@ public class UserControllerTest {
     void updateUser_invalidEmail_shouldReturnStatusBadRequest(String email) throws Exception {
         UpdateUserDTO updateUserDTO = UpdateUserDtoBuilder.builder().withEmail(email).build();
 
-        performPutRequest(userId, updateUserDTO)
+        performRequest(put(BASE_URI + "/{userId}", userId), updateUserDTO)
                 .andDo(print())
                 .andExpect(status().isBadRequest());
 
@@ -368,7 +353,7 @@ public class UserControllerTest {
     void updateUser_invalidRoles_shouldReturnStatusBadRequest(RoleName[] roles) throws Exception {
         UpdateUserDTO updateUserDTO = UpdateUserDtoBuilder.builder().withRoles(roles).build();
 
-        performPutRequest(userId, updateUserDTO)
+        performRequest(put(BASE_URI + "/{userId}", userId), updateUserDTO)
                 .andDo(print())
                 .andExpect(status().isBadRequest());
 
@@ -381,7 +366,7 @@ public class UserControllerTest {
                 arguments(named("FirstName is blank", " ")),
                 arguments(named("FirstName is null", null)),
                 arguments(named("FirstName is too short", "n")),
-                arguments(named("FirstName is too long", "firstnaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaame"))
+                arguments(named("FirstName is too long", generateStringWithLength(INVALID_FIRST_NAME_LENGTH)))
         );
     }
 
@@ -390,14 +375,14 @@ public class UserControllerTest {
                 arguments(named("LastName is blank", " ")),
                 arguments(named("LastName is null", null)),
                 arguments(named("LastName is too short", "n")),
-                arguments(named("LastName is too long", "lastnaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaame"))
+                arguments(named("LastName is too long", generateStringWithLength(INVALID_LAST_NAME_LENGTH)))
 
         );
     }
 
     private static Stream<Arguments> getPatronymicValidationCases() {
         return Stream.of(
-                arguments(named("Patronymic is too long", "patrooooooooooooooooooooooooooooooooooooooo"))
+                arguments(named("Patronymic is too long", generateStringWithLength(INVALID_PATRONYMIC_LENGTH)))
         );
     }
 
@@ -406,7 +391,7 @@ public class UserControllerTest {
                 arguments(named("Login is blank", " ")),
                 arguments(named("Login is null", null)),
                 arguments(named("Login is too short", "log")),
-                arguments(named("Login is too long", "looooooooooooooooooooooooooogin"))
+                arguments(named("Login is too long", generateStringWithLength(INVALID_LOGIN_LENGTH)))
         );
     }
 
@@ -415,7 +400,7 @@ public class UserControllerTest {
                 arguments(named("Position is blank", " ")),
                 arguments(named("Position is null", null)),
                 arguments(named("Position is too short", "p")),
-                arguments(named("Position is too long", "positiooooooooooooooooooooooooooooooooooooon"))
+                arguments(named("Position is too long", generateStringWithLength(INVALID_POSITION_LENGTH)))
         );
     }
 
@@ -442,45 +427,7 @@ public class UserControllerTest {
         );
     }
 
-    private ResultActions performPatchRequest(UserInfoDetails userInfoDetails, UpdatePasswordDTO updatePasswordDTO) throws Exception {
-        return mockMvc.perform(
-                patch(BASE_URI + "/password")
-                        .contentType(JSON)
-                        .with(csrf())
-                        .with(user(userInfoDetails))
-                        .content(writeAsJson(updatePasswordDTO))
-        );
-    }
-
-    private ResultActions performPatchRequest(UUID userId, UpdatePasswordForAdminDTO updatePasswordForAdminDTO) throws Exception {
-        return mockMvc.perform(
-                patch(BASE_URI + "/{userId}/password", userId)
-                        .contentType(JSON)
-                        .with(csrf())
-                        .content(writeAsJson(updatePasswordForAdminDTO))
-        );
-    }
-
-    private ResultActions performPostRequest(CreateUserDTO createUserDTO) throws Exception {
-        return mockMvc.perform(
-                post(BASE_URI)
-                        .contentType(JSON)
-                        .with(csrf())
-                        .content(writeAsJson(createUserDTO))
-        );
-
-    }
-
-    private ResultActions performPutRequest(UUID userId, UpdateUserDTO updateUserDTO) throws Exception {
-        return mockMvc.perform(
-                put(BASE_URI + "/{userId}", userId)
-                        .contentType(JSON)
-                        .with(csrf())
-                        .content(writeAsJson(updateUserDTO))
-        );
-    }
-
-    private String writeAsJson(Object object) throws Exception {
-        return objectMapper.writeValueAsString(object);
+    private static String generateStringWithLength(int length) {
+        return RandomStringUtils.random(length);
     }
 }
