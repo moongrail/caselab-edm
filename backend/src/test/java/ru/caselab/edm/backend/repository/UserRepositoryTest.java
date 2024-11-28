@@ -4,6 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import ru.caselab.edm.backend.testutils.builder.document.DocumentEntityBuilder;
@@ -51,8 +52,8 @@ public class UserRepositoryTest {
 
         assertThat(result).isNotEmpty();
 
-        Long firstUserDocumentCount = result.get(0).getDocumentCount();
-        Long secondUserDocumentCount = result.get(1).getDocumentCount();
+        Long firstUserDocumentCount = result.getContent().get(0).getDocumentCount();
+        Long secondUserDocumentCount = result.getContent().get(1).getDocumentCount();
 
         assertThat(firstUserDocumentCount).isGreaterThanOrEqualTo(secondUserDocumentCount);
     }
