@@ -17,6 +17,7 @@ import ru.caselab.edm.backend.dto.user.UpdatePasswordForAdminDTO;
 import ru.caselab.edm.backend.dto.user.UpdateUserDTO;
 import ru.caselab.edm.backend.dto.user.UserDTO;
 import ru.caselab.edm.backend.dto.user.UserPageDTO;
+import ru.caselab.edm.backend.entity.Department;
 import ru.caselab.edm.backend.entity.Role;
 import ru.caselab.edm.backend.entity.User;
 import ru.caselab.edm.backend.entity.UserInfoDetails;
@@ -25,12 +26,15 @@ import ru.caselab.edm.backend.exceptions.ResourceNotFoundException;
 import ru.caselab.edm.backend.exceptions.UserAlreadyExistsException;
 import ru.caselab.edm.backend.mapper.user.UserMapper;
 import ru.caselab.edm.backend.repository.RefreshTokenRepository;
+import ru.caselab.edm.backend.repository.RefreshTokenRepository;
+import ru.caselab.edm.backend.repository.DepartmentRepository;
 import ru.caselab.edm.backend.repository.RoleRepository;
 import ru.caselab.edm.backend.repository.UserRepository;
 import ru.caselab.edm.backend.security.service.JwtService;
 import ru.caselab.edm.backend.security.service.RefreshTokenService;
 import ru.caselab.edm.backend.service.UserService;
 
+import java.time.Instant;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -42,6 +46,7 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+    private final DepartmentRepository departmentRepository;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
@@ -49,7 +54,7 @@ public class UserServiceImpl implements UserService {
     private final RefreshTokenRepository refreshTokenRepository;
 
     @Autowired
-    public UserServiceImpl(UserRepository userRepository, RoleRepository roleRepository, UserMapper userMapper, PasswordEncoder passwordEncoder, JwtService jwtService, RefreshTokenService refreshTokenService, RefreshTokenRepository refreshTokenRepository) {
+    public UserServiceImpl(UserRepository userRepository, RoleRepository roleRepository, UserMapper userMapper, PasswordEncoder passwordEncoder, JwtService jwtService, RefreshTokenService refreshTokenService, RefreshTokenRepository refreshTokenRepository, DepartmentRepository departmentRepository) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.userMapper = userMapper;
@@ -57,6 +62,7 @@ public class UserServiceImpl implements UserService {
         this.jwtService = jwtService;
         this.refreshTokenService = refreshTokenService;
         this.refreshTokenRepository = refreshTokenRepository;
+        this.departmentRepository = departmentRepository;
     }
 
     @Transactional(readOnly = true)
@@ -94,6 +100,16 @@ public class UserServiceImpl implements UserService {
             log.warn("User already exists with email: {}", createdUser.email());
             throw new UserAlreadyExistsException("User already exists with this email = %s".formatted(createdUser.email()));
         }
+
+        log.info("Trying to find department by user id: {}", createdUser.departmentId());
+
+        Optional<Department> department = departmentRepository.findById(createdUser.departmentId());
+        if (department.isEmpty()) {
+            log.warn("Department not found with current id: {}", createdUser.departmentId());
+            throw new ResourceNotFoundException("Department not found with id = %s".formatted(createdUser.departmentId()));
+        }
+
+        Department existingDepartment = department.get();
         Set<Role> roles = new HashSet<>();
         for (RoleName role : createdUser.roles()) {
             Optional<Role> roleOptional = roleRepository.findByName(role);
@@ -104,6 +120,8 @@ public class UserServiceImpl implements UserService {
                 throw new ResourceNotFoundException("Role not found with this name = %s".formatted(role.name()));
             }
         }
+
+
         User newUser = User.builder()
                 .login(createdUser.login())
                 .email(createdUser.email())
@@ -111,9 +129,18 @@ public class UserServiceImpl implements UserService {
                 .firstName(createdUser.firstName())
                 .lastName(createdUser.lastName())
                 .patronymic(createdUser.patronymic())
+                .position(createdUser.position())
                 .roles(roles)
+                .department(existingDepartment)
                 .build();
+
+        if (existingDepartment.getMembers() == null)
+            existingDepartment.setMembers(new HashSet<>());
+
         userRepository.save(newUser);
+        existingDepartment.getMembers().add(newUser);
+
+        departmentRepository.save(existingDepartment);
         log.info("User created with id: {}", newUser.getId());
         return userMapper.toDTO(newUser);
     }
@@ -165,6 +192,11 @@ public class UserServiceImpl implements UserService {
                 }
                 existingUser.setRoles(roles);
             }
+
+            existingUser.setLogin(updatedUser.login());
+            existingUser.setEmail(updatedUser.email());
+            existingUser.setFirstName(updatedUser.firstName());
+            existingUser.setLastName(updatedUser.lastName());
             if (updatedUser.patronymic() != null) {
                 existingUser.setPatronymic(updatedUser.patronymic());
             }
@@ -197,9 +229,26 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     @Override
+    public void updatePasswordAsAdmin(UUID userId, UpdatePasswordForAdminDTO updatePasswordForAdminDTO) {
+        log.info("Updating password for user with id: {}", userId);
+        Optional<User> user = userRepository.findById(userId);
+        if (user.isPresent()) {
+            User existingUser = user.get();
+            existingUser.setPassword(passwordEncoder.encode(updatePasswordForAdminDTO.newPassword()));
+            userRepository.save(existingUser);
+            refreshTokenRepository.deleteAllByUserId(existingUser.getId());
+            log.info("Password successfully updated for user with id: {}", userId);
+        } else {
+            log.warn("User not found with id: {}", userId);
+            throw new ResourceNotFoundException("User not found with this id = %s".formatted(userId));
+        }
+    }
+
+    @Transactional
+    @Override
     public void updatePassword(UUID id, UpdatePasswordDTO updatePasswordDTO) {
         log.info("Updating password for user with id: {}", id);
-        User user = userRepository.findById(id).get();
+        User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User with id %s was not found".formatted(id)));
         if (!passwordEncoder.matches(updatePasswordDTO.oldPassword(), user.getPassword())) {
             log.warn("Invalid old password for user with id: {}", id);
             throw new BadCredentialsException("Invalid old password");

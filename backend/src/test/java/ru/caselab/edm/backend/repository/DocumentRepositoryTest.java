@@ -4,6 +4,7 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -11,6 +12,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import ru.caselab.edm.backend.dto.document.DocumentOutputAllDocumentsDTO;
 import ru.caselab.edm.backend.entity.Document;
+import ru.caselab.edm.backend.repository.elastic.AttributeSearchRepository;
 import ru.caselab.edm.backend.state.DocumentStatus;
 
 import java.time.LocalDateTime;
@@ -26,13 +28,14 @@ class DocumentRepositoryTest {
     private JdbcTemplate jdbcTemplate;
     @Autowired
     DocumentRepository repository;
-
+    @MockBean
+    AttributeSearchRepository attributeSearchRepository;
     private void initdb() {
         jdbcTemplate.execute("""
-                INSERT INTO users (id, login, email, password, first_name, last_name, patronymic) VALUES
-                    ('48bbbd31-45c0-43c5-b989-c1c14a8c3b8b'::uuid, 'Test1', 'test1.gmail.com', 'test1password', 'Ivan', 'Ivanov', 'shskfckhvca'),
-                    ('c5df47fe-f4d2-45c2-8084-e646c85a7eba'::uuid, 'Test2', 'test2.gmail.com', 'test2password', 'Mari', 'Ivanova', 'sdfvsfdev'),
-                    ('c5df47fe-f4d2-45c2-8084-e546c85a7eba'::uuid, 'Test3', 'test3.gmail.com', 'test3password', 'Test', 'Test', 'test');
+                INSERT INTO users (id, login, email, password, first_name, last_name, patronymic, position) VALUES
+                ('48bbbd31-45c0-43c5-b989-c1c14a8c3b8b','Test1', 'test1@gmail.com', 'test1password', 'Ivan', 'Ivanov', 'shskfckhvca', 'sfsadfa'),
+                ('c5df47fe-f4d2-45c2-8084-e646c85a7eba', 'Test2', 'test2@gmail.com', 'test2password', 'Mari', 'Ivanova', 'sdfvsfdev', 'dfgdsfgdsfgdsf'),
+                ('c5df47fe-f4d2-45c2-8084-e546c85a7eba', 'Test3', 'test3@gmail.com', 'test3password', 'Test', 'Test', 'test', 'dsgdfgdf');
                 INSERT INTO document_types (id, name, description, created_at, updated_at) VALUES
                     (1, 'test_type', 'test', '2024-01-15', '2024-01-15');
                 INSERT INTO documents (id, user_id, document_type_id, created_at) VALUES
@@ -104,7 +107,7 @@ class DocumentRepositoryTest {
         Pageable pageable = PageRequest.of(0, 5);
 
         List<DocumentOutputAllDocumentsDTO> expected = List.of(
-                new DocumentOutputAllDocumentsDTO(2L, "Test1",
+                new DocumentOutputAllDocumentsDTO(2L, "Test2",
                         LocalDateTime.parse("2024-01-15T00:00:00").atZone(ZoneId.systemDefault()).toInstant(),
                         "document_name_test2",
                         "test_url1",

@@ -22,10 +22,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import ru.caselab.edm.backend.dto.attribute.AttributeCreateDTO;
 import ru.caselab.edm.backend.dto.attribute.AttributeDTO;
 import ru.caselab.edm.backend.dto.attribute.AttributeUpdateDTO;
+import ru.caselab.edm.backend.entity.AttributeSearch;
 import ru.caselab.edm.backend.service.AttributeService;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/attributes")
@@ -128,5 +132,15 @@ public class AttributeController {
             @PathVariable Long id) {
         attributeService.deleteAttribute(id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @Operation(summary = "Search match attributes")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved the search list of attributes",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = AttributeSearch.class))),
+    })
+    @GetMapping("/search")
+    public List<AttributeSearch> search(@RequestParam String name) {
+        return attributeService.findByNameWithMinLength(name);
     }
 }

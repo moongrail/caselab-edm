@@ -7,6 +7,15 @@
 
     <changeSet id="db.1.0-user_and_role_script" author="Shukhrat" runOnChange="true">
         <sql>
+
+            CREATE TABLE IF NOT EXISTS departments
+            (
+                id BIGSERIAL PRIMARY KEY,
+                name VARCHAR(255) NOT NULL,
+                description TEXT,
+                parent_id BIGINT
+                );
+
             CREATE TABLE IF NOT EXISTS users
             (
                 id
@@ -37,7 +46,11 @@
                 patronymic VARCHAR
             (
                 100
-            )
+            ),
+                position VARCHAR
+                (
+                    255
+                ) NOT NULL
                 );
 
             CREATE TABLE IF NOT EXISTS roles
@@ -69,6 +82,8 @@
               ON DELETE CASCADE NOT NULL
                 );
 
-        </sql>
+            CREATE SEQUENCE IF NOT EXISTS department_seq
+    START WITH 3
+    INCREMENT BY 1;        </sql>
     </changeSet>
 </databaseChangeLog>

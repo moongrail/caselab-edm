@@ -32,14 +32,14 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
             ON d.id = dv.documents_id
             LEFT JOIN approvment_process_item api
             ON dv.id = api.document_version_id
-            WHERE d.id = :documentId AND api.user_id = :userId and api.status in ( 'PENDING_CONTRACTOR_SIGN', 'PENDING_AUTHOR_SIGN')
+            WHERE d.id = :documentId AND api.user_id = :userId
             """,
             nativeQuery = true)
     Optional<Document> getDocumentWhereUserSignatories(Long documentId, UUID userId);
 
     @Query(value = """
             SELECT new ru.caselab.edm.backend.dto.document.DocumentOutputAllDocumentsDTO (d.id as id,
-                                                                                            u.login as login,
+                                                                                            u1.login as login,
                                                                                             d.createdAt as createdAt,
                                                                                             dv.documentName as documentName, 
                                                                                             dv.contentUrl as contentUrl, 
@@ -49,6 +49,8 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
                         left join dv.approvementProcessItems api 
                         left join User u 
                         ON (u.id = api.user.id)
+                        left join User u1 
+                        ON (u1.id = d.user.id)
              			WHERE dv.id = (select dv1.id
              		                               from DocumentVersion dv1
              		                               where dv1.document.id = d.id
@@ -70,6 +72,82 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
              		    AND api.user.id = :userId
             """)
     Page<DocumentOutputAllDocumentsDTO> getAllDocumentWithNameAndStatusProjectionWhereUserSignatories(UUID userId, Pageable pageable);
+
+    @Query(value = """
+            SELECT new ru.caselab.edm.backend.dto.document.DocumentOutputAllDocumentsDTO (d.id as id,
+                                                                                            u1.login as login,
+                                                                                            d.createdAt as createdAt,
+                                                                                            dv.documentName as documentName, 
+                                                                                            dv.contentUrl as contentUrl, 
+                                                                                            dv.state as state)
+                        FROM Document d 
+                        left join d.documentVersion dv 
+                        left join dv.approvementProcessItems api 
+                        left join User u 
+                        ON (u.id = api.user.id)
+                        left join User u1 
+                        ON (u1.id = d.user.id)
+             			WHERE dv.id = (select dv1.id
+             		                               from DocumentVersion dv1
+             		                               where dv1.document.id = d.id
+                                                   order by dv1.createdAt DESC
+             		                               LIMIT 1)
+             		    AND api.status in ( 'PENDING_CONTRACTOR_SIGN', 'PENDING_AUTHOR_SIGN')
+             		    AND api.user.id = :userId
+            """, countQuery = """
+            SELECT count(d.id)
+             			FROM Document d
+                        left join d.documentVersion dv
+                        left join dv.approvementProcessItems api
+                        left join User u
+                        ON (u.id = api.user.id)
+             			WHERE dv.id = (select dv1.id
+             		                               from DocumentVersion dv1
+             		                               where dv1.document.id = d.id
+                                                   order by dv1.createdAt DESC
+             		                               LIMIT 1)
+             		    AND api.status in ( 'PENDING_CONTRACTOR_SIGN', 'PENDING_AUTHOR_SIGN')
+             		    AND api.user.id = :userId
+            """)
+    Page<DocumentOutputAllDocumentsDTO> getAllDocumentWithNameAndStatusProjectionWhereUserSignatoriesBeforeSigner(UUID userId, Pageable pageable);
+
+    @Query(value = """
+            SELECT new ru.caselab.edm.backend.dto.document.DocumentOutputAllDocumentsDTO (d.id as id,
+                                                                                            u1.login as login,
+                                                                                            d.createdAt as createdAt,
+                                                                                            dv.documentName as documentName, 
+                                                                                            dv.contentUrl as contentUrl, 
+                                                                                            dv.state as state)
+                        FROM Document d 
+                        left join d.documentVersion dv 
+                        left join dv.approvementProcessItems api 
+                        left join User u 
+                        ON (u.id = api.user.id)
+                        left join User u1 
+                        ON (u1.id = d.user.id)
+             			WHERE dv.id = (select dv1.id
+             		                               from DocumentVersion dv1
+             		                               where dv1.document.id = d.id
+                                                   order by dv1.createdAt DESC
+             		                               LIMIT 1)
+             		    AND api.status in ( 'APPROVED', 'REJECTED', 'REWORK_REQUIRED')
+             		    AND api.user.id = :userId
+            """, countQuery = """
+            SELECT count(d.id)
+             			FROM Document d
+                        left join d.documentVersion dv
+                        left join dv.approvementProcessItems api
+                        left join User u
+                        ON (u.id = api.user.id)
+             			WHERE dv.id = (select dv1.id
+             		                               from DocumentVersion dv1
+             		                               where dv1.document.id = d.id
+                                                   order by dv1.createdAt DESC
+             		                               LIMIT 1)
+             		    AND api.status in ('APPROVED', 'REJECTED', 'REWORK_REQUIRED')
+             		    AND api.user.id = :userId
+            """)
+    Page<DocumentOutputAllDocumentsDTO> getAllDocumentWithNameAndStatusProjectionWhereUserSignatoriesAfterSigner(UUID userId, Pageable pageable);
 
     @Query(value = """
             SELECT new ru.caselab.edm.backend.dto.document.DocumentOutputAllDocumentsDTO(d.id as id,
@@ -116,4 +194,6 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
             """,
             nativeQuery = true)
     Page<Document> getAllDocumentForUser(UUID userId, Pageable pageable);
+
+    Optional<Document> getDocumentById(Long id);
 }

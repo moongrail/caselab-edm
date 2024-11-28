@@ -38,6 +38,11 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
     }
 
+    @ExceptionHandler(DelegationNotAvailableException.class)
+    ResponseEntity<String> handleDelegationNotAvailableException(DelegationNotAvailableException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     ResponseEntity<String> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
         BindingResult bindingResult = ex.getBindingResult();
@@ -101,4 +106,13 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.FORBIDDEN);
     }
 
+    @ExceptionHandler(NotDepartmentMemberException.class)
+    ResponseEntity<String> handleNotDepartmentMemberException(NotDepartmentMemberException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(ManagerOfAnotherDepartmentException.class)
+    ResponseEntity<String> handleManagerOfAnotherDepartmentException(ManagerOfAnotherDepartmentException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.CONFLICT);
+    }
 }
