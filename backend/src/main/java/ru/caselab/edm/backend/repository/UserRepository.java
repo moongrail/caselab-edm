@@ -7,10 +7,9 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import ru.caselab.edm.backend.entity.User;
-import ru.caselab.edm.backend.repository.proection.TopUsersByDocumentCreationProjection;
+import ru.caselab.edm.backend.repository.projection.TopUsersByDocumentCreationProjection;
 
 import java.time.Instant;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
