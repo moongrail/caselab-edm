@@ -15,7 +15,7 @@ import java.util.UUID;
 @Repository
 public interface DocumentRepository extends JpaRepository<Document, Long> {
     @Query(value = """
-            SELECT DISTINCT ON (d.id) d.id, d.user_id, d.document_type_id, d.created_at
+            SELECT DISTINCT ON (d.id) d.id, d.user_id, d.document_type_id, d.created_at, d.is_archive
             FROM documents d
             JOIN document_versions dv
             ON d.id = dv.documents_id
@@ -27,7 +27,7 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
     Optional<Document> getDocumentForUser(Long documentId, UUID userId);
 
     @Query(value = """
-            SELECT DISTINCT ON (d.id) d.id, d.user_id, d.document_type_id, d.created_at
+            SELECT DISTINCT ON (d.id) d.id, d.user_id, d.document_type_id, d.created_at, d.is_archive
             FROM documents d
             LEFT JOIN document_versions dv
             ON d.id = dv.documents_id
@@ -108,7 +108,7 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
                                                    order by dv1.createdAt DESC
              		                               LIMIT 1)
              		    AND api.status in ( 'PENDING_CONTRACTOR_SIGN', 'PENDING_AUTHOR_SIGN')
-             		    AND api.user.id = :userId
+             		    AND api.user.id = :userId and d.isArchived = false
             """)
     Page<DocumentOutputAllDocumentsDTO> getAllDocumentWithNameAndStatusProjectionWhereUserSignatoriesBeforeSigner(UUID userId, Pageable pageable);
 
@@ -146,7 +146,7 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
                                                    order by dv1.createdAt DESC
              		                               LIMIT 1)
              		    AND api.status in ('APPROVED', 'REJECTED', 'REWORK_REQUIRED')
-             		    AND api.user.id = :userId
+             		    AND api.user.id = :userId and d.isArchived = false
             """)
     Page<DocumentOutputAllDocumentsDTO> getAllDocumentWithNameAndStatusProjectionWhereUserSignatoriesAfterSigner(UUID userId, Pageable pageable);
 
