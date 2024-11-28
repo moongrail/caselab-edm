@@ -21,7 +21,7 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
             ON d.id = dv.documents_id
             LEFT JOIN approvment_process_item api
             ON dv.id = api.document_version_id
-            WHERE d.id = :documentId AND (d.user_id = :userId) and d.is_archived = false
+            WHERE d.id = :documentId AND (d.user_id = :userId) and d.is_archive = false
             """,
             nativeQuery = true)
     Optional<Document> getDocumentForUser(Long documentId, UUID userId);
@@ -33,7 +33,7 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
             ON d.id = dv.documents_id
             LEFT JOIN approvment_process_item api
             ON dv.id = api.document_version_id
-            WHERE d.id = :documentId AND api.user_id = :userId
+            WHERE d.id = :documentId AND api.user_id = :userId and d.is_archive = false
             """,
             nativeQuery = true)
     Optional<Document> getDocumentWhereUserSignatories(Long documentId, UUID userId);
@@ -94,7 +94,7 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
                                                    order by dv1.createdAt DESC
              		                               LIMIT 1)
              		    AND api.status in ( 'PENDING_CONTRACTOR_SIGN', 'PENDING_AUTHOR_SIGN')
-             		    AND api.user.id = :userId
+             		    AND api.user.id = :userId and d.isArchived = false
             """, countQuery = """
             SELECT count(d.id)
              			FROM Document d
@@ -132,7 +132,7 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
                                                    order by dv1.createdAt DESC
              		                               LIMIT 1)
              		    AND api.status in ( 'APPROVED', 'REJECTED', 'REWORK_REQUIRED')
-             		    AND api.user.id = :userId
+             		    AND api.user.id = :userId and d.isArchived = false
             """, countQuery = """
             SELECT count(d.id)
              			FROM Document d
@@ -183,7 +183,7 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
             ON d.id = dv.documents_id
             LEFT JOIN approvment_process_item api
             ON dv.id = api.document_version_id
-            WHERE api.user_id = :userId OR d.user_id = :userId and d.is_archived = false
+            WHERE api.user_id = :userId OR d.user_id = :userId and d.is_archive = false
             """, countQuery = """
             SELECT DISTINCT ON (d.id) d.id, d.user_id, d.document_type_id, d.created_at
             FROM documents d
@@ -191,7 +191,7 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
             ON d.id = dv.documents_id
             LEFT JOIN approvment_process_item api
             ON dv.id = api.document_version_id
-            WHERE api.user_id = :userId OR d.user_id = :userId and d.is_archived = false
+            WHERE api.user_id = :userId OR d.user_id = :userId and d.is_archive = false
             """,
             nativeQuery = true)
     Page<Document> getAllDocumentForUser(UUID userId, Pageable pageable);
