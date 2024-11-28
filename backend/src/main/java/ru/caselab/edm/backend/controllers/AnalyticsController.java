@@ -22,8 +22,8 @@ public class AnalyticsController {
     @GetMapping("/top-users-by-document-creation")
     public List<TopUsersByDocumentCreationProjection> getTopUsersByDocumentCreation(@RequestParam LocalDate startDate,
                                                                                     @RequestParam LocalDate endDate,
-                                                                                    @RequestParam("0") int page,
-                                                                                    @RequestParam("10") int size) {
+                                                                                    @RequestParam(defaultValue = "0") int page,
+                                                                                    @RequestParam(defaultValue = "10") int size) {
 
         PageRequest pageable = PageRequest.of(page, size);
         return analyticsService.findTopUsersByDocumentCreation(startDate, endDate, pageable);
