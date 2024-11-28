@@ -39,7 +39,7 @@ public class AnalyticsControllerTest extends BaseControllerTest {
         int size = 10;
 
         String urlTemplate = BASE_URI +
-                "/top-users-by-document-creation?startDate={startDate}&endDate={endDate}&page={page}&size={size}";
+                "/top-users-by-document-creation?startDate={startDate}&endDate={endDate}";
 
         performRequest(get(urlTemplate, startDate, endDate, page, size))
                 .andDo(print())
@@ -56,7 +56,7 @@ public class AnalyticsControllerTest extends BaseControllerTest {
         int size = 10;
 
         String urlTemplate = BASE_URI +
-                "/top-users-by-document-creation?startDate={startDate}&endDate={endDate}&page={page}&size={size}";
+                "/top-users-by-document-creation?startDate={startDate}&endDate={endDate}";
 
         performRequest(get(urlTemplate, startDate, endDate, page, size))
                 .andDo(print())
