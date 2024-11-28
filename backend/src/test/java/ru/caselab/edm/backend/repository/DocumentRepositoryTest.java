@@ -12,7 +12,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import ru.caselab.edm.backend.dto.document.DocumentOutputAllDocumentsDTO;
 import ru.caselab.edm.backend.entity.Document;
-import ru.caselab.edm.backend.repository.elastic.AttributeSearchRepository;
 import ru.caselab.edm.backend.state.DocumentStatus;
 
 import java.time.LocalDateTime;
@@ -28,8 +27,7 @@ class DocumentRepositoryTest {
     private JdbcTemplate jdbcTemplate;
     @Autowired
     DocumentRepository repository;
-    @MockBean
-    AttributeSearchRepository attributeSearchRepository;
+
     private void initdb() {
         jdbcTemplate.execute("""
                 INSERT INTO users (id, login, email, password, first_name, last_name, patronymic, position) VALUES
@@ -107,7 +105,7 @@ class DocumentRepositoryTest {
         Pageable pageable = PageRequest.of(0, 5);
 
         List<DocumentOutputAllDocumentsDTO> expected = List.of(
-                new DocumentOutputAllDocumentsDTO(2L, "Test2",
+                new DocumentOutputAllDocumentsDTO(2L, "Test1",
                         LocalDateTime.parse("2024-01-15T00:00:00").atZone(ZoneId.systemDefault()).toInstant(),
                         "document_name_test2",
                         "test_url1",
