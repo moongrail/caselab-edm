@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import ru.caselab.edm.backend.dto.attributevalue.AttributeValuetoCreateDocumentDTO;
+import ru.caselab.edm.backend.dto.file.FileDTO;
 
 import java.util.List;
 
@@ -27,9 +28,9 @@ public class DocumentCreateDTO {
     @NotBlank
     private String documentName;
 
-    @JsonProperty("base64Data")
-    @Schema(name = "base64Data", description = "File's data in Base64 format", example = "")
-    private String data;
+    @JsonProperty("file")
+    @Schema(description = "File's data")
+    private FileDTO file;
 
     @Schema(description = "Value attributes")
     private List<AttributeValuetoCreateDocumentDTO> attributeValues;

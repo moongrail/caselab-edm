@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import ru.caselab.edm.backend.dto.attributevalue.DocumentAttributeValueUpdateDTO;
+import ru.caselab.edm.backend.dto.file.FileDTO;
 
 import java.util.List;
 
@@ -20,9 +21,9 @@ public class DocumentUpdateDTO {
     @Schema(description = "Document name", example = "Spongebob best episodes")
     private String documentName;
 
-    @JsonProperty("base64Data")
-    @Schema(name = "base64Data", description = "File's data in Base64 format", example = "")
-    private String data;
+    @JsonProperty("file")
+    @Schema(description = "File's data")
+    private FileDTO file;
 
     @Schema(description = "Value attributes")
     private List<DocumentAttributeValueUpdateDTO> attributeValues;

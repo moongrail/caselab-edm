@@ -14,8 +14,8 @@ import java.util.UUID;
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface MinioDocumentMapper {
 
-    @Mapping(source = "dto.data", target = "data", qualifiedByName = "getByteArrayFromBase64")
-    @Mapping(target = "objectName", expression = "java(formatObjectName(userId, dto.getDocumentName()))")
+    @Mapping(source = "dto.file.data", target = "data", qualifiedByName = "getByteArrayFromBase64")
+    @Mapping(target = "objectName", expression = "java(formatObjectName(userId, dto.getFile().fileName()))")
     MinioSaveDto map(DocumentCreateDTO dto, UUID userId);
 
     @Mapping(source = "data", target = "data", qualifiedByName = "getByteArrayFromBase64")

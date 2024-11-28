@@ -53,12 +53,12 @@ public class MinioServiceTest {
         MinioSaveDto mockSaveObject = mock(MinioSaveDto.class);
         when(mockSaveObject.data()).thenReturn(new byte[0]);
         when(mockSaveObject.objectName()).thenReturn("test-name");
-        when(contentTypeDetector.detect(any(InputStream.class))).thenReturn("text/plain");
+        when(contentTypeDetector.detect(any(String.class), any(InputStream.class))).thenReturn("text/plain");
 
         minioService.saveObject(mockSaveObject);
 
         verify(mockSaveObject).data();
-        verify(contentTypeDetector).detect(any(InputStream.class));
+        verify(contentTypeDetector).detect(any(String.class), any(InputStream.class));
         verify(minioClient).putObject(any(PutObjectArgs.class));
     }
 
@@ -68,7 +68,7 @@ public class MinioServiceTest {
 
         when(mockSaveObject.data()).thenReturn(new byte[0]);
         when(mockSaveObject.objectName()).thenReturn("test-name");
-        when(contentTypeDetector.detect(any(InputStream.class))).thenReturn("text/plain");
+        when(contentTypeDetector.detect(any(String.class), any(InputStream.class))).thenReturn("text/plain");
 
         when(minioClient.putObject(any(PutObjectArgs.class)))
                 .thenThrow(new IOException());
@@ -77,8 +77,8 @@ public class MinioServiceTest {
                 .isInstanceOf(MinioServiceException.class);
 
         verify(mockSaveObject).data();
-        verify(contentTypeDetector).detect(any(InputStream.class));
-        verify(mockSaveObject, times(2)).objectName(); //first invocation in put object and second during the logging
+        verify(contentTypeDetector).detect(any(String.class), any(InputStream.class));
+        verify(mockSaveObject, times(3)).objectName();
         verify(minioClient).putObject(any(PutObjectArgs.class));
     }
 

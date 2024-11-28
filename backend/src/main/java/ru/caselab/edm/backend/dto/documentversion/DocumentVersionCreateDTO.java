@@ -1,9 +1,11 @@
 package ru.caselab.edm.backend.dto.documentversion;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 import ru.caselab.edm.backend.dto.attributevalue.AttributeValuetoCreateDocumentDTO;
+import ru.caselab.edm.backend.dto.file.FileDTO;
 import ru.caselab.edm.backend.entity.DocumentAttributeValue;
 
 import java.util.List;
@@ -14,8 +16,9 @@ public class DocumentVersionCreateDTO {
     @NotBlank
     private String documentName;
 
-    @Schema(description = "Content url", example = "")
-    private String data;
+    @JsonProperty("file")
+    @Schema(name = "File's data", description = "File's data")
+    private FileDTO file;
 
     @Schema(description = "Id of the document whose version is the current document version", example = "1")
     private Long documentId;
