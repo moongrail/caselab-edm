@@ -1,4 +1,4 @@
-package ru.caselab.edm.backend.builder;
+package ru.caselab.edm.backend.testutils.builder;
 
 public interface BaseBuilder <E> {
 
