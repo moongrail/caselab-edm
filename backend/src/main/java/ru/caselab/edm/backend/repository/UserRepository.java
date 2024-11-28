@@ -106,7 +106,7 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     FROM User u
     JOIN u.documents d
     WHERE d.createdAt BETWEEN :startDate AND :endDate
-    GROUP BY userId
+    GROUP BY u.id
     ORDER BY COUNT(d) DESC
     """)
     Page<TopUsersByDocumentCreationProjection> findTopUserByDocumentCreation(@Param("startDate") Instant startDate, @Param("endDate") Instant endDate, Pageable pageable);
