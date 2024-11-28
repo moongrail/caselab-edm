@@ -49,7 +49,7 @@ public class AnalyticsControllerTest extends BaseControllerTest {
     }
 
     @Test
-    void getTopUsersByDocumentCreation_invalidDates_shouldReturnTopUsersWithStatusOk() throws Exception {
+    void getTopUsersByDocumentCreation_invalidDates_shouldReturnTopUsersWithStatusBadRequest() throws Exception {
         LocalDate startDate = LocalDate.of(2024, 12, 31);
         LocalDate endDate = LocalDate.of(2024, 1, 1);
         int page = 0;
