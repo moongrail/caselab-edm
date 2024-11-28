@@ -37,11 +37,15 @@ public abstract class BaseControllerTest {
     }
 
     protected ResultActions performRequest(MockHttpServletRequestBuilder requestBuilder, Object requestBody) throws Exception {
+        requestBuilder.content(writeAsJson(requestBody));
+        return performRequest(requestBuilder);
+    }
+
+    protected ResultActions performRequest(MockHttpServletRequestBuilder requestBuilder) throws Exception {
         return mockMvc.perform(
                 requestBuilder
                         .contentType(MediaType.APPLICATION_JSON)
                         .with(csrf())
-                        .content(writeAsJson(requestBody))
         );
     }
 
