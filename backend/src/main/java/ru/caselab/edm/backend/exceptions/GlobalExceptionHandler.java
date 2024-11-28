@@ -115,4 +115,9 @@ public class GlobalExceptionHandler {
     ResponseEntity<String> handleManagerOfAnotherDepartmentException(ManagerOfAnotherDepartmentException ex) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.CONFLICT);
     }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    ResponseEntity<String> handleIllegalArgumentException(IllegalArgumentException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    }
 }
