@@ -109,5 +109,5 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     GROUP BY userId
     ORDER BY COUNT(d) DESC
     """)
-    List<TopUsersByDocumentCreationProjection> findTopUserByDocumentCreation(@Param("startDate") Instant startDate, @Param("endDate") Instant endDate, Pageable pageable);
+    Page<TopUsersByDocumentCreationProjection> findTopUserByDocumentCreation(@Param("startDate") Instant startDate, @Param("endDate") Instant endDate, Pageable pageable);
 }

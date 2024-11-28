@@ -25,6 +25,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         Instant startInstant = startDate.atStartOfDay(ZoneId.systemDefault()).toInstant();
         Instant endInstant = endDate.atStartOfDay(ZoneId.systemDefault()).toInstant();
 
-        return userRepository.findTopUserByDocumentCreation(startInstant, endInstant, pageable);
+        return userRepository.findTopUserByDocumentCreation(startInstant, endInstant, pageable)
+                .getContent();
     }
 }

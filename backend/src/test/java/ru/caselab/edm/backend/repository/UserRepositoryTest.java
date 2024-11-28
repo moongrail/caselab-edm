@@ -46,7 +46,8 @@ public class UserRepositoryTest {
         Instant startDate = Instant.now().minusSeconds(2_000_000);
         Instant endDate = Instant.now();
 
-        List<TopUsersByDocumentCreationProjection> result = userRepository.findTopUserByDocumentCreation(startDate, endDate, pageable);
+        Page<TopUsersByDocumentCreationProjection> result =
+                userRepository.findTopUserByDocumentCreation(startDate, endDate, pageable);
 
         assertThat(result).isNotEmpty();
 
