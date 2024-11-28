@@ -9,22 +9,18 @@ import ru.caselab.edm.backend.enums.RoleName;
 public record UpdateUserDTO(
 
         @Schema(description = "Login", example = "login")
-        @NotBlank
         @Size(min = 5, max = 20, message = "Login must be between {min} and {max} character length")
         String login,
 
         @Schema(description = "Email", example = "email@email.com")
-        @NotBlank
         @Email
         String email,
 
         @Schema(description = "First name", example = "first name")
-        @NotBlank
         @Size(min = 2, max = 20, message = "First name must be between {min} and {max} character length")
         String firstName,
 
         @Schema(description = "Last name", example = "last name")
-        @NotBlank
         @Size(min = 2, max = 20, message = "Last name must be between {min} and {max} character length")
         String lastName,
 
@@ -33,12 +29,9 @@ public record UpdateUserDTO(
         String patronymic,
 
         @Schema(description = "Position", example = "Developer")
-        @NotBlank
         @Size(min = 2, max = 20, message = "Position must be between {min} and {max} character length")
         String position,
 
         @Schema(description = "Role", example = "[\"USER\", \"ADMIN\"]")
-        @NotNull
-        @NotEmpty(message = "User must contain at least 1 role")
         RoleName[] roles) {
 }

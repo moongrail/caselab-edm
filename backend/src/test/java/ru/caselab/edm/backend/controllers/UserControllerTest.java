@@ -269,7 +269,7 @@ public class UserControllerTest extends BaseControllerTest {
     void updateUser_validDto_shouldUpdateUserWithStatusOk() throws Exception {
         UpdateUserDTO updateUserDTO = UpdateUserDtoBuilder.builder().build();
 
-        performRequest(put(BASE_URI + "/{userId}", userId), updateUserDTO)
+        performRequest(patch(BASE_URI + "/{userId}", userId), updateUserDTO)
                 .andDo(print())
                 .andExpect(status().isOk());
 
@@ -281,7 +281,7 @@ public class UserControllerTest extends BaseControllerTest {
     void updateUser_invalidFirstName_shouldReturnStatusBadRequest(String firstName) throws Exception {
         UpdateUserDTO updateUserDTO = UpdateUserDtoBuilder.builder().withFirstName(firstName).build();
 
-        performRequest(put(BASE_URI + "/{userId}", userId), updateUserDTO)
+        performRequest(patch(BASE_URI + "/{userId}", userId), updateUserDTO)
                 .andDo(print())
                 .andExpect(status().isBadRequest());
 
@@ -293,7 +293,7 @@ public class UserControllerTest extends BaseControllerTest {
     void updateUser_invalidLastName_shouldReturnStatusBadRequest(String lastName) throws Exception {
         UpdateUserDTO updateUserDTO = UpdateUserDtoBuilder.builder().withLastName(lastName).build();
 
-        performRequest(put(BASE_URI + "/{userId}", userId), updateUserDTO)
+        performRequest(patch(BASE_URI + "/{userId}", userId), updateUserDTO)
                 .andDo(print())
                 .andExpect(status().isBadRequest());
 
@@ -305,7 +305,7 @@ public class UserControllerTest extends BaseControllerTest {
     void updateUser_invalidPatronymic_shouldReturnStatusBadRequest(String patronymic) throws Exception {
         UpdateUserDTO updateUserDTO = UpdateUserDtoBuilder.builder().withPatronymic(patronymic).build();
 
-        performRequest(put(BASE_URI + "/{userId}", userId), updateUserDTO)
+        performRequest(patch(BASE_URI + "/{userId}", userId), updateUserDTO)
                 .andDo(print())
                 .andExpect(status().isBadRequest());
 
@@ -317,7 +317,7 @@ public class UserControllerTest extends BaseControllerTest {
     void updateUser_invalidLogin_shouldReturnStatusBadRequest(String login) throws Exception {
         UpdateUserDTO updateUserDTO = UpdateUserDtoBuilder.builder().withLogin(login).build();
 
-        performRequest(put(BASE_URI + "/{userId}", userId), updateUserDTO)
+        performRequest(patch(BASE_URI + "/{userId}", userId), updateUserDTO)
                 .andDo(print())
                 .andExpect(status().isBadRequest());
 
@@ -329,7 +329,7 @@ public class UserControllerTest extends BaseControllerTest {
     void updateUser_invalidPosition_shouldReturnStatusBadRequest(String position) throws Exception {
         UpdateUserDTO updateUserDTO = UpdateUserDtoBuilder.builder().withPosition(position).build();
 
-        performRequest(put(BASE_URI + "/{userId}", userId), updateUserDTO)
+        performRequest(patch(BASE_URI + "/{userId}", userId), updateUserDTO)
                 .andDo(print())
                 .andExpect(status().isBadRequest());
 
@@ -341,30 +341,15 @@ public class UserControllerTest extends BaseControllerTest {
     void updateUser_invalidEmail_shouldReturnStatusBadRequest(String email) throws Exception {
         UpdateUserDTO updateUserDTO = UpdateUserDtoBuilder.builder().withEmail(email).build();
 
-        performRequest(put(BASE_URI + "/{userId}", userId), updateUserDTO)
+        performRequest(patch(BASE_URI + "/{userId}", userId), updateUserDTO)
                 .andDo(print())
                 .andExpect(status().isBadRequest());
 
         verify(userService, never()).updateUser(eq(userId), any(UpdateUserDTO.class));
     }
-
-    @MethodSource("getRolesValidationCases")
-    @ParameterizedTest
-    void updateUser_invalidRoles_shouldReturnStatusBadRequest(RoleName[] roles) throws Exception {
-        UpdateUserDTO updateUserDTO = UpdateUserDtoBuilder.builder().withRoles(roles).build();
-
-        performRequest(put(BASE_URI + "/{userId}", userId), updateUserDTO)
-                .andDo(print())
-                .andExpect(status().isBadRequest());
-
-        verify(userService, never()).updateUser(eq(userId), any(UpdateUserDTO.class));
-    }
-
 
     private static Stream<Arguments> getFirstNameValidationCases() {
         return Stream.of(
-                arguments(named("FirstName is blank", " ")),
-                arguments(named("FirstName is null", null)),
                 arguments(named("FirstName is too short", "n")),
                 arguments(named("FirstName is too long", generateStringWithLength(INVALID_FIRST_NAME_LENGTH)))
         );
@@ -372,8 +357,6 @@ public class UserControllerTest extends BaseControllerTest {
 
     private static Stream<Arguments> getLastNameValidationCases() {
         return Stream.of(
-                arguments(named("LastName is blank", " ")),
-                arguments(named("LastName is null", null)),
                 arguments(named("LastName is too short", "n")),
                 arguments(named("LastName is too long", generateStringWithLength(INVALID_LAST_NAME_LENGTH)))
 
@@ -388,8 +371,6 @@ public class UserControllerTest extends BaseControllerTest {
 
     private static Stream<Arguments> getLoginValidationCases() {
         return Stream.of(
-                arguments(named("Login is blank", " ")),
-                arguments(named("Login is null", null)),
                 arguments(named("Login is too short", "log")),
                 arguments(named("Login is too long", generateStringWithLength(INVALID_LOGIN_LENGTH)))
         );
@@ -397,8 +378,6 @@ public class UserControllerTest extends BaseControllerTest {
 
     private static Stream<Arguments> getPositionValidationCases() {
         return Stream.of(
-                arguments(named("Position is blank", " ")),
-                arguments(named("Position is null", null)),
                 arguments(named("Position is too short", "p")),
                 arguments(named("Position is too long", generateStringWithLength(INVALID_POSITION_LENGTH)))
         );
@@ -406,9 +385,7 @@ public class UserControllerTest extends BaseControllerTest {
 
     private static Stream<Arguments> getEmailValidationCases() {
         return Stream.of(
-                arguments(named("Email is invalid", "invalid-email")),
-                arguments(named("Email is blank", " ")),
-                arguments(named("Email is null", null))
+                arguments(named("Email is invalid", "invalid-email"))
         );
     }
 
