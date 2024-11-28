@@ -46,6 +46,6 @@ public class Document {
     @OneToMany(mappedBy = "document", cascade = CascadeType.ALL)
     private List<DocumentVersion> documentVersion = new ArrayList<>();
 
-    @Column(name = "is_archived", nullable = false)
+    @Column(name = "is_archive", nullable = false)
     private boolean isArchived = false;
 }
