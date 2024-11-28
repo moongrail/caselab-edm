@@ -7,7 +7,10 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import ru.caselab.edm.backend.entity.User;
+import ru.caselab.edm.backend.repository.proection.TopUsersByDocumentCreationProjection;
 
+import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -96,4 +99,16 @@ public interface UserRepository extends JpaRepository<User, UUID> {
                   AND u.id NOT IN :notAvailableUsers
             """)
     Optional<User> findUserByIdAndDepartmentAndNotInNotAvailableList(UUID userId, @Param("departmentId") Long departmentId, List<UUID> notAvailableUsers);
+
+    @Query("""
+    SELECT 
+        u.id as userId,
+        COUNT(d) as documentCount
+    FROM User u
+    JOIN u.documents d
+    WHERE d.createdAt BETWEEN :startDate AND :endDate
+    GROUP BY userId
+    ORDER BY COUNT(d) DESC
+    """)
+    List<TopUsersByDocumentCreationProjection> findTopUserByDocumentCreation(@Param("startDate") Instant startDate, @Param("endDate") Instant endDate, Pageable pageable);
 }
