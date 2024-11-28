@@ -1,8 +1,8 @@
-package ru.caselab.edm.backend.builder.user;
+package ru.caselab.edm.backend.testutils.builder.user;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-import ru.caselab.edm.backend.builder.BaseBuilder;
+import ru.caselab.edm.backend.testutils.builder.BaseBuilder;
 import ru.caselab.edm.backend.dto.user.CreateUserDTO;
 import ru.caselab.edm.backend.enums.RoleName;
 

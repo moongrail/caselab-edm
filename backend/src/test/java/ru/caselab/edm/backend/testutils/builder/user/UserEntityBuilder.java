@@ -1,9 +1,9 @@
-package ru.caselab.edm.backend.builder.user;
+package ru.caselab.edm.backend.testutils.builder.user;
 
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.With;
-import ru.caselab.edm.backend.builder.BaseBuilder;
+import ru.caselab.edm.backend.testutils.builder.BaseBuilder;
 import ru.caselab.edm.backend.entity.*;
 
 import java.util.ArrayList;

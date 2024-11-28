@@ -1,9 +1,9 @@
-package ru.caselab.edm.backend.builder.documenttype;
+package ru.caselab.edm.backend.testutils.builder.documenttype;
 
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.With;
-import ru.caselab.edm.backend.builder.BaseBuilder;
+import ru.caselab.edm.backend.testutils.builder.BaseBuilder;
 import ru.caselab.edm.backend.entity.Attribute;
 import ru.caselab.edm.backend.entity.Document;
 import ru.caselab.edm.backend.entity.DocumentType;
