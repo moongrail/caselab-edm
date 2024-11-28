@@ -25,6 +25,10 @@ public class AnalyticsController {
                                                                                     @RequestParam(defaultValue = "0") int page,
                                                                                     @RequestParam(defaultValue = "10") int size) {
 
+        if (startDate.isAfter(endDate)) {
+            throw new IllegalArgumentException("Invalid date's parameters. Start date bust be before end date");
+        }
+
         PageRequest pageable = PageRequest.of(page, size);
         return analyticsService.findTopUsersByDocumentCreation(startDate, endDate, pageable);
     }
