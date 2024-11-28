@@ -7,7 +7,7 @@
 
     <changeSet id="db.1.0-add_archived_to_documents.xml" author="larentiina" runOnChange="true">
         <sql>
-            ALTER TABLE document_versions
+            ALTER TABLE documents
                 ADD COLUMN is_archive BOOLEAN DEFAULT FALSE;
         </sql>
     </changeSet>
