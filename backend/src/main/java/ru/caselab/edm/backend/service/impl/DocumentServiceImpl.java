@@ -76,7 +76,43 @@ public class DocumentServiceImpl implements DocumentService {
             pageable = pageable.withSort(JpaSort.unsafe(sortingType.getDirection(), sortingType.getFieldName()));
         }
         Page<DocumentOutputAllDocumentsDTO> allDocumentWithNameAndStatusProjectionForUser =
-                documentRepository.getAllDocumentWithNameAndStatusProjectionForUser(userId, pageable);
+                documentRepository.getAllDocumentWithNameAndStatusProjectionWhereUserOwner(userId, pageable);
+
+        log.info("Get {} document", allDocumentWithNameAndStatusProjectionForUser.getTotalElements());
+        return allDocumentWithNameAndStatusProjectionForUser;
+    }
+
+    @Override
+    public Page<DocumentOutputAllDocumentsDTO> getAllDocumentWhereUserOwnerAfterSigner(int page,
+                                                                                       int size,
+                                                                                       UUID userId,
+                                                                                       DocumentSortingType sortingType) {
+        log.info("Get all document for user with sorting- page: {}, size: {}, userId: {}, sortingType: {}",
+                page, size, userId, sortingType);
+        PageRequest pageable = PageRequest.of(page, size);
+        if (!DocumentSortingType.WITHOUT.equals(sortingType)) {
+            pageable = pageable.withSort(JpaSort.unsafe(sortingType.getDirection(), sortingType.getFieldName()));
+        }
+        Page<DocumentOutputAllDocumentsDTO> allDocumentWithNameAndStatusProjectionForUser =
+                documentRepository.getAllDocumentWithNameAndStatusProjectionWhereUserOwnerAfterSigner(userId, pageable);
+
+        log.info("Get {} document", allDocumentWithNameAndStatusProjectionForUser.getTotalElements());
+        return allDocumentWithNameAndStatusProjectionForUser;
+    }
+
+    @Override
+    public Page<DocumentOutputAllDocumentsDTO> getAllDocumentWhereUserOwnerBeforeSigner(int page,
+                                                                                        int size,
+                                                                                        UUID userId,
+                                                                                        DocumentSortingType sortingType) {
+        log.info("Get all document for user with sorting- page: {}, size: {}, userId: {}, sortingType: {}",
+                page, size, userId, sortingType);
+        PageRequest pageable = PageRequest.of(page, size);
+        if (!DocumentSortingType.WITHOUT.equals(sortingType)) {
+            pageable = pageable.withSort(JpaSort.unsafe(sortingType.getDirection(), sortingType.getFieldName()));
+        }
+        Page<DocumentOutputAllDocumentsDTO> allDocumentWithNameAndStatusProjectionForUser =
+                documentRepository.getAllDocumentWithNameAndStatusProjectionWhereUserOwnerBeforeSigner(userId, pageable);
 
         log.info("Get {} document", allDocumentWithNameAndStatusProjectionForUser.getTotalElements());
         return allDocumentWithNameAndStatusProjectionForUser;
@@ -135,7 +171,6 @@ public class DocumentServiceImpl implements DocumentService {
         log.info("Get {} document", allDocumentWithNameAndStatusProjectionWhereUserSignatories.getTotalElements());
         return allDocumentWithNameAndStatusProjectionWhereUserSignatories;
     }
-
 
     @Override
     public DocumentVersion getLastVersionDocumentForUser(long id, UUID userId) {

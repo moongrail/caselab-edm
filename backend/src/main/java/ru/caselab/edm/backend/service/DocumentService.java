@@ -1,5 +1,7 @@
 package ru.caselab.edm.backend.service;
 
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import org.springframework.data.domain.Page;
 import ru.caselab.edm.backend.dto.approvementprocessitem.ApprovementProcessItemDTO;
 import ru.caselab.edm.backend.dto.document.DocumentCreateDTO;
@@ -43,7 +45,6 @@ public interface DocumentService {
 
     Page<Document> getAllDocuments(int page, int size);
 
-
     Document getDocument(long id);
 
     DocumentVersion saveDocument(DocumentCreateDTO document, UUID userId);
@@ -53,4 +54,8 @@ public interface DocumentService {
     void deleteDocument(long id);
 
     ApprovementProcessItemDTO sendForSign(UUID userId, Long documentVersionId, UserInfoDetails authenticatedUser);
+
+    Page<DocumentOutputAllDocumentsDTO> getAllDocumentWhereUserOwnerAfterSigner(int page, int size, UUID userId, DocumentSortingType sortingType);
+
+    Page<DocumentOutputAllDocumentsDTO> getAllDocumentWhereUserOwnerBeforeSigner(int page, int size, UUID userId, DocumentSortingType sortingType);
 }
