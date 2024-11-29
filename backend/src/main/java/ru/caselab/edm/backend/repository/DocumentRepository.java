@@ -4,10 +4,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import ru.caselab.edm.backend.dto.document.DocumentOutputAllDocumentsDTO;
 import ru.caselab.edm.backend.entity.Document;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -116,4 +118,17 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
             """,
             nativeQuery = true)
     Page<Document> getAllDocumentForUser(UUID userId, Pageable pageable);
+
+    @Query(value = """
+           SELECT d.id FROM documents d
+           JOIN document_types dt
+           ON dt.id = d.document_type_id
+           JOIN document_type_attributes dta
+           ON dta.doc_type_id = dt.id
+           JOIN attributes a
+           ON dta.attribute_id = a.id
+           WHERE a.id = :attributeId
+            """,
+            nativeQuery = true)
+    List<Long> getDocumentsWithAttribute(@Param("attributeId") Long attributeId);
 }
