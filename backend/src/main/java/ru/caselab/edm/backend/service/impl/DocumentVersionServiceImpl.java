@@ -63,7 +63,7 @@ public class DocumentVersionServiceImpl implements DocumentVersionService {
         newDocumentVersion.setDocument(newDocument);
         newDocumentVersion.setState(DocumentStatus.DRAFT);
 
-        MinioSaveDto saveDto = minioDocumentMapper.map(document, userId);
+        MinioSaveDto saveDto = minioDocumentMapper.map(document.getFile().fileName(), document.getFile().data(), userId);
         minioService.saveObject(saveDto);
         newDocumentVersion.setContentUrl(saveDto.objectName());
 
@@ -95,16 +95,23 @@ public class DocumentVersionServiceImpl implements DocumentVersionService {
         } else {
             updatingDocumentVersion.setDocumentName(exsistingVersion.getDocumentName());
         }
-        String documentName = updatingDocumentVersion.getDocumentName();
 
-        if (document.getData() != null && !document.getData().isEmpty()) {
-            String data = document.getData();
-            MinioSaveDto saveDto = minioDocumentMapper.map(documentName, data, userId);
-            minioService.saveObject(saveDto);
-            updatingDocumentVersion.setContentUrl(saveDto.objectName());
+        if (document.getFile() != null) {
+            String data = document.getFile().data();
+            String fileName = document.getFile().fileName();
+            if (data != null && !data.isEmpty()
+                    && fileName != null && !fileName.isEmpty()) {
+
+                MinioSaveDto saveDto = minioDocumentMapper.map(fileName, data, userId);
+                minioService.saveObject(saveDto);
+                updatingDocumentVersion.setContentUrl(saveDto.objectName());
+            } else {
+                updatingDocumentVersion.setContentUrl(exsistingVersion.getContentUrl());
+            }
         } else {
             updatingDocumentVersion.setContentUrl(exsistingVersion.getContentUrl());
         }
+
         updatingDocumentVersion.setState(DocumentStatus.DRAFT);
         documentVersionRepository.saveAndFlush(updatingDocumentVersion);
 

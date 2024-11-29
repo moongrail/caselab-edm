@@ -43,7 +43,7 @@ public class MinioServiceImpl implements MinioService {
 
     public void saveObject(MinioSaveDto minioSaveDto) {
         try (InputStream inputStream = getInputStream(minioSaveDto)) {
-            String contentType = getContentType(inputStream);
+            String contentType = getContentType(minioSaveDto.objectName(), inputStream);
             putObject(minioSaveDto.objectName(), contentType, inputStream);
             log.info("Object was uploaded successfully: {}", minioSaveDto.objectName());
         } catch (Exception ex) {
@@ -75,8 +75,8 @@ public class MinioServiceImpl implements MinioService {
         return new ByteArrayInputStream(minioSaveDto.data());
     }
 
-    private String getContentType(InputStream inputStream) throws ContentTypeDetectionException {
-        return contentTypeDetector.detect(inputStream);
+    private String getContentType(String fileName, InputStream inputStream) throws ContentTypeDetectionException {
+        return contentTypeDetector.detect(fileName, inputStream);
     }
 
     private void putObject(String objectName, String contentType, InputStream inputStream) throws IOException, MinioException, NoSuchAlgorithmException, InvalidKeyException {

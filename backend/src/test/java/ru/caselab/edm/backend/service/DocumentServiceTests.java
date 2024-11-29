@@ -15,6 +15,7 @@ import org.springframework.data.jpa.domain.JpaSort;
 import ru.caselab.edm.backend.dto.document.DocumentCreateDTO;
 import ru.caselab.edm.backend.dto.document.DocumentOutputAllDocumentsDTO;
 import ru.caselab.edm.backend.dto.document.DocumentUpdateDTO;
+import ru.caselab.edm.backend.dto.file.FileDTO;
 import ru.caselab.edm.backend.entity.Document;
 import ru.caselab.edm.backend.entity.DocumentType;
 import ru.caselab.edm.backend.entity.DocumentVersion;
@@ -279,6 +280,8 @@ class DocumentServiceTests {
         DocumentVersion documentVersion1 = new DocumentVersion();
 
         DocumentCreateDTO documentCreateDTO = new DocumentCreateDTO();
+        FileDTO fileDTO = new FileDTO("Data", "test_object_name");
+        documentCreateDTO.setFile(fileDTO);
         documentCreateDTO.setDocumentTypeId(documentTypeId);
 
         Mockito.when(documentTypeRepository.findById(documentTypeId))
@@ -299,6 +302,8 @@ class DocumentServiceTests {
     @Test
     void updateDocumentSuccess() {
         DocumentUpdateDTO documentUpdateDTO = new DocumentUpdateDTO();
+        FileDTO fileDTO = new FileDTO("Data", "test_object_name");
+        documentUpdateDTO.setFile(fileDTO);
 
         Document existingDocument = new Document();
         User user = new User();

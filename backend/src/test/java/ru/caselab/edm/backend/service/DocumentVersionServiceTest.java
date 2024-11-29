@@ -6,6 +6,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ru.caselab.edm.backend.dto.document.DocumentCreateDTO;
+import ru.caselab.edm.backend.dto.file.FileDTO;
 import ru.caselab.edm.backend.dto.minio.MinioSaveDto;
 import ru.caselab.edm.backend.entity.Document;
 import ru.caselab.edm.backend.entity.DocumentAttributeValue;
@@ -45,7 +46,10 @@ public class DocumentVersionServiceTest {
     void saveDocumentVersionTest() {
         UUID userId = UUID.randomUUID();
 
+
         DocumentCreateDTO documentCreateDTO = new DocumentCreateDTO();
+        FileDTO fileDTO = new FileDTO("Data", "test_object_name");
+        documentCreateDTO.setFile(fileDTO);
         documentCreateDTO.setDocumentName("test_document");
 
         Document newDocument = new Document();
@@ -54,7 +58,7 @@ public class DocumentVersionServiceTest {
 
         String data = Arrays.toString(new byte[]{1, 2, 3, 4, 5});
 
-        when(minioDocumentMapper.map(documentCreateDTO, userId)).thenReturn(minioSaveDto);
+        when(minioDocumentMapper.map(documentCreateDTO.getFile().fileName(), documentCreateDTO.getFile().data(), userId)).thenReturn(minioSaveDto);
         when(documentAttributeValueService.createDocumentAttributeValues(any(), any(), any()))
                 .thenReturn(Collections.singletonList(new DocumentAttributeValue()));
 
