@@ -23,6 +23,7 @@ import ru.caselab.edm.backend.exceptions.ResourceNotFoundException;
 import ru.caselab.edm.backend.exceptions.WrongDateException;
 import ru.caselab.edm.backend.mapper.approvementprocessitem.ApprovementProccessItemMapper;
 import ru.caselab.edm.backend.repository.*;
+import ru.caselab.edm.backend.repository.elastic.AttributeSearchRepository;
 import ru.caselab.edm.backend.service.DocumentService;
 import ru.caselab.edm.backend.service.DocumentVersionService;
 import ru.caselab.edm.backend.state.DocumentStatus;
@@ -30,6 +31,7 @@ import ru.caselab.edm.backend.state.DocumentStatus;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -285,7 +287,7 @@ public class DocumentServiceImpl implements DocumentService {
                 .max(Comparator.comparing(DocumentVersion::getCreatedAt))
                 .orElseThrow();
         version.getState().delete(version);
-  
+
         for (Attribute attribute : document.getDocumentType().getAttributes()) {
             Optional<AttributeSearch> attributeSearch = attributeSearchRepository.findById(attribute.getId());
 
@@ -295,10 +297,10 @@ public class DocumentServiceImpl implements DocumentService {
 
                 attributeSearchRepository.save(existingAttributeSearch);
             }
-  
-        documentRepository.save(document);
-    }
 
+            documentRepository.save(document);
+        }
+    }
 
 
     @Transactional
