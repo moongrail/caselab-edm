@@ -75,7 +75,7 @@ class DocumentRepositoryTest {
     }
 
     @Test
-    void getAllDocumentWithNameAndStatusProjectionForUser() {
+    void getAllDocumentWithNameAndStatusProjectionWhereUserOwner() {
         initdb();
         Pageable pageable = PageRequest.of(0, 5);
 
@@ -93,7 +93,7 @@ class DocumentRepositoryTest {
         );
 
         Page<DocumentOutputAllDocumentsDTO> actual2 = repository
-                .getAllDocumentWithNameAndStatusProjectionForUser(UUID.fromString("48bbbd31-45c0-43c5-b989-c1c14a8c3b8b"), pageable);
+                .getAllDocumentWithNameAndStatusProjectionWhereUserOwner(UUID.fromString("48bbbd31-45c0-43c5-b989-c1c14a8c3b8b"), pageable);
         Assertions.assertThat(actual2.get().toList()).hasSize(2).usingRecursiveComparison().isEqualTo(expected);
     }
 
