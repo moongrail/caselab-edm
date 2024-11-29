@@ -372,7 +372,7 @@ class DocumentServiceTests {
 
     @Test
     @DisplayName("Delete Document")
-D    void deleteDocument_Success() {// Подготовка данных
+    void deleteDocument_Success() {// Подготовка данных
         UUID userId = UUID.randomUUID();
         long documentId = 1L;
 
