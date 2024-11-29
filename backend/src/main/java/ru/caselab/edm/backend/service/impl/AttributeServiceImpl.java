@@ -11,22 +11,24 @@ import org.springframework.stereotype.Service;
 import ru.caselab.edm.backend.dto.attribute.AttributeCreateDTO;
 import ru.caselab.edm.backend.dto.attribute.AttributeDTO;
 import ru.caselab.edm.backend.dto.attribute.AttributeUpdateDTO;
+import ru.caselab.edm.backend.dto.documentversion.DocumentVersionDTO;
+import ru.caselab.edm.backend.dto.documentversion.DocumentVersionDtoWithAuthor;
 import ru.caselab.edm.backend.entity.Attribute;
 import ru.caselab.edm.backend.entity.AttributeSearch;
+import ru.caselab.edm.backend.entity.Document;
 import ru.caselab.edm.backend.entity.DocumentType;
 import ru.caselab.edm.backend.exceptions.AttributeAlreadyExistsException;
 import ru.caselab.edm.backend.exceptions.ResourceNotFoundException;
 import ru.caselab.edm.backend.mapper.attribute.AttributeMapper;
 import ru.caselab.edm.backend.mapper.attribute.AttributeSearchMapper;
+import ru.caselab.edm.backend.mapper.documentversion.DocumentVersionMapper;
 import ru.caselab.edm.backend.repository.AttributeRepository;
+import ru.caselab.edm.backend.repository.DocumentRepository;
 import ru.caselab.edm.backend.repository.elastic.AttributeSearchRepository;
 import ru.caselab.edm.backend.repository.DocumentTypeRepository;
 import ru.caselab.edm.backend.service.AttributeService;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 
 @Service
@@ -41,15 +43,19 @@ public class AttributeServiceImpl implements AttributeService {
     private final AttributeSearchMapper attributeSearchMapper;
     private final DocumentTypeRepository documentTypeRepository;
     private final AttributeSearchRepository attributeSearchRepository;
+    private final DocumentRepository documentRepository;
+    private final DocumentVersionMapper documentVersionMapper;
 
     @PostConstruct
     public void init() {
         List<Attribute> attributes = attributeRepository.findAll();
         for (Attribute attribute : attributes) {
-            AttributeSearch attributeSearch = new AttributeSearch(attribute.getId(),
+            List<Long> documents = documentRepository.getDocumentsWithAttribute(attribute.getId());
+                    AttributeSearch attributeSearch = new AttributeSearch(attribute.getId(),
                     attribute.getName(),
                     attribute.getDataType(),
-                    attribute.isRequired());
+                    attribute.isRequired(),
+                            documents);
             attributeSearchRepository.save(attributeSearch);
         }
     }
@@ -61,9 +67,24 @@ public class AttributeServiceImpl implements AttributeService {
     }
 
     @Override
-    public List<AttributeSearch> findByNameWithMinLength(String name) {
+    public Set<DocumentVersionDtoWithAuthor> findByNameWithMinLength(String name) {
         log.info("Attribute search with string: {}", name);
-        return attributeSearchRepository.findByNameWithMinLength(name);
+
+        Set<DocumentVersionDtoWithAuthor> documentVersionDtoWithAuthors = new HashSet<>();
+
+        for (AttributeSearch attributeSearch : attributeSearchRepository.findByNameWithMinLength(name)) {
+            for (Long id : attributeSearch.getDocuments()) {
+                Optional<Document> document = documentRepository.findById(id);
+
+                if (document.isPresent()) {
+                    Document existingDocument = document.get();
+                    documentVersionDtoWithAuthors.add(documentVersionMapper.toDtoWithAuthor(
+                            existingDocument.getDocumentVersion().get(existingDocument.getDocumentVersion().size() - 1)));
+                }
+            }
+        }
+
+        return documentVersionDtoWithAuthors;
     }
 
     @Transactional
@@ -144,8 +165,12 @@ public class AttributeServiceImpl implements AttributeService {
         } else {
             log.debug("No document type IDs provided for update. Skipping document type update.");
         }
+
+        AttributeSearch attributeSearch = attributeSearchMapper.toDTO(attribute);
+        attributeSearch.setDocuments(documentRepository.getDocumentsWithAttribute(attribute.getId()));
+
         attributeRepository.save(attribute);
-        attributeSearchRepository.save(attributeSearchMapper.toDTO(attribute));
+        attributeSearchRepository.save(attributeSearch);
         log.info("Attribute updated successfully: {}", attribute);
         return attributeMapper.toDTO(attribute);
     }
@@ -156,7 +181,11 @@ public class AttributeServiceImpl implements AttributeService {
         Optional<Attribute> attribute = attributeRepository.findById(id);
         if (attribute.isPresent()) {
             attributeRepository.delete(attribute.get());
-            attributeSearchRepository.delete(attributeSearchMapper.toDTO(attribute.get()));
+
+            AttributeSearch attributeSearch = attributeSearchMapper.toDTO(attribute.get());
+            attributeSearch.setDocuments(documentRepository.getDocumentsWithAttribute(attribute.get().getId()));
+
+            attributeSearchRepository.delete(attributeSearch);
         } else {
             throw new ResourceNotFoundException("Attribute not found with this id = %s".formatted(id));
         }
