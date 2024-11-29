@@ -174,7 +174,80 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
              		                               LIMIT 1)
              		    AND (u.id = :userId) and d.isArchived = false
             """)
-    Page<DocumentOutputAllDocumentsDTO> getAllDocumentWithNameAndStatusProjectionForUser(UUID userId, Pageable pageable);
+    Page<DocumentOutputAllDocumentsDTO> getAllDocumentWithNameAndStatusProjectionWhereUserOwner(UUID userId, Pageable pageable);
+
+    @Query(value = """
+            SELECT new ru.caselab.edm.backend.dto.document.DocumentOutputAllDocumentsDTO(d.id as id,
+                                                                                            u.login as login,
+                                                                                            d.createdAt as createdAt, 
+                                                                                            dv.documentName as documentName, 
+                                                                                            dv.contentUrl as contentUrl, 
+                                                                                            dv.state as state)
+                        FROM Document d 
+                        left join d.documentVersion dv 
+                        left join User u ON (u.id = d.user.id)
+                        left join ApprovementProcess ap ON (ap.documentVersion.document.id = d.id)
+             			WHERE dv.id = (select dv1.id
+             		                               from DocumentVersion dv1
+             		                               where dv1.document.id = d.id
+                                                   order by dv1.createdAt DESC
+             		                               LIMIT 1)
+             		    AND (u.id = :userId)
+             		    AND (state IN ('AUTHOR_SIGNED', 'PENDING_AUTHOR_SIGN', 'PENDING_CONTRACTOR_SIGN')
+             		    OR ap.status IN('PUBLISHED_FOR_VOTING'))
+             		    
+            """, countQuery = """
+            SELECT count(d.id)
+             			FROM Document d
+             			left join d.documentVersion dv
+             			left join User u ON (u.id = d.user.id)
+             			left join ApprovementProcess ap ON (ap.documentVersion.document.id = d.id)
+             			WHERE dv.id = (select dv1.id
+             		                               from DocumentVersion dv1
+             		                               where dv1.document.id = d.id
+                                                   order by dv1.createdAt DESC
+             		                               LIMIT 1)
+             		    AND (u.id = :userId)
+             		    AND (state IN ('AUTHOR_SIGNED', 'PENDING_AUTHOR_SIGN', 'PENDING_CONTRACTOR_SIGN')
+             		    OR ap.status IN('PUBLISHED_FOR_VOTING'))
+            """)
+    Page<DocumentOutputAllDocumentsDTO> getAllDocumentWithNameAndStatusProjectionWhereUserOwnerBeforeSigner(UUID userId, Pageable pageable);
+
+    @Query(value = """
+            SELECT new ru.caselab.edm.backend.dto.document.DocumentOutputAllDocumentsDTO(d.id as id,
+                                                                                            u.login as login,
+                                                                                            d.createdAt as createdAt,
+                                                                                            dv.documentName as documentName,
+                                                                                            dv.contentUrl as contentUrl,
+                                                                                            dv.state as state)
+                        FROM Document d 
+                        left join d.documentVersion dv 
+                        left join User u ON (u.id = d.user.id)
+                        left join ApprovementProcess ap ON (ap.documentVersion.document.id = d.id)
+             			WHERE dv.id = (select dv1.id
+             		                               from DocumentVersion dv1
+             		                               where dv1.document.id = d.id
+                                                   order by dv1.createdAt DESC
+             		                               LIMIT 1)
+             		    AND (u.id = :userId)
+             		    AND (state IN ('APPROVED', 'REJECTED', 'REWORK_REQUIRED', 'DELETED')
+             		    OR ap.status IN ('VOTING_COMPLETED', 'VOTING_APPROVED', 'VOTING_REJECTED'))
+            """, countQuery = """
+            SELECT count(d.id)
+             			FROM Document d
+             			left join d.documentVersion dv 
+             			left join User u ON (u.id = d.user.id)
+             			left join ApprovementProcess ap ON (ap.documentVersion.document.id = d.id)
+             			WHERE dv.id = (select dv1.id
+             		                               from DocumentVersion dv1
+             		                               where dv1.document.id = d.id
+                                                   order by dv1.createdAt DESC
+             		                               LIMIT 1)
+             		    AND (u.id = :userId)
+             		    AND (state IN ('APPROVED', 'REJECTED', 'REWORK_REQUIRED', 'DELETED')
+             		    OR ap.status IN ('VOTING_COMPLETED', 'VOTING_APPROVED', 'VOTING_REJECTED'))
+            """)
+    Page<DocumentOutputAllDocumentsDTO> getAllDocumentWithNameAndStatusProjectionWhereUserOwnerAfterSigner(UUID userId, Pageable pageable);
 
     @Query(value = """
             SELECT DISTINCT ON (d.id) d.id, d.user_id, d.document_type_id, d.created_at
