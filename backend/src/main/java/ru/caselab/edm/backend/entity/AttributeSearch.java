@@ -3,6 +3,7 @@ package ru.caselab.edm.backend.entity;
 import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.Document;
+import java.util.List;
 
 @Document(indexName = "attributes")
 @Getter
@@ -20,4 +21,6 @@ public class AttributeSearch {
     private String dataType;
 
     private boolean isRequired;
+
+    List<Long> documents;
 }
