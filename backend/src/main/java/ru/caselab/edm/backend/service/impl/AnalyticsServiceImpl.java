@@ -11,6 +11,8 @@ import ru.caselab.edm.backend.service.AnalyticsService;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.List;
 
@@ -34,10 +36,9 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     @Override
     public List<TopUsersByDocumentSigningProjection> findTopUsersByDocumentSigning(LocalDate startDate, LocalDate endDate, Pageable pageable) {
 
-        Instant startInstant = startDate.atStartOfDay(ZoneId.systemDefault()).toInstant();
-        Instant endInstant = endDate.atStartOfDay(ZoneId.systemDefault()).toInstant();
-
-        return userRepository.findTopUserByDocumentSigning(startInstant, endInstant, pageable).getContent();
+        LocalDateTime startDateWithTime = LocalDateTime.of(startDate, LocalTime.MIN);
+        LocalDateTime endDateWithTime = LocalDateTime.of(endDate, LocalTime.MAX);
+        return userRepository.findTopUserByDocumentSigning(startDateWithTime, endDateWithTime, pageable).getContent();
     }
 
     @Override

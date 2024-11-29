@@ -12,6 +12,8 @@ import ru.caselab.edm.backend.repository.projection.TopUsersByDocumentCreationPr
 import ru.caselab.edm.backend.repository.projection.TopUsersByDocumentSigningProjection;
 
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -122,7 +124,7 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     GROUP BY u.id
     ORDER BY COUNT(s) DESC
     """)
-    Page<TopUsersByDocumentSigningProjection> findTopUserByDocumentSigning(@Param("startDate") Instant startDate, @Param("endDate") Instant endDate, Pageable pageable);
+    Page<TopUsersByDocumentSigningProjection> findTopUserByDocumentSigning(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate, Pageable pageable);
 
 
     @Query("""
