@@ -254,9 +254,19 @@ public class DocumentServiceImpl implements DocumentService {
 
     @Transactional
     @Override
-    public void deleteDocument(long id) {
-        documentRepository.deleteById(id);
+    public void deleteDocument(long id, UUID userId) {
+        Document document = documentRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Document not found"));
+        document.setArchived(true);
+        DocumentVersion version = document.getDocumentVersion()
+                .stream()
+                .max(Comparator.comparing(DocumentVersion::getCreatedAt))
+                .orElseThrow();
+        version.getState().delete(version);
+        documentRepository.save(document);
     }
+
+
 
     @Transactional
     @Override
@@ -281,6 +291,11 @@ public class DocumentServiceImpl implements DocumentService {
         approvementItemRepository.save(approvementProcessItem);
         eventPublisher.publishEvent(new DocumentSignRequestEvent(this, approvementProcessItem));
         return approvementProccessItemMapper.toDTO(approvementProcessItem);
+    }
+
+    @Override
+    public Page<DocumentOutputAllDocumentsDTO> getArchivedDocuments(int page, int size, UUID userId) {
+        return documentRepository.getArchivedDocumentsForUser(userId, PageRequest.of(page, size));
     }
 
     private User getUserOrTempManagerById(UUID userId) {

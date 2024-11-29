@@ -111,3 +111,5 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     """)
     Page<TopUsersByDocumentCreationProjection> findTopUserByDocumentCreation(@Param("startDate") Instant startDate, @Param("endDate") Instant endDate, Pageable pageable);
 }
+
+
