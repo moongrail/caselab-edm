@@ -19,7 +19,7 @@ public class AttributeUpdateDTO {
     private String dataType;
 
     @Schema(description = "Is it required attribute", example = "true")
-    private boolean isRequired;
+    private Boolean required;
 
     @Schema(description = "DocumentType id's")
     private Set<Long> documentTypeIds;

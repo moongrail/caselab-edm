@@ -1,9 +1,8 @@
 package ru.caselab.edm.backend.dto.documenttype;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.Data;
+import org.openapitools.jackson.nullable.JsonNullable;
 
 import java.util.Set;
 
@@ -14,7 +13,7 @@ public class DocumentTypeUpdateDTO {
     private String name;
 
     @Schema(description = "Description document type", example = "text document with external contractors", nullable = true)
-    private String description;
+    private JsonNullable<String> description;
 
     @Schema(description = "Attributes", example = "[1, 2]", nullable = true)
     private Set<Long> attributeIds;

@@ -16,25 +16,25 @@ import java.util.UUID;
 @Repository
 public interface DocumentRepository extends JpaRepository<Document, Long> {
     @Query(value = """
-            SELECT DISTINCT ON (d.id) d.id, d.user_id, d.document_type_id, d.created_at
+            SELECT DISTINCT ON (d.id) d.id, d.user_id, d.document_type_id, d.created_at, d.is_archive
             FROM documents d
             JOIN document_versions dv
             ON d.id = dv.documents_id
             LEFT JOIN approvment_process_item api
             ON dv.id = api.document_version_id
-            WHERE d.id = :documentId AND (d.user_id = :userId)
+            WHERE d.id = :documentId AND (d.user_id = :userId) and d.is_archive = false
             """,
             nativeQuery = true)
     Optional<Document> getDocumentForUser(Long documentId, UUID userId);
 
     @Query(value = """
-            SELECT DISTINCT ON (d.id) d.id, d.user_id, d.document_type_id, d.created_at
+            SELECT DISTINCT ON (d.id) d.id, d.user_id, d.document_type_id, d.created_at, d.is_archive
             FROM documents d
             LEFT JOIN document_versions dv
             ON d.id = dv.documents_id
             LEFT JOIN approvment_process_item api
             ON dv.id = api.document_version_id
-            WHERE d.id = :documentId AND api.user_id = :userId and api.status in ( 'PENDING_CONTRACTOR_SIGN', 'PENDING_AUTHOR_SIGN')
+            WHERE d.id = :documentId AND api.user_id = :userId and d.is_archive = false
             """,
             nativeQuery = true)
     Optional<Document> getDocumentWhereUserSignatories(Long documentId, UUID userId);
@@ -51,12 +51,14 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
                         left join dv.approvementProcessItems api 
                         left join User u 
                         ON (u.id = api.user.id)
+                        left join User u1 
+                        ON (u1.id = d.user.id)
              			WHERE dv.id = (select dv1.id
              		                               from DocumentVersion dv1
              		                               where dv1.document.id = d.id
                                                    order by dv1.createdAt DESC
              		                               LIMIT 1)
-             		    AND api.user.id = :userId
+             		    AND api.user.id = :userId and d.isArchived = false
             """, countQuery = """
             SELECT count(d.id)
              			FROM Document d
@@ -69,9 +71,85 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
              		                               where dv1.document.id = d.id
                                                    order by dv1.createdAt DESC
              		                               LIMIT 1)
-             		    AND api.user.id = :userId
+             		    AND api.user.id = :userId and d.isArchived = false
             """)
     Page<DocumentOutputAllDocumentsDTO> getAllDocumentWithNameAndStatusProjectionWhereUserSignatories(UUID userId, Pageable pageable);
+
+    @Query(value = """
+            SELECT new ru.caselab.edm.backend.dto.document.DocumentOutputAllDocumentsDTO (d.id as id,
+                                                                                            u1.login as login,
+                                                                                            d.createdAt as createdAt,
+                                                                                            dv.documentName as documentName, 
+                                                                                            dv.contentUrl as contentUrl, 
+                                                                                            dv.state as state)
+                        FROM Document d 
+                        left join d.documentVersion dv 
+                        left join dv.approvementProcessItems api 
+                        left join User u 
+                        ON (u.id = api.user.id)
+                        left join User u1 
+                        ON (u1.id = d.user.id)
+             			WHERE dv.id = (select dv1.id
+             		                               from DocumentVersion dv1
+             		                               where dv1.document.id = d.id
+                                                   order by dv1.createdAt DESC
+             		                               LIMIT 1)
+             		    AND api.status in ( 'PENDING_CONTRACTOR_SIGN', 'PENDING_AUTHOR_SIGN')
+             		    AND api.user.id = :userId and d.isArchived = false
+            """, countQuery = """
+            SELECT count(d.id)
+             			FROM Document d
+                        left join d.documentVersion dv
+                        left join dv.approvementProcessItems api
+                        left join User u
+                        ON (u.id = api.user.id)
+             			WHERE dv.id = (select dv1.id
+             		                               from DocumentVersion dv1
+             		                               where dv1.document.id = d.id
+                                                   order by dv1.createdAt DESC
+             		                               LIMIT 1)
+             		    AND api.status in ( 'PENDING_CONTRACTOR_SIGN', 'PENDING_AUTHOR_SIGN')
+             		    AND api.user.id = :userId and d.isArchived = false
+            """)
+    Page<DocumentOutputAllDocumentsDTO> getAllDocumentWithNameAndStatusProjectionWhereUserSignatoriesBeforeSigner(UUID userId, Pageable pageable);
+
+    @Query(value = """
+            SELECT new ru.caselab.edm.backend.dto.document.DocumentOutputAllDocumentsDTO (d.id as id,
+                                                                                            u1.login as login,
+                                                                                            d.createdAt as createdAt,
+                                                                                            dv.documentName as documentName, 
+                                                                                            dv.contentUrl as contentUrl, 
+                                                                                            dv.state as state)
+                        FROM Document d 
+                        left join d.documentVersion dv 
+                        left join dv.approvementProcessItems api 
+                        left join User u 
+                        ON (u.id = api.user.id)
+                        left join User u1 
+                        ON (u1.id = d.user.id)
+             			WHERE dv.id = (select dv1.id
+             		                               from DocumentVersion dv1
+             		                               where dv1.document.id = d.id
+                                                   order by dv1.createdAt DESC
+             		                               LIMIT 1)
+             		    AND api.status in ( 'APPROVED', 'REJECTED', 'REWORK_REQUIRED')
+             		    AND api.user.id = :userId and d.isArchived = false
+            """, countQuery = """
+            SELECT count(d.id)
+             			FROM Document d
+                        left join d.documentVersion dv
+                        left join dv.approvementProcessItems api
+                        left join User u
+                        ON (u.id = api.user.id)
+             			WHERE dv.id = (select dv1.id
+             		                               from DocumentVersion dv1
+             		                               where dv1.document.id = d.id
+                                                   order by dv1.createdAt DESC
+             		                               LIMIT 1)
+             		    AND api.status in ('APPROVED', 'REJECTED', 'REWORK_REQUIRED')
+             		    AND api.user.id = :userId and d.isArchived = false
+            """)
+    Page<DocumentOutputAllDocumentsDTO> getAllDocumentWithNameAndStatusProjectionWhereUserSignatoriesAfterSigner(UUID userId, Pageable pageable);
 
     @Query(value = """
             SELECT new ru.caselab.edm.backend.dto.document.DocumentOutputAllDocumentsDTO(d.id as id,
@@ -86,7 +164,7 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
              		                               where dv1.document.id = d.id
                                                    order by dv1.createdAt DESC
              		                               LIMIT 1)
-             		    AND (u.id = :userId)
+             		    AND (u.id = :userId) and d.isArchived = false
             """, countQuery = """
             SELECT count(d.id)
              			FROM Document d join d.documentVersion dv join User u ON (u.id = d.user.id)
@@ -95,7 +173,7 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
              		                               where dv1.document.id = d.id
                                                    order by dv1.createdAt DESC
              		                               LIMIT 1)
-             		    AND (u.id = :userId)
+             		    AND (u.id = :userId) and d.isArchived = false
             """)
     Page<DocumentOutputAllDocumentsDTO> getAllDocumentWithNameAndStatusProjectionForUser(UUID userId, Pageable pageable);
 
@@ -106,7 +184,7 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
             ON d.id = dv.documents_id
             LEFT JOIN approvment_process_item api
             ON dv.id = api.document_version_id
-            WHERE api.user_id = :userId OR d.user_id = :userId
+            WHERE api.user_id = :userId OR d.user_id = :userId and d.is_archive = false
             """, countQuery = """
             SELECT DISTINCT ON (d.id) d.id, d.user_id, d.document_type_id, d.created_at
             FROM documents d
@@ -114,7 +192,7 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
             ON d.id = dv.documents_id
             LEFT JOIN approvment_process_item api
             ON dv.id = api.document_version_id
-            WHERE api.user_id = :userId OR d.user_id = :userId
+            WHERE api.user_id = :userId OR d.user_id = :userId and d.is_archive = false
             """,
             nativeQuery = true)
     Page<Document> getAllDocumentForUser(UUID userId, Pageable pageable);
@@ -131,4 +209,38 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
             """,
             nativeQuery = true)
     List<Long> getDocumentsWithAttribute(@Param("attributeId") Long attributeId);
+           
+    @Query("SELECT d FROM Document d WHERE d.id = :id AND d.isArchived = false")
+    Optional<Document> getDocumentById(@Param("id") Long id);
+
+
+    @Query(value = """
+            SELECT new ru.caselab.edm.backend.dto.document.DocumentOutputAllDocumentsDTO(d.id as id,
+                                                                                            u.login as login,
+                                                                                            d.createdAt as createdAt, 
+                                                                                            dv.documentName as documentName, 
+                                                                                            dv.contentUrl as contentUrl, 
+                                                                                            dv.state as state)
+                        FROM Document d left join d.documentVersion dv left join User u ON (u.id = d.user.id)
+             			WHERE dv.id = (select dv1.id
+             		                               from DocumentVersion dv1
+             		                               where dv1.document.id = d.id
+                                                   order by dv1.createdAt DESC
+             		                               LIMIT 1)
+             		    AND (u.id = :userId) and d.isArchived = true
+            """, countQuery = """
+            SELECT count(d.id)
+             			FROM Document d join d.documentVersion dv join User u ON (u.id = d.user.id)
+             			WHERE dv.id = (select dv1.id
+             		                               from DocumentVersion dv1
+             		                               where dv1.document.id = d.id
+                                                   order by dv1.createdAt DESC
+             		                               LIMIT 1)
+             		    AND (u.id = :userId) and d.isArchived = true 
+            """)
+    Page<DocumentOutputAllDocumentsDTO> getArchivedDocumentsForUser(UUID userId, Pageable pageable);
+
+    Optional<Document> getDocumentByUserIdAndId(UUID user_id, Long id);
+
+
 }

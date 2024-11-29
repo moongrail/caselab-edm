@@ -13,6 +13,7 @@ import ru.caselab.edm.backend.dto.auth.JwtDTO;
 import ru.caselab.edm.backend.dto.auth.LoginUserDTO;
 import ru.caselab.edm.backend.dto.user.CreateUserDTO;
 import ru.caselab.edm.backend.dto.user.UpdatePasswordDTO;
+import ru.caselab.edm.backend.dto.user.UpdatePasswordForAdminDTO;
 import ru.caselab.edm.backend.dto.user.UpdateUserDTO;
 import ru.caselab.edm.backend.dto.user.UserDTO;
 import ru.caselab.edm.backend.dto.user.UserPageDTO;
@@ -24,6 +25,7 @@ import ru.caselab.edm.backend.enums.RoleName;
 import ru.caselab.edm.backend.exceptions.ResourceNotFoundException;
 import ru.caselab.edm.backend.exceptions.UserAlreadyExistsException;
 import ru.caselab.edm.backend.mapper.user.UserMapper;
+import ru.caselab.edm.backend.repository.RefreshTokenRepository;
 import ru.caselab.edm.backend.repository.DepartmentRepository;
 import ru.caselab.edm.backend.repository.RoleRepository;
 import ru.caselab.edm.backend.repository.UserRepository;
@@ -31,6 +33,7 @@ import ru.caselab.edm.backend.security.service.JwtService;
 import ru.caselab.edm.backend.security.service.RefreshTokenService;
 import ru.caselab.edm.backend.service.UserService;
 
+import java.time.Instant;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -47,15 +50,17 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final RefreshTokenService refreshTokenService;
+    private final RefreshTokenRepository refreshTokenRepository;
 
     @Autowired
-    public UserServiceImpl(UserRepository userRepository, RoleRepository roleRepository, UserMapper userMapper, PasswordEncoder passwordEncoder, JwtService jwtService, RefreshTokenService refreshTokenService, DepartmentRepository departmentRepository) {
+    public UserServiceImpl(UserRepository userRepository, RoleRepository roleRepository, UserMapper userMapper, PasswordEncoder passwordEncoder, JwtService jwtService, RefreshTokenService refreshTokenService, RefreshTokenRepository refreshTokenRepository, DepartmentRepository departmentRepository) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.userMapper = userMapper;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.refreshTokenService = refreshTokenService;
+        this.refreshTokenRepository = refreshTokenRepository;
         this.departmentRepository = departmentRepository;
     }
 
@@ -94,7 +99,9 @@ public class UserServiceImpl implements UserService {
             log.warn("User already exists with email: {}", createdUser.email());
             throw new UserAlreadyExistsException("User already exists with this email = %s".formatted(createdUser.email()));
         }
-        log.info("Trying to find department with id: {}", createdUser.departmentId());
+
+        log.info("Trying to find department by user id: {}", createdUser.departmentId());
+
         Optional<Department> department = departmentRepository.findById(createdUser.departmentId());
         if (department.isEmpty()) {
             log.warn("Department not found with current id: {}", createdUser.departmentId());
@@ -102,7 +109,6 @@ public class UserServiceImpl implements UserService {
         }
 
         Department existingDepartment = department.get();
-
         Set<Role> roles = new HashSet<>();
         for (RoleName role : createdUser.roles()) {
             Optional<Role> roleOptional = roleRepository.findByName(role);
@@ -113,17 +119,27 @@ public class UserServiceImpl implements UserService {
                 throw new ResourceNotFoundException("Role not found with this name = %s".formatted(role.name()));
             }
         }
+
+
         User newUser = User.builder()
-                .departmentId(existingDepartment)
                 .login(createdUser.login())
                 .email(createdUser.email())
                 .password(passwordEncoder.encode(createdUser.password()))
                 .firstName(createdUser.firstName())
                 .lastName(createdUser.lastName())
                 .patronymic(createdUser.patronymic())
+                .position(createdUser.position())
                 .roles(roles)
+                .department(existingDepartment)
                 .build();
+
+        if (existingDepartment.getMembers() == null)
+            existingDepartment.setMembers(new HashSet<>());
+
         userRepository.save(newUser);
+        existingDepartment.getMembers().add(newUser);
+
+        departmentRepository.save(existingDepartment);
         log.info("User created with id: {}", newUser.getId());
         return userMapper.toDTO(newUser);
     }
@@ -135,43 +151,53 @@ public class UserServiceImpl implements UserService {
         Optional<User> user = userRepository.findById(id);
         if (user.isPresent()) {
             User existingUser = user.get();
-            if (!existingUser.getLogin().equals(updatedUser.login())
+
+            if (updatedUser.login() != null && !updatedUser.login().isBlank()) {
+                if (!existingUser.getLogin().equals(updatedUser.login())
                     && userRepository.existsByLogin(updatedUser.login())) {
-                log.warn("User already exists with login: {}", updatedUser.login());
-                throw new UserAlreadyExistsException("User already exists with this login = %s".formatted(updatedUser.login()));
-            }
-            if (!existingUser.getEmail().equals(updatedUser.email())
-                    && userRepository.existsByEmail(updatedUser.email())) {
-                log.warn("User already exists with email: {}", updatedUser.login());
-                throw new UserAlreadyExistsException("User already exists with this email = %s".formatted(updatedUser.email()));
-            }
-            Set<Role> roles = new HashSet<>();
-            for (RoleName role : updatedUser.roles()) {
-                Optional<Role> roleOptional = roleRepository.findByName(role);
-                if (roleOptional.isPresent()) {
-                    roles.add(roleOptional.get());
-                } else {
-                    log.warn("Role not found with name: {}", role.name());
-                    throw new ResourceNotFoundException("Role not found with this name = %s".formatted(role.name()));
+                    log.warn("User already exists with login: {}", updatedUser.login());
+                    throw new UserAlreadyExistsException("User already exists with this login = %s".formatted(updatedUser.login()));
                 }
-            }
-            Optional<Department> department = departmentRepository.findById(updatedUser.departmentId());
-            if (department.isEmpty()) {
-                log.warn("Department not found with current id: {}", updatedUser.departmentId());
-                throw new ResourceNotFoundException("Department not found with id = %s".formatted(updatedUser.departmentId()));
+                existingUser.setLogin(updatedUser.login());
             }
 
-            Department existingDepartment = department.get();
+            if (updatedUser.email() != null && !updatedUser.email().isBlank()) {
+                if (!existingUser.getEmail().equals(updatedUser.email())
+                    && userRepository.existsByEmail(updatedUser.email())) {
+                    log.warn("User already exists with email: {}", updatedUser.login());
+                    throw new UserAlreadyExistsException("User already exists with this email = %s".formatted(updatedUser.email()));
+                }
+                existingUser.setEmail(updatedUser.email());
+            }
 
-            existingUser.setDepartmentId(existingDepartment);
-            existingUser.setLogin(updatedUser.login());
-            existingUser.setEmail(updatedUser.email());
-            existingUser.setFirstName(updatedUser.firstName());
-            existingUser.setLastName(updatedUser.lastName());
+            if (updatedUser.firstName() != null && !updatedUser.firstName().isBlank()) {
+                existingUser.setFirstName(updatedUser.firstName());
+            }
+
+            if (updatedUser.lastName() != null && !updatedUser.lastName().isBlank()) {
+                existingUser.setLastName(updatedUser.lastName());
+            }
+
+            if (updatedUser.roles() != null) {
+                Set<Role> roles = new HashSet<>();
+                for (RoleName role : updatedUser.roles()) {
+                    Optional<Role> roleOptional = roleRepository.findByName(role);
+                    if (roleOptional.isPresent()) {
+                        roles.add(roleOptional.get());
+                    } else {
+                        log.warn("Role not found with name: {}", role.name());
+                        throw new ResourceNotFoundException("Role not found with this name = %s".formatted(role.name()));
+                    }
+                }
+                existingUser.setRoles(roles);
+            }
             if (updatedUser.patronymic() != null) {
                 existingUser.setPatronymic(updatedUser.patronymic());
             }
-            existingUser.setRoles(roles);
+            if(updatedUser.position()!=null){
+                existingUser.setPosition(updatedUser.position());
+            }
+
             userRepository.save(existingUser);
             log.info("User with id: {} successfully updated", id);
             return userMapper.toDTO(existingUser);
@@ -179,27 +205,38 @@ public class UserServiceImpl implements UserService {
             log.warn("User not found with id: {}", id);
             throw new ResourceNotFoundException("User not found with this id = %s".formatted(id));
         }
+    }
 
+    @Transactional
+    @Override
+    public void updatePasswordAsAdmin(UUID userId, UpdatePasswordForAdminDTO updatePasswordForAdminDTO) {
+        log.info("Updating password for user with id: {}", userId);
+        Optional<User> user = userRepository.findById(userId);
+        if (user.isPresent()) {
+            User existingUser = user.get();
+            existingUser.setPassword(passwordEncoder.encode(updatePasswordForAdminDTO.newPassword()));
+            userRepository.save(existingUser);
+            refreshTokenRepository.deleteAllByUserId(existingUser.getId());
+            log.info("Password successfully updated for user with id: {}", userId);
+        } else {
+            log.warn("User not found with id: {}", userId);
+            throw new ResourceNotFoundException("User not found with this id = %s".formatted(userId));
+        }
     }
 
     @Transactional
     @Override
     public void updatePassword(UUID id, UpdatePasswordDTO updatePasswordDTO) {
         log.info("Updating password for user with id: {}", id);
-        Optional<User> user = userRepository.findById(id);
-        if (user.isPresent()) {
-            User existingUser = user.get();
-            if (!passwordEncoder.matches(updatePasswordDTO.oldPassword(), existingUser.getPassword())) {
-                log.warn("Invalid old password for user with id: {}", id);
-                throw new BadCredentialsException("Invalid old password");
-            }
-            existingUser.setPassword(passwordEncoder.encode(updatePasswordDTO.newPassword()));
-            userRepository.save(existingUser);
-            log.info("Password successfully updated for user with id: {}", id);
-        } else {
-            log.warn("User not found with id: {}", id);
-            throw new ResourceNotFoundException("User not found with this id = %s".formatted(id));
+        User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User with id %s was not found".formatted(id)));
+        if (!passwordEncoder.matches(updatePasswordDTO.oldPassword(), user.getPassword())) {
+            log.warn("Invalid old password for user with id: {}", id);
+            throw new BadCredentialsException("Invalid old password");
         }
+        user.setPassword(passwordEncoder.encode(updatePasswordDTO.newPassword()));
+        userRepository.save(user);
+        refreshTokenRepository.deleteAllByUserId(user.getId());
+        log.info("Password successfully updated for user with id: {}", id);
     }
 
     @Transactional

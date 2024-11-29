@@ -24,8 +24,8 @@ import ru.caselab.edm.backend.mapper.attribute.AttributeSearchMapper;
 import ru.caselab.edm.backend.mapper.documentversion.DocumentVersionMapper;
 import ru.caselab.edm.backend.repository.AttributeRepository;
 import ru.caselab.edm.backend.repository.DocumentRepository;
-import ru.caselab.edm.backend.repository.elastic.AttributeSearchRepository;
 import ru.caselab.edm.backend.repository.DocumentTypeRepository;
+import ru.caselab.edm.backend.repository.elastic.AttributeSearchRepository;
 import ru.caselab.edm.backend.service.AttributeService;
 
 import java.util.*;
@@ -155,9 +155,24 @@ public class AttributeServiceImpl implements AttributeService {
                     return new ResourceNotFoundException("Attribute not found");
                 });
         log.debug("Current attribute details: {}", attribute);
-        attribute.setName(updateAttributeDTO.getName());
-        attribute.setDataType(updateAttributeDTO.getDataType());
-        attribute.setRequired(updateAttributeDTO.isRequired());
+
+        if (updateAttributeDTO.getName() != null && !updateAttributeDTO.getName().isBlank()) {
+            if (!attribute.getName().equals(updateAttributeDTO.getName())
+                && !attributeRepository.findByName(updateAttributeDTO.getName()).isEmpty()) {
+                log.warn("Attribute already exists with name: {}", updateAttributeDTO.getName());
+                throw new AttributeAlreadyExistsException("Attribute with  name: %s is already exist".formatted(updateAttributeDTO.getName()));
+            }
+            attribute.setName(updateAttributeDTO.getName());
+        }
+
+        if (updateAttributeDTO.getDataType() != null && !updateAttributeDTO.getDataType().isBlank()) {
+            attribute.setDataType(updateAttributeDTO.getDataType());
+        }
+
+        if (updateAttributeDTO.getRequired() != null) {
+            attribute.setRequired(updateAttributeDTO.getRequired().booleanValue());
+        }
+
         log.debug("Updating document types for attribute with ID: {}", id);
 
         if (updateAttributeDTO.getDocumentTypeIds() != null && !updateAttributeDTO.getDocumentTypeIds().isEmpty()) {
@@ -171,6 +186,7 @@ public class AttributeServiceImpl implements AttributeService {
 
         attributeRepository.save(attribute);
         attributeSearchRepository.save(attributeSearch);
+      
         log.info("Attribute updated successfully: {}", attribute);
         return attributeMapper.toDTO(attribute);
     }

@@ -23,6 +23,16 @@ public interface DocumentService {
                                                                            UUID userId,
                                                                            DocumentSortingType sortingType);
 
+    Page<DocumentOutputAllDocumentsDTO> getAllDocumentWhereUserSignatoriesBeforeSigner(int page,
+                                                                                       int size,
+                                                                                       UUID userId,
+                                                                                       DocumentSortingType sortingType);
+
+    Page<DocumentOutputAllDocumentsDTO> getAllDocumentWhereUserSignatoriesAfterSigner(int page,
+                                                                                      int size,
+                                                                                      UUID userId,
+                                                                                      DocumentSortingType sortingType);
+
     DocumentVersion getLastVersionDocumentForUser(long id, UUID userId);
 
     DocumentVersion getLastVersionDocumentWhereUserSignatories(long id, UUID userId);
@@ -32,6 +42,7 @@ public interface DocumentService {
     Page<DocumentVersion> getAllVersionDocumentWhereUserSignatories(long id, UUID userId, int page, int size);
 
     Page<Document> getAllDocuments(int page, int size);
+    Page<DocumentOutputAllDocumentsDTO> getArchivedDocuments(int page, int size, UUID userId);
 
 
     Document getDocument(long id);
@@ -40,7 +51,7 @@ public interface DocumentService {
 
     DocumentVersion updateDocument(long id, DocumentUpdateDTO document, UUID userId);
 
-    void deleteDocument(long id);
+    void deleteDocument(long id, UUID userId);
 
     ApprovementProcessItemDTO sendForSign(UUID userId, Long documentVersionId, UserInfoDetails authenticatedUser);
 }

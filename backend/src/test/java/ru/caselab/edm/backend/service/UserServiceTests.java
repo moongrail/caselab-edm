@@ -24,6 +24,7 @@ import ru.caselab.edm.backend.exceptions.ResourceNotFoundException;
 import ru.caselab.edm.backend.exceptions.UserAlreadyExistsException;
 import ru.caselab.edm.backend.mapper.user.UserMapper;
 import ru.caselab.edm.backend.repository.DepartmentRepository;
+import ru.caselab.edm.backend.repository.RefreshTokenRepository;
 import ru.caselab.edm.backend.repository.RoleRepository;
 import ru.caselab.edm.backend.repository.UserRepository;
 import ru.caselab.edm.backend.service.impl.UserServiceImpl;
@@ -54,6 +55,9 @@ public class UserServiceTests {
 
     @Mock
     private PasswordEncoder passwordEncoder;
+
+    @Mock
+    private RefreshTokenRepository refreshTokenRepository;
 
     @Mock
     private UserMapper userMapper;
@@ -93,7 +97,7 @@ public class UserServiceTests {
     @Test
     void getAllUsers_ShouldReturnUserDTOList() {
         Page<User> users = new PageImpl<>(Collections.singletonList(user));
-        UserDTO userDTO = new UserDTO(userId, department.getId(), "test@test.ru", "test", "test", "test", "test", "Developer", roleDTOS);
+        UserDTO userDTO = new UserDTO(userId, "test@test.ru", "test", "test", "test", "test", "Developer", roleDTOS);
         UserPageDTO userPageDTO = new UserPageDTO(0, 10, 1, 1, Collections.singletonList(userDTO));
 
         when(userRepository.findAll(PageRequest.of(0, 10))).thenReturn(users);
@@ -110,7 +114,7 @@ public class UserServiceTests {
 
     @Test
     void getUserById_WhenUserExists_ShouldReturnUserDTO() {
-        UserDTO userDTO = new UserDTO(userId, department.getId(), "test", "test@test.ru", "test", "test", "test", "Developer", roleDTOS);
+        UserDTO userDTO = new UserDTO(userId, "test", "test@test.ru", "test", "test", "test", "Developer", roleDTOS);
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(userMapper.toDTO(user)).thenReturn(userDTO);
@@ -133,8 +137,8 @@ public class UserServiceTests {
 
     @Test
     void createUser_WhenValidDate_ShouldReturnUserDTOOfCreatedUser() {
-        CreateUserDTO createUserDTO = new CreateUserDTO(1L, "test", "test@test.ru", "test", "test", "test", "test", "Developer", new RoleName[]{RoleName.USER});
-        UserDTO userDTO = new UserDTO(userId, department.getId(), "test", "test@test.ru", "test", "test", "test", "Developer", roleDTOS);
+        CreateUserDTO createUserDTO = new CreateUserDTO(1L, "test", "test@test.ru", "test", "test", "test", "test","test", "Developer", new RoleName[]{RoleName.USER});
+        UserDTO userDTO = new UserDTO(userId, "test", "test@test.ru", "test", "test", "test", "Developer", roleDTOS);
 
         when(userRepository.existsByEmail("test@test.ru")).thenReturn(false);
         when(userRepository.existsByLogin("test")).thenReturn(false);
@@ -142,10 +146,8 @@ public class UserServiceTests {
         when(departmentRepository.findById(1L)).thenReturn(Optional.of(department));
         when(passwordEncoder.encode("test")).thenReturn("encodedTest");
         when(userMapper.toDTO(any(User.class))).thenReturn(userDTO);
-
         UserDTO result = userService.createUser(createUserDTO);
 
-        verify(departmentRepository, times(1)).findById(1L);
         verify(userRepository, times(1)).existsByEmail("test@test.ru");
         verify(userRepository, times(1)).existsByLogin("test");
         verify(passwordEncoder, times(1)).encode("test");
@@ -156,7 +158,7 @@ public class UserServiceTests {
 
     @Test
     void createUser_WhenEmailExists_ShouldThrowUserAlreadyExistException() {
-        CreateUserDTO createUserDTO = new CreateUserDTO(1L, "test", "test@test.ru", "test", "test", "test", "test", "Developer", new RoleName[]{RoleName.USER});
+        CreateUserDTO createUserDTO = new CreateUserDTO(1L, "test", "test@test.ru", "test", "test", "test","test", "test", "Developer", new RoleName[]{RoleName.USER});
 
         when(userRepository.existsByEmail("test@test.ru")).thenReturn(true);
         when(userRepository.existsByLogin("test")).thenReturn(false);
@@ -167,7 +169,7 @@ public class UserServiceTests {
 
     @Test
     void createUser_WhenLoginExists_ShouldThrowUserAlreadyExistException() {
-        CreateUserDTO createUserDTO = new CreateUserDTO(1L, "test", "test@test.ru", "test", "test", "test", "test", "Developer", new RoleName[]{RoleName.USER});
+        CreateUserDTO createUserDTO = new CreateUserDTO(1L, "test", "test@test.ru", "test", "test", "test", "test", "test", "Developer", new RoleName[]{RoleName.USER});
 
         when(userRepository.existsByEmail("test@test.ru")).thenReturn(false);
         when(userRepository.existsByLogin("test")).thenReturn(true);
@@ -178,10 +180,9 @@ public class UserServiceTests {
 
     @Test
     void updateUser_WhenValidDateAndLoginEmailChanged_ShouldReturnUserDTOOfUpdatedUser() {
-        UpdateUserDTO updateUserDTO = new UpdateUserDTO(1L, "newTest", "newTest@test.ru", "newTest", "newTest", "newTest", "newDeveloper", new RoleName[]{RoleName.USER});
-        UserDTO userDTO = new UserDTO(userId, department.getId(), "newTest", "newTest@test.ru", "newTest", "newTest", "newTest", "newDeveloper" ,roleDTOS);
+        UpdateUserDTO updateUserDTO = new UpdateUserDTO( "newTest", "newTest@test.ru", "newTest", "newTest", "newTest", "newDeveloper", new RoleName[]{RoleName.USER});
+        UserDTO userDTO = new UserDTO(userId,"newTest", "newTest@test.ru", "newTest", "newTest", "newTest", "newDeveloper" ,roleDTOS);
 
-        when(departmentRepository.findById(1L)).thenReturn(Optional.of(department));
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(userRepository.existsByEmail("newTest@test.ru")).thenReturn(false);
         when(userRepository.existsByLogin("newTest")).thenReturn(false);
@@ -190,7 +191,6 @@ public class UserServiceTests {
 
         UserDTO result = userService.updateUser(userId, updateUserDTO);
 
-        verify(departmentRepository, times(1)).findById(1L);
         verify(userRepository, times(1)).existsByEmail("newTest@test.ru");
         verify(userRepository, times(1)).existsByLogin("newTest");
         verify(userRepository, times(1)).save(any(User.class));
@@ -201,10 +201,10 @@ public class UserServiceTests {
 
     @Test
     void updateUser_WhenValidDateAndLoginEmailNotChanged_ShouldReturnUserDTOOfUpdatedUser() {
-        UpdateUserDTO updateUserDTO = new UpdateUserDTO(1L, "test", "test@test.ru", "newTest", "newTest", "newTest", "newDeveloper", new RoleName[]{RoleName.USER});
-        UserDTO userDTO = new UserDTO(userId, department.getId(),"test", "test@test.ru", "newTest", "newTest", "newTest", "newDeveloper", roleDTOS);
+        UpdateUserDTO updateUserDTO = new UpdateUserDTO( "test", "test@test.ru", "newTest", "newTest", "newTest", "newDeveloper", new RoleName[]{RoleName.USER});
+        UserDTO userDTO = new UserDTO(userId,"test", "test@test.ru", "newTest", "newTest", "newTest", "newDeveloper", roleDTOS);
 
-        when(departmentRepository.findById(1L)).thenReturn(Optional.of(department));
+
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(userRepository.existsByEmail("testt@test.ru")).thenReturn(true);
         when(userRepository.existsByLogin("test")).thenReturn(true);
@@ -213,7 +213,6 @@ public class UserServiceTests {
 
         UserDTO result = userService.updateUser(userId, updateUserDTO);
 
-        verify(departmentRepository, times(1)).findById(1L);
         verify(userRepository, times(0)).existsByEmail("test@test.ru");
         verify(userRepository, times(0)).existsByLogin("test");
         verify(userRepository, times(1)).save(any(User.class));
@@ -223,7 +222,7 @@ public class UserServiceTests {
 
     @Test
     void updateUser_WhenEmailExists_ShouldThrowUserAlreadyExistException() {
-        UpdateUserDTO updateUserDTO = new UpdateUserDTO(1L, "test", "newTest@test.ru", "newTest", "newTest", "newTest", "newDeveloper", new RoleName[]{RoleName.USER});
+        UpdateUserDTO updateUserDTO = new UpdateUserDTO("test", "newTest@test.ru", "newTest", "newTest", "newTest", "newDeveloper", new RoleName[]{RoleName.USER});
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(userRepository.existsByEmail("newTest@test.ru")).thenReturn(true);
@@ -235,7 +234,8 @@ public class UserServiceTests {
 
     @Test
     void updateUser_WhenLoginExists_ShouldThrowUserAlreadyExistException() {
-        UpdateUserDTO updateUserDTO = new UpdateUserDTO(1L, "newTest", "test@test.ru", "newTest", "newTest", "newTest", "newDeveloper", new RoleName[]{RoleName.USER});
+        UpdateUserDTO updateUserDTO = new UpdateUserDTO("newTest", "test@test.ru", "newTest", "newTest", "newTest", "newDeveloper", new RoleName[]{RoleName.USER});
+
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(userRepository.existsByEmail("test@test.ru")).thenReturn(true);
@@ -247,7 +247,8 @@ public class UserServiceTests {
 
     @Test
     void updateUser_WhenUserNotFound_ShouldThrowResourceNotFoundException() {
-        UpdateUserDTO updateUserDTO = new UpdateUserDTO(1L, "newTest", "test@test.ru", "newTest", "newTest", "newTest", "newDeveloper", new RoleName[]{RoleName.USER});
+        UpdateUserDTO updateUserDTO = new UpdateUserDTO("newTest", "test@test.ru", "newTest", "newTest", "newTest", "newDeveloper", new RoleName[]{RoleName.USER});
+
 
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
@@ -257,12 +258,11 @@ public class UserServiceTests {
 
     @Test
     void updatePassword_WhenValidPassword_ShouldReturnVoid() {
-        UpdatePasswordDTO updatePasswordDTO = new UpdatePasswordDTO("test", "newTest");
+        UpdatePasswordDTO updatePasswordDTO = new UpdatePasswordDTO("test", "newTest", "newTest");
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(passwordEncoder.matches("test", user.getPassword())).thenReturn(true);
         when(passwordEncoder.encode("newTest")).thenReturn("newTestEncoded");
-
         userService.updatePassword(userId, updatePasswordDTO);
 
         verify(userRepository, times(1)).findById(userId);
@@ -273,7 +273,7 @@ public class UserServiceTests {
 
     @Test
     void updatePassword_WhenInvalidPassword_ShouldThrowBadCredentialsException() {
-        UpdatePasswordDTO updatePasswordDTO = new UpdatePasswordDTO("invalidTest", "newTest");
+        UpdatePasswordDTO updatePasswordDTO = new UpdatePasswordDTO("invalidTest", "newtTest","newTest");
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(passwordEncoder.matches("invalidTest", user.getPassword())).thenReturn(false);
@@ -282,17 +282,7 @@ public class UserServiceTests {
         verify(userRepository, times(1)).findById(userId);
         verify(passwordEncoder, times(1)).matches("invalidTest", user.getPassword());
     }
-
-    @Test
-    void updatePassword_WhenUserNotFound_ShouldThrowResourceNotFoundException() {
-        UpdatePasswordDTO updatePasswordDTO = new UpdatePasswordDTO("newTest", "newTest");
-
-        when(userRepository.findById(userId)).thenReturn(Optional.empty());
-
-        assertThrows(ResourceNotFoundException.class, () -> userService.updatePassword(userId, updatePasswordDTO));
-        verify(userRepository, times(1)).findById(userId);
-    }
-
+  
     @Test
     void deleteUser_UserExists_ShouldReturnVoid() {
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));

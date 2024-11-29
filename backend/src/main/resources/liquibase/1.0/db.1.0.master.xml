@@ -8,6 +8,7 @@
     <include file="liquibase/1.0/db.1.0-user_and_role_script.xml"/>
     <include file="liquibase/1.0/db.1.0-document_types_script.xml"/>
     <include file="liquibase/1.0/db.1.0-document_script.xml"/>
+    <include file="liquibase/1.0/db.1.0-add_archived_to_documents.xml"/>
     <include file="liquibase/1.0/db.1.0-document_version_script.xml"/>
     <include file="liquibase/1.0/db.1.0-document_attribute_script.xml"/>
     <include file="liquibase/1.0/db.1.0-refresh_token_script.xml"/>
@@ -16,9 +17,10 @@
     <include file="liquibase/1.0/db.1.0-approvement_process_item_script.xml"/>
     <include file="liquibase/1.0/db.1.0-signature_script.xml"/>
     <include file="liquibase/1.0/db.1.0-add_roles.xml"/>
-    <include file="liquibase/1.0/db.1.0-add_department.xml"/>
     <include file="liquibase/1.0/db.1.0-add_admin.xml"/>
     <include file="liquibase/1.0/db.1.0-add_state_to_documents.xml"/>
     <include file="liquibase/1.0/db.1.0-department_script.xml"/>
+    <include file="liquibase/1.0/db.1.0-fix_departments_members_script.xml"/>
+    <include file="liquibase/1.0/db.1.0-add_department.xml"/>
 
 </databaseChangeLog>

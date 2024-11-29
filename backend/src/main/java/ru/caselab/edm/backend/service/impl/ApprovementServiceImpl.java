@@ -4,13 +4,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.caselab.edm.backend.dto.approvementprocess.ApprovementProcessCreateDTO;
 import ru.caselab.edm.backend.dto.approvementprocess.ApprovementProcessDTO;
-import ru.caselab.edm.backend.entity.ApprovementProcess;
-import ru.caselab.edm.backend.entity.ApprovementProcessItem;
-import ru.caselab.edm.backend.entity.DocumentVersion;
-import ru.caselab.edm.backend.entity.User;
-import ru.caselab.edm.backend.entity.UserInfoDetails;
+import ru.caselab.edm.backend.entity.*;
 import ru.caselab.edm.backend.enums.ApprovementProcessItemStatus;
 import ru.caselab.edm.backend.event.DocumentSignRequestEvent;
 import ru.caselab.edm.backend.exceptions.DocumentForbiddenAccess;
@@ -18,17 +15,17 @@ import ru.caselab.edm.backend.exceptions.ResourceNotFoundException;
 import ru.caselab.edm.backend.mapper.approvementproccess.ApprovementProcessMapper;
 import ru.caselab.edm.backend.repository.ApprovementItemRepository;
 import ru.caselab.edm.backend.repository.ApprovementProcessRepository;
+import ru.caselab.edm.backend.repository.ReplacementManagerRepository;
 import ru.caselab.edm.backend.repository.UserRepository;
 import ru.caselab.edm.backend.service.ApprovementService;
 import ru.caselab.edm.backend.service.DocumentService;
 import ru.caselab.edm.backend.service.VotingService;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toSet;
 import static ru.caselab.edm.backend.enums.ApprovementProcessStatus.PUBLISHED_FOR_VOTING;
 
 @Service
@@ -36,6 +33,7 @@ import static ru.caselab.edm.backend.enums.ApprovementProcessStatus.PUBLISHED_FO
 @Slf4j
 public class ApprovementServiceImpl implements ApprovementService {
     private final UserRepository userRepository;
+    private final ReplacementManagerRepository replacementManagerRepository;
     private final ApprovementProcessRepository processRepository;
     private final ApprovementItemRepository itemRepository;
     private final ApprovementProcessMapper processMapper;
@@ -43,6 +41,7 @@ public class ApprovementServiceImpl implements ApprovementService {
     private final ApplicationEventPublisher eventPublisher;
     private final DocumentService documentService;
 
+    @Transactional
     @Override
     public ApprovementProcessDTO createApprovementProcess(ApprovementProcessCreateDTO createProcess, UserInfoDetails authenticatedUser) {
         log.info("Started approval process for document version {}", createProcess.getDocumentId());
@@ -53,7 +52,10 @@ public class ApprovementServiceImpl implements ApprovementService {
         }
         documentVersion.getState().publishForVoting(documentVersion);
         ApprovementProcess process = buildApprovementProcess(createProcess, documentVersion);
-        List<ApprovementProcessItem> processItems = createProcess.getUsersIds().stream().map(u -> createItem(u, documentVersion, process, authenticatedUser)).toList();
+        List<User> usersForApproval = findUsersForApprovementProcess(createProcess.getUsersIds());
+        List<ApprovementProcessItem> processItems = usersForApproval.stream()
+                .map(u -> createItem(u, documentVersion, process, authenticatedUser))
+                .toList();
         process.getApprovementProcessItems().clear();
         process.getApprovementProcessItems().addAll(processItems);
         documentVersion.setApprovementProcesses(
@@ -69,12 +71,7 @@ public class ApprovementServiceImpl implements ApprovementService {
         return processMapper.toDTO(process);
     }
 
-    private ApprovementProcessItem createItem(UUID userId, DocumentVersion documentVersion, ApprovementProcess process, UserInfoDetails authenticatedUser) {
-        Optional<User> userOptional = userRepository.findById(userId);
-        if (userOptional.isEmpty()) {
-            throw new ResourceNotFoundException("User not found with id = %s".formatted(userId));
-        }
-        User user = userOptional.get();
+    private ApprovementProcessItem createItem(User user, DocumentVersion documentVersion, ApprovementProcess process, UserInfoDetails authenticatedUser) {
         ApprovementProcessItem approvementProcessItem = new ApprovementProcessItem();
         approvementProcessItem.setUser(user);
         approvementProcessItem.setDocumentVersion(documentVersion);
@@ -97,5 +94,28 @@ public class ApprovementServiceImpl implements ApprovementService {
         return processRepository.save(process);
     }
 
+    private List<User> findUsersForApprovementProcess(Set<UUID> userIds) {
+        Map<UUID, User> userReplacementsMap = findReplacementsForUsers(userIds);
+        List<User> usersForApproval = getUsersIdWithoutReplacements(userReplacementsMap, userIds);
+        usersForApproval.addAll(userReplacementsMap.values());
 
+        return usersForApproval;
+    }
+
+    private Map<UUID, User> findReplacementsForUsers(Set<UUID> userIds) {
+        return replacementManagerRepository.findActiveReplacementsByManagerUserIds(userIds).stream()
+                .collect(Collectors.toMap(
+                        replacement -> replacement.getManagerUser().getId(), //Key
+                        ReplacementManager::getTempManagerUser)); //Value
+    }
+
+    private List<User> getUsersIdWithoutReplacements(Map<UUID, User> userReplacements, Set<UUID> userIds) {
+        return userIds.stream()
+                .filter(id -> !userReplacements.containsKey(id))
+                .map(userId ->
+                        userRepository.findById(userId)
+                                .orElseThrow(() ->
+                                        new ResourceNotFoundException("User not found with id = %s".formatted(userId)))
+                ).toList();
+    }
 }

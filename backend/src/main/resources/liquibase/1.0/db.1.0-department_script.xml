@@ -10,17 +10,24 @@
             CREATE TABLE IF NOT EXISTS replacement_managers
                 (
                     id BIGSERIAL PRIMARY KEY,
-                    manager_user_id UUID REFERENCES users(id),
-                    temp_manager_user_id UUID REFERENCES users(id),
-                    "from" TIMESTAMP NOT NULL,
-                    "to" TIMESTAMP NOT NULL
+                    manager_user_id UUID REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE,
+                    temp_manager_user_id UUID REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE,
+                    start_date TIMESTAMP NOT NULL,
+                    end_date TIMESTAMP NOT NULL
                 );
 
             CREATE TABLE IF NOT EXISTS department_managers
                 (
-                    user_id UUID REFERENCES users(id),
-                    department_id BIGINT REFERENCES departments(id)
+                    user_id UUID REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE,
+                    department_id BIGINT REFERENCES departments(id) ON DELETE CASCADE ON UPDATE CASCADE
                 );
+
+            CREATE TABLE IF NOT EXISTS  department_members
+                (
+                    department_id BIGINT REFERENCES departments(id) ON DELETE CASCADE ON UPDATE CASCADE,
+                    member_id UUID REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE
+                );
+          
         </sql>
     </changeSet>
 </databaseChangeLog>
