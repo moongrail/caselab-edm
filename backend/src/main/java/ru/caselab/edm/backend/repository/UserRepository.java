@@ -7,7 +7,9 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import ru.caselab.edm.backend.entity.User;
+import ru.caselab.edm.backend.repository.projection.TopUsersByReplacementProjection;
 import ru.caselab.edm.backend.repository.projection.TopUsersByDocumentCreationProjection;
+import ru.caselab.edm.backend.repository.projection.TopUsersByDocumentSigningProjection;
 
 import java.time.Instant;
 import java.util.List;
@@ -110,4 +112,26 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     ORDER BY COUNT(d) DESC
     """)
     Page<TopUsersByDocumentCreationProjection> findTopUserByDocumentCreation(@Param("startDate") Instant startDate, @Param("endDate") Instant endDate, Pageable pageable);
+
+
+    @Query("""
+    SELECT s.approvementProcessItem.user.id as userId, COUNT(s) as signatureCount
+    FROM Signature s
+    JOIN s.approvementProcessItem.user u
+    WHERE s.createdAt BETWEEN :startDate AND :endDate
+    GROUP BY u.id
+    ORDER BY COUNT(s) DESC
+    """)
+    Page<TopUsersByDocumentSigningProjection> findTopUserByDocumentSigning(@Param("startDate") Instant startDate, @Param("endDate") Instant endDate, Pageable pageable);
+
+
+    @Query("""
+    SELECT rm.tempManagerUser.id as userId, COUNT(rm) as replacementCount
+    FROM ReplacementManager rm
+    WHERE rm.startDate <= :endDate AND rm.endDate >= :startDate
+    Group by rm.tempManagerUser.id
+    ORDER BY COUNT(rm) DESC
+    """)
+    Page<TopUsersByReplacementProjection> findTopUserByReplacement(@Param("startDate") Instant startDate, @Param("endDate") Instant endDate, Pageable pageable);
+
 }

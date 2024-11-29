@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import ru.caselab.edm.backend.repository.projection.TopUsersByDocumentCreationProjection;
+import ru.caselab.edm.backend.repository.projection.TopUsersByDocumentSigningProjection;
+import ru.caselab.edm.backend.repository.projection.TopUsersByReplacementProjection;
 import ru.caselab.edm.backend.service.AnalyticsService;
 
 import java.time.LocalDate;
@@ -34,6 +36,28 @@ public class AnalyticsController {
 
         PageRequest pageable = PageRequest.of(DEFAULT_PAGE, DEFAULT_SIZE);
         return analyticsService.findTopUsersByDocumentCreation(startDate, endDate, pageable);
+    }
+
+    @GetMapping("/top-users-by-document-signing-count")
+    public List<TopUsersByDocumentSigningProjection> getTopUsersByDocumentSigningCount(@RequestParam LocalDate startDate,
+                                                                                       @RequestParam LocalDate endDate) {
+        if (startDate.isAfter(endDate)) {
+            throw new IllegalArgumentException("Invalid date's parameters. Start date bust be before end date");
+        }
+
+        PageRequest pageable = PageRequest.of(DEFAULT_PAGE, DEFAULT_SIZE);
+        return analyticsService.findTopUsersByDocumentSigning(startDate, endDate, pageable);
+    }
+
+    @GetMapping("/top-users-by-replacement-count")
+    public List<TopUsersByReplacementProjection> getTopUsersByReplacementCount(@RequestParam LocalDate startDate,
+                                                                                @RequestParam LocalDate endDate) {
+        if (startDate.isAfter(endDate)) {
+            throw new IllegalArgumentException("Invalid date's parameters. Start date bust be before end date");
+        }
+
+        PageRequest pageable = PageRequest.of(DEFAULT_PAGE, DEFAULT_SIZE);
+        return analyticsService.findTopUserByReplacement(startDate, endDate, pageable);
     }
 
 }
