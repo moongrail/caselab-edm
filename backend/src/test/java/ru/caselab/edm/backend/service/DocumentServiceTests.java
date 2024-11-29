@@ -14,16 +14,14 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.JpaSort;
+import org.testcontainers.shaded.org.checkerframework.checker.units.qual.A;
 import ru.caselab.edm.backend.dto.document.DocumentCreateDTO;
 import ru.caselab.edm.backend.dto.document.DocumentOutputAllDocumentsDTO;
 import ru.caselab.edm.backend.dto.document.DocumentUpdateDTO;
 import ru.caselab.edm.backend.entity.*;
 import ru.caselab.edm.backend.enums.DocumentSortingType;
 import ru.caselab.edm.backend.exceptions.ResourceNotFoundException;
-import ru.caselab.edm.backend.repository.DocumentRepository;
-import ru.caselab.edm.backend.repository.DocumentTypeRepository;
-import ru.caselab.edm.backend.repository.DocumentVersionRepository;
-import ru.caselab.edm.backend.repository.UserRepository;
+import ru.caselab.edm.backend.repository.*;
 import ru.caselab.edm.backend.service.impl.DocumentServiceImpl;
 import ru.caselab.edm.backend.service.impl.DocumentVersionServiceImpl;
 import ru.caselab.edm.backend.state.DocumentState;
@@ -43,11 +41,14 @@ import ru.caselab.edm.backend.repository.elastic.AttributeSearchRepository;
 class DocumentServiceTests {
 
 
-    @MockBean
-    AttributeSearchRepository attributeSearchRepository;
+    @Mock
+    private AttributeSearchRepository attributeSearchRepository;
 
     @Mock
     private DocumentRepository documentRepository;
+
+    @Mock
+    private AttributeRepository attributeRepository;
 
     @Mock
     private UserRepository userRepository;
@@ -86,10 +87,19 @@ class DocumentServiceTests {
         user.setPatronymic("patronymic");
         user.setLogin("login");
 
+        Set<Attribute> attributes = new HashSet<>();
+        Set<DocumentType> documentTypes = new HashSet<>();
+
+        Attribute attribute = new Attribute();
+        attribute.setId(1L);
+        attribute.setName("name");
+        attribute.setDataType("pdf");
+
         DocumentType documentType = new DocumentType();
         documentType.setId(1L);
         documentType.setName("name");
         documentType.setDescription("description");
+        documentType.setAttributes(attributes);
 
         document = new Document();
         document.setId(100L);
@@ -106,6 +116,7 @@ class DocumentServiceTests {
 
         when(documentVersionRepository.save(any(DocumentVersion.class))).thenReturn(documentVersion);
         when(userRepository.findById(any(UUID.class))).thenReturn(Optional.of(user));
+        when(attributeRepository.findById(anyLong())).thenReturn(Optional.of(attribute));
         when(documentTypeRepository.findById(anyLong())).thenReturn(Optional.of(documentType));
 
     }
@@ -267,8 +278,17 @@ class DocumentServiceTests {
 
         UUID userId = UUID.fromString("48bbbd31-45c0-43c5-b989-c1c14a8c3b8b");
 
+        Attribute attribute = new Attribute();
+        attribute.setId(1L);
+        attribute.setName("name");
+        attribute.setDataType("pdf");
+
+        Set<Attribute> attributes = new HashSet<>();
+        attributes.add(attribute);
+
         DocumentType documentType1 = new DocumentType();
         Long documentTypeId = 1L;
+        documentType1.setAttributes(attributes);
 
         Document document1 = new Document();
         document1.setUser(user1);
@@ -281,8 +301,19 @@ class DocumentServiceTests {
 
         DocumentVersion documentVersion1 = new DocumentVersion();
 
+        AttributeSearch attributeSearch = new AttributeSearch();
+        attributeSearch.setId(1L);
+        attributeSearch.setName(attribute.getName());
+        attributeSearch.setDataType(attribute.getDataType());
+        attributeSearch.setDocuments(new ArrayList<Long>());
+        attributeSearch.getDocuments().add(1L);
+
         DocumentCreateDTO documentCreateDTO = new DocumentCreateDTO();
         documentCreateDTO.setDocumentTypeId(documentTypeId);
+
+        Mockito.when(attributeSearchRepository.findById(attributeSearch.getId())).thenReturn(Optional.of(attributeSearch));
+
+        Mockito.when(attributeRepository.findById(attribute.getId())).thenReturn(Optional.of(attribute));
 
         Mockito.when(documentTypeRepository.findById(documentTypeId))
                 .thenReturn(Optional.of(documentType1));
@@ -302,13 +333,26 @@ class DocumentServiceTests {
     @Test
     void updateDocumentSuccess() {
         DocumentUpdateDTO documentUpdateDTO = new DocumentUpdateDTO();
+        Attribute attribute = new Attribute();
+        attribute.setId(1L);
+        attribute.setName("name");
+        attribute.setDataType("pdf");
+
+        DocumentType documentType = new DocumentType();
+        documentType.setId(1L);
+        documentType.setAttributes(new HashSet<Attribute>());
+        documentType.getAttributes().add(attribute);
 
         Document existingDocument = new Document();
+        existingDocument.setDocumentType(documentType);
         User user = new User();
 
         DocumentVersion documentVersion = new DocumentVersion();
 
+        AttributeSearch attributeSearch = new AttributeSearch();
 
+
+        Mockito.when(attributeSearchRepository.findById(attributeSearch.getId())).thenReturn(Optional.of(attributeSearch));
         when(documentRepository.findById(documentId)).thenReturn(Optional.of(existingDocument));
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
@@ -328,12 +372,23 @@ class DocumentServiceTests {
 
     @Test
     @DisplayName("Delete Document")
-    void deleteDocument_Success() {// Подготовка данных
+D    void deleteDocument_Success() {// Подготовка данных
         UUID userId = UUID.randomUUID();
         long documentId = 1L;
 
+        Attribute attribute = new Attribute();
+        attribute.setId(1L);
+        attribute.setName("name");
+        attribute.setDataType("pdf");
+
+        DocumentType documentType = new DocumentType();
+        documentType.setId(1L);
+        documentType.setAttributes(new HashSet<Attribute>());
+        documentType.getAttributes().add(attribute);
+
         Document mockDocument = new Document();
         mockDocument.setId(documentId);
+        mockDocument.setDocumentType(documentType);
         mockDocument.setArchived(false);
 
         DocumentVersion mockVersion = new DocumentVersion();
@@ -343,6 +398,14 @@ class DocumentServiceTests {
 
         mockDocument.setDocumentVersion(List.of(mockVersion));
 
+        AttributeSearch attributeSearch = new AttributeSearch();
+        attributeSearch.setId(1L);
+        attributeSearch.setName(attribute.getName());
+        attributeSearch.setDataType(attribute.getDataType());
+        attributeSearch.setDocuments(new ArrayList<Long>());
+        attributeSearch.getDocuments().add(1L);
+
+        Mockito.when(attributeSearchRepository.findById(attributeSearch.getId())).thenReturn(Optional.of(attributeSearch));
         when(documentRepository.findById(documentId)).thenReturn(Optional.of(mockDocument));
         when(documentRepository.save(any(Document.class))).thenReturn(mockDocument);
 
