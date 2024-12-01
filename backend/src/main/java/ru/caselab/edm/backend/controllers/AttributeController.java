@@ -25,10 +25,12 @@ import org.springframework.web.bind.annotation.RestController;
 import ru.caselab.edm.backend.dto.attribute.AttributeCreateDTO;
 import ru.caselab.edm.backend.dto.attribute.AttributeDTO;
 import ru.caselab.edm.backend.dto.attribute.AttributeUpdateDTO;
+import ru.caselab.edm.backend.dto.documentversion.DocumentVersionDtoWithAuthor;
 import ru.caselab.edm.backend.entity.AttributeSearch;
 import ru.caselab.edm.backend.service.AttributeService;
 
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/attributes")
@@ -137,7 +139,7 @@ public class AttributeController {
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = AttributeSearch.class))),
     })
     @GetMapping("/search")
-    public List<AttributeSearch> search(@RequestParam String name) {
+    public Set<DocumentVersionDtoWithAuthor> search(@RequestParam String name) {
         return attributeService.findByNameWithMinLength(name);
     }
 }

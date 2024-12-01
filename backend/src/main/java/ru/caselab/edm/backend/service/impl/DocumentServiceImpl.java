@@ -23,6 +23,7 @@ import ru.caselab.edm.backend.exceptions.ResourceNotFoundException;
 import ru.caselab.edm.backend.exceptions.WrongDateException;
 import ru.caselab.edm.backend.mapper.approvementprocessitem.ApprovementProccessItemMapper;
 import ru.caselab.edm.backend.repository.*;
+import ru.caselab.edm.backend.repository.elastic.AttributeSearchRepository;
 import ru.caselab.edm.backend.service.DocumentService;
 import ru.caselab.edm.backend.service.DocumentVersionService;
 import ru.caselab.edm.backend.state.DocumentStatus;
@@ -30,6 +31,7 @@ import ru.caselab.edm.backend.state.DocumentStatus;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -45,6 +47,8 @@ public class DocumentServiceImpl implements DocumentService {
     private final ApprovementProccessItemMapper approvementProccessItemMapper;
     private final ReplacementManagerRepository replacementManagerRepository;
     private final DocumentVersionService documentVersionService;
+    private final AttributeSearchRepository attributeSearchRepository;
+
 
     @Override
     public Page<Document> getAllDocuments(int page, int size) {
@@ -212,7 +216,6 @@ public class DocumentServiceImpl implements DocumentService {
                 documentTypeRepository.findById(documentTypeId)
                         .orElseThrow(() -> new ResourceNotFoundException("Document type not found"))
         );
-
         log.info("Creating document for User: {}", userId);
         newDocument.setUser(
                 userRepository.findById(userId)
@@ -220,6 +223,17 @@ public class DocumentServiceImpl implements DocumentService {
         );
         log.info("Save new document with id {}", newDocument.getId());
         Document saved = documentRepository.save(newDocument);
+
+        for (Attribute attribute : saved.getDocumentType().getAttributes()) {
+            Optional<AttributeSearch> attributeSearch = attributeSearchRepository.findById(attribute.getId());
+            if (attributeSearch.isPresent()) {
+                AttributeSearch existingAttributeSearch = attributeSearch.get();
+                existingAttributeSearch.getDocuments().add(saved.getId());
+                attributeSearchRepository.save(existingAttributeSearch);
+                log.info("Save AttributeSearch with id {}", existingAttributeSearch.getId());
+            }
+        }
+
         log.info("Save document version document {}", document.getDocumentName());
         DocumentVersion documentVersion = documentVersionService.saveDocumentVersion(document, saved, userId);
         return documentVersion;
@@ -240,6 +254,16 @@ public class DocumentServiceImpl implements DocumentService {
         }
 
         existingDocument = documentRepository.save(existingDocument);
+
+        for (Attribute attribute : existingDocument.getDocumentType().getAttributes()) {
+            Optional<AttributeSearch> attributeSearch = attributeSearchRepository.findById(attribute.getId());
+
+            if (attributeSearch.isPresent()) {
+                AttributeSearch existingAttributeSearch = attributeSearch.get();
+                existingAttributeSearch.getDocuments().add(existingDocument.getId());
+                attributeSearchRepository.save(existingAttributeSearch);
+            }
+        }
 
         DocumentVersion documentVersion = documentVersionService.updateDocumentVersion(document, existingDocument, userId);
         log.info("Document update successfully");
@@ -263,9 +287,20 @@ public class DocumentServiceImpl implements DocumentService {
                 .max(Comparator.comparing(DocumentVersion::getCreatedAt))
                 .orElseThrow();
         version.getState().delete(version);
-        documentRepository.save(document);
-    }
 
+        for (Attribute attribute : document.getDocumentType().getAttributes()) {
+            Optional<AttributeSearch> attributeSearch = attributeSearchRepository.findById(attribute.getId());
+
+            if (attributeSearch.isPresent()) {
+                AttributeSearch existingAttributeSearch = attributeSearch.get();
+                existingAttributeSearch.getDocuments().remove(document.getId());
+
+                attributeSearchRepository.save(existingAttributeSearch);
+            }
+
+            documentRepository.save(document);
+        }
+    }
 
 
     @Transactional
