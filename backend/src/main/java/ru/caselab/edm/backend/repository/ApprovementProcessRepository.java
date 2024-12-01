@@ -12,6 +12,4 @@ public interface ApprovementProcessRepository extends JpaRepository<ApprovementP
     Optional<ApprovementProcess> getApprovementProcessByDocumentVersion(DocumentVersion documentVersion);
 
 
-    Optional<ApprovementProcess> getApprovementProcessByDocumentVersion(DocumentVersion documentVersion);
-
 }

@@ -17,6 +17,7 @@ import org.testcontainers.shaded.org.apache.commons.lang3.RandomStringUtils;
 import ru.caselab.edm.backend.dto.approvementprocess.ApprovementProcessCreateDTO;
 import ru.caselab.edm.backend.dto.document.DocumentCreateDTO;
 import ru.caselab.edm.backend.dto.document.DocumentUpdateDTO;
+import ru.caselab.edm.backend.dto.file.FileDTO;
 import ru.caselab.edm.backend.entity.UserInfoDetails;
 import ru.caselab.edm.backend.mapper.documentversion.DocumentVersionMapper;
 import ru.caselab.edm.backend.service.ApprovementService;
@@ -72,7 +73,7 @@ public class DocumentControllerTest extends BaseControllerTest {
         DocumentCreateDTO createDto = new DocumentCreateDTO(
                 ID,
                 "documentName",
-                "asdasdt4wesdddxvcx",
+                new FileDTO("dasdaxzcdgs", "doc.pdf"),
                 null
         );
 
@@ -92,7 +93,7 @@ public class DocumentControllerTest extends BaseControllerTest {
         DocumentCreateDTO createDto = new DocumentCreateDTO(
                 ID,
                 name,
-                "asdasdt4wesdddxvcx",
+                new FileDTO("dasdaxzcdgs", "doc.pdf"),
                 null
         );
 
@@ -109,7 +110,7 @@ public class DocumentControllerTest extends BaseControllerTest {
     void updateDocument_validDto_shouldUpdateWithStatusOk() throws Exception {
         DocumentUpdateDTO updateDto = new DocumentUpdateDTO(
                 "name",
-                "dasdaxzcdgs",
+                new FileDTO("dasdaxzcdgs", "doc.pdf"),
                 null
         );
 
@@ -128,7 +129,7 @@ public class DocumentControllerTest extends BaseControllerTest {
     void updateDocument_invalidName_shouldReturnStatusBadRequest(String name) throws Exception {
         DocumentUpdateDTO updateDto = new DocumentUpdateDTO(
                 name,
-                "dasdaxzcdgs",
+                new FileDTO("dasdaxzcdgs", "doc.pdf"),
                 null
         );
 

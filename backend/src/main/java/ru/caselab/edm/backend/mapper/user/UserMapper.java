@@ -21,7 +21,6 @@ public interface UserMapper {
         return department != null ? department.getId() : null;
     }
 
-    @Mapping(target = "page", source = "number")
     UserPageDTO toPageDTO(Page<User> user);
 
     List<UserDTO> toListDTO(List<User> users);
