@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="db.1.0-department_script" author="ndtm1" runOnChange="true">
+        <sql>
+            CREATE TABLE IF NOT EXISTS replacement_managers
+                (
+                    id BIGSERIAL PRIMARY KEY,
+                    manager_user_id UUID REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE,
+                    temp_manager_user_id UUID REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE,
+                    start_date TIMESTAMP NOT NULL,
+                    end_date TIMESTAMP NOT NULL
+                );
+
+            CREATE TABLE IF NOT EXISTS department_managers
+                (
+                    user_id UUID REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE,
+                    department_id BIGINT REFERENCES departments(id) ON DELETE CASCADE ON UPDATE CASCADE
+                );
+
+            CREATE TABLE IF NOT EXISTS  department_members
+                (
+                    department_id BIGINT REFERENCES departments(id) ON DELETE CASCADE ON UPDATE CASCADE,
+                    member_id UUID REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE
+                );
+          
+        </sql>
+    </changeSet>
+</databaseChangeLog>

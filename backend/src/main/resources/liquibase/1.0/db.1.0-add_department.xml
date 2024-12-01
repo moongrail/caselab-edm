@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+
+    <changeSet id="db.1.0-add_department_v1" author="ndtm1" runOnChange="true">
+        <sql>
+            INSERT INTO departments(name, description, parent_id)
+            VALUES ('IT', 'IT guys', null),
+                   ('Sub IT', 'Sub IT guys', '1');
+
+            INSERT INTO department_members(department_id, member_id)
+            VALUES ('2', '852633e8-d6c3-4cf6-8e9e-eb9690537b61'),
+                   ('1', '9858b2f2-1aaf-4dbc-98b2-f21aafedbc2e');
+
+            INSERT INTO department_managers(user_id, department_id)
+            VALUES ('852633e8-d6c3-4cf6-8e9e-eb9690537b61', '1'),
+                   ('9858b2f2-1aaf-4dbc-98b2-f21aafedbc2e', '2')
+
+        </sql>
+    </changeSet>
+</databaseChangeLog>

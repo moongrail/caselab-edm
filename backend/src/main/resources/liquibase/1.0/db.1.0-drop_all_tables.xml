@@ -16,8 +16,8 @@
             DROP TABLE IF EXISTS signatures CASCADE;
             DROP TABLE IF EXISTS document_types CASCADE;
             DROP TABLE IF EXISTS documents CASCADE;
-            DROP TABLE IF EXISTS document_attribute_values;
-            DROP TABLE IF EXISTS document_type_attributes;
+            DROP TABLE IF EXISTS document_attribute_values CASCADE;
+            DROP TABLE IF EXISTS document_type_attributes CASCADE;
             DROP TABLE IF EXISTS attributes CASCADE;
             DROP TABLE IF EXISTS refresh_token cascade;
 

@@ -330,9 +330,24 @@ public class DocumentController {
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteDocument(
+            @AuthenticationPrincipal UserInfoDetails user,
             @Parameter(description = "Document id", required = true, example = "1")
             @PathVariable Long id) {
-        documentService.deleteDocument(id);
+        documentService.deleteDocument(id,user.getId());
+    }
+
+    @Operation(summary = "Get archived documents for current user")
+    @ApiResponse(responseCode = "200", description = " Archived document of the current user was successfully returned",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = DocumentOutputAllDocumentsDTO.class)))
+    @GetMapping("/archive")
+    public ResponseEntity<Page<DocumentOutputAllDocumentsDTO>> getArchivedDocuments(
+            @AuthenticationPrincipal UserInfoDetails user,
+            @RequestParam(name = "page", defaultValue = "0")
+            @Min(value = 0) int page,
+            @RequestParam(name = "size", defaultValue = "10")
+            @Min(value = 1) @Max(value = 100) int size
+    ){
+        return new ResponseEntity<>(documentService.getArchivedDocuments(page,size,user.getId()), HttpStatus.OK);
     }
 
     @Operation(
@@ -351,5 +366,7 @@ public class DocumentController {
             @RequestParam("url") String url) {
         return new DocumentLinkDTO(minioService.generateTemporaryUrlToObject(url));
     }
+
+
 
 }

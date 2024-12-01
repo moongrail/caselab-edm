@@ -13,11 +13,7 @@ import ru.caselab.edm.backend.dto.approvementprocessitem.ApprovementProcessItemD
 import ru.caselab.edm.backend.dto.document.DocumentCreateDTO;
 import ru.caselab.edm.backend.dto.document.DocumentOutputAllDocumentsDTO;
 import ru.caselab.edm.backend.dto.document.DocumentUpdateDTO;
-import ru.caselab.edm.backend.entity.ApprovementProcessItem;
-import ru.caselab.edm.backend.entity.Document;
-import ru.caselab.edm.backend.entity.DocumentVersion;
-import ru.caselab.edm.backend.entity.User;
-import ru.caselab.edm.backend.entity.UserInfoDetails;
+import ru.caselab.edm.backend.entity.*;
 import ru.caselab.edm.backend.enums.ApprovementProcessItemStatus;
 import ru.caselab.edm.backend.enums.DocumentSortingType;
 import ru.caselab.edm.backend.event.DocumentSignRequestEvent;
@@ -26,10 +22,8 @@ import ru.caselab.edm.backend.exceptions.DocumentForbiddenAccess;
 import ru.caselab.edm.backend.exceptions.ResourceNotFoundException;
 import ru.caselab.edm.backend.exceptions.WrongDateException;
 import ru.caselab.edm.backend.mapper.approvementprocessitem.ApprovementProccessItemMapper;
-import ru.caselab.edm.backend.repository.ApprovementItemRepository;
-import ru.caselab.edm.backend.repository.DocumentRepository;
-import ru.caselab.edm.backend.repository.DocumentTypeRepository;
-import ru.caselab.edm.backend.repository.UserRepository;
+import ru.caselab.edm.backend.repository.*;
+import ru.caselab.edm.backend.repository.elastic.AttributeSearchRepository;
 import ru.caselab.edm.backend.service.DocumentService;
 import ru.caselab.edm.backend.service.DocumentVersionService;
 import ru.caselab.edm.backend.state.DocumentStatus;
@@ -51,7 +45,10 @@ public class DocumentServiceImpl implements DocumentService {
     private final ApplicationEventPublisher eventPublisher;
     private final ApprovementItemRepository approvementItemRepository;
     private final ApprovementProccessItemMapper approvementProccessItemMapper;
+    private final ReplacementManagerRepository replacementManagerRepository;
     private final DocumentVersionService documentVersionService;
+    private final AttributeSearchRepository attributeSearchRepository;
+
 
     @Override
     public Page<Document> getAllDocuments(int page, int size) {
@@ -136,6 +133,7 @@ public class DocumentServiceImpl implements DocumentService {
         return allDocumentWithNameAndStatusProjectionWhereUserSignatories;
     }
 
+
     @Override
     public Page<DocumentOutputAllDocumentsDTO> getAllDocumentWhereUserSignatoriesBeforeSigner(int page,
                                                                                               int size,
@@ -171,6 +169,7 @@ public class DocumentServiceImpl implements DocumentService {
         log.info("Get {} document", allDocumentWithNameAndStatusProjectionWhereUserSignatories.getTotalElements());
         return allDocumentWithNameAndStatusProjectionWhereUserSignatories;
     }
+
 
     @Override
     public DocumentVersion getLastVersionDocumentForUser(long id, UUID userId) {
@@ -254,7 +253,6 @@ public class DocumentServiceImpl implements DocumentService {
                 documentTypeRepository.findById(documentTypeId)
                         .orElseThrow(() -> new ResourceNotFoundException("Document type not found"))
         );
-
         log.info("Creating document for User: {}", userId);
         newDocument.setUser(
                 userRepository.findById(userId)
@@ -262,6 +260,17 @@ public class DocumentServiceImpl implements DocumentService {
         );
         log.info("Save new document with id {}", newDocument.getId());
         Document saved = documentRepository.save(newDocument);
+
+        for (Attribute attribute : saved.getDocumentType().getAttributes()) {
+            Optional<AttributeSearch> attributeSearch = attributeSearchRepository.findById(attribute.getId());
+            if (attributeSearch.isPresent()) {
+                AttributeSearch existingAttributeSearch = attributeSearch.get();
+                existingAttributeSearch.getDocuments().add(saved.getId());
+                attributeSearchRepository.save(existingAttributeSearch);
+                log.info("Save AttributeSearch with id {}", existingAttributeSearch.getId());
+            }
+        }
+
         log.info("Save document version document {}", document.getDocumentName());
         DocumentVersion documentVersion = documentVersionService.saveDocumentVersion(document, saved, userId);
         return documentVersion;
@@ -283,6 +292,16 @@ public class DocumentServiceImpl implements DocumentService {
 
         existingDocument = documentRepository.save(existingDocument);
 
+        for (Attribute attribute : existingDocument.getDocumentType().getAttributes()) {
+            Optional<AttributeSearch> attributeSearch = attributeSearchRepository.findById(attribute.getId());
+
+            if (attributeSearch.isPresent()) {
+                AttributeSearch existingAttributeSearch = attributeSearch.get();
+                existingAttributeSearch.getDocuments().add(existingDocument.getId());
+                attributeSearchRepository.save(existingAttributeSearch);
+            }
+        }
+
         DocumentVersion documentVersion = documentVersionService.updateDocumentVersion(document, existingDocument, userId);
         log.info("Document update successfully");
         return documentVersion;
@@ -296,19 +315,35 @@ public class DocumentServiceImpl implements DocumentService {
 
     @Transactional
     @Override
-    public void deleteDocument(long id) {
-        documentRepository.deleteById(id);
+    public void deleteDocument(long id, UUID userId) {
+        Document document = documentRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Document not found"));
+        document.setArchived(true);
+        DocumentVersion version = document.getDocumentVersion()
+                .stream()
+                .max(Comparator.comparing(DocumentVersion::getCreatedAt))
+                .orElseThrow();
+        version.getState().delete(version);
+
+        for (Attribute attribute : document.getDocumentType().getAttributes()) {
+            Optional<AttributeSearch> attributeSearch = attributeSearchRepository.findById(attribute.getId());
+
+            if (attributeSearch.isPresent()) {
+                AttributeSearch existingAttributeSearch = attributeSearch.get();
+                existingAttributeSearch.getDocuments().remove(document.getId());
+
+                attributeSearchRepository.save(existingAttributeSearch);
+            }
+
+            documentRepository.save(document);
+        }
     }
+
 
     @Transactional
     @Override
     public ApprovementProcessItemDTO sendForSign(UUID userId, Long documentId, UserInfoDetails authenticatedUser) {
-        Optional<User> userOptional = userRepository.findById(userId);
-        if (userOptional.isEmpty()) {
-            throw new ResourceNotFoundException("User not found with id = %s".formatted(userId));
-        }
-        User user = userOptional.get();
-
+        User user = getUserOrTempManagerById(userId);
         DocumentVersion documentVersion = getLastVersionDocumentForUser(documentId, authenticatedUser.getId());
         if (!documentVersion.getDocument().getUser().getId().equals(authenticatedUser.getId())) {
             throw new DocumentForbiddenAccess("You don't have access to this document with id = %d".formatted(documentId));
@@ -329,4 +364,21 @@ public class DocumentServiceImpl implements DocumentService {
         eventPublisher.publishEvent(new DocumentSignRequestEvent(this, approvementProcessItem));
         return approvementProccessItemMapper.toDTO(approvementProcessItem);
     }
+
+    @Override
+    public Page<DocumentOutputAllDocumentsDTO> getArchivedDocuments(int page, int size, UUID userId) {
+        return documentRepository.getArchivedDocumentsForUser(userId, PageRequest.of(page, size));
+    }
+
+    private User getUserOrTempManagerById(UUID userId) {
+        return replacementManagerRepository.findActiveReplacementByManagerUserId(userId)
+                .map(ReplacementManager::getTempManagerUser)
+                .orElseGet(() -> getUserById(userId));
+    }
+
+    private User getUserById(UUID userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id = %s".formatted(userId)));
+    }
+
 }

@@ -8,13 +8,17 @@
 
     <changeSet id="db.1.0-add_admin" author="Shukhrat" runOnChange="true">
         <sql>
-            INSERT INTO users
+            INSERT INTO users(id, login, email, password, first_name, last_name, patronymic, position)
             VALUES ('852633e8-d6c3-4cf6-8e9e-eb9690537b61', 'admin', 'caselabedm@mail.ru',
                     '$2a$10$j9t3hZ7JFqf2/ti/r3dp5.WXMwOx8QTU4eucC9qgyQ1YIW/46eRvK',
-                    'Админ', 'Админов', 'Админович');
+                    'Админ', 'Админов', 'Админович', 'Admin'),
+                   ('9858b2f2-1aaf-4dbc-98b2-f21aafedbc2e', 'manager', 'manager@mail.ru',
+                    '$2a$10$j9t3hZ7JFqf2/ti/r3dp5.WXMwOx8QTU4eucC9qgyQ1YIW/46eRvK',
+                    'Манагер', 'Манагеров', 'Манагерович', 'Manager');
 
-            INSERT INTO user_roles
-            VALUES ('852633e8-d6c3-4cf6-8e9e-eb9690537b61', 1)
+            INSERT INTO user_roles(user_id, role_id)
+            VALUES ('852633e8-d6c3-4cf6-8e9e-eb9690537b61', 1),
+                   ('9858b2f2-1aaf-4dbc-98b2-f21aafedbc2e', 1);
         </sql>
     </changeSet>
 </databaseChangeLog>
