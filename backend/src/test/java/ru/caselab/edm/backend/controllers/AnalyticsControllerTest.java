@@ -8,6 +8,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.test.context.support.WithMockUser;
 import ru.caselab.edm.backend.service.AnalyticsService;
+import ru.caselab.edm.backend.testutils.base.BaseControllerTest;
 
 import java.time.LocalDate;
 

@@ -12,7 +12,6 @@ import org.mockito.Mock;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.ActiveProfiles;
 import org.testcontainers.shaded.org.apache.commons.lang3.RandomStringUtils;
 import ru.caselab.edm.backend.dto.approvementprocess.ApprovementProcessCreateDTO;
 import ru.caselab.edm.backend.dto.document.DocumentCreateDTO;
@@ -23,6 +22,7 @@ import ru.caselab.edm.backend.service.ApprovementService;
 import ru.caselab.edm.backend.service.DocumentService;
 import ru.caselab.edm.backend.service.MinioService;
 import ru.caselab.edm.backend.service.SignatureService;
+import ru.caselab.edm.backend.testutils.base.BaseControllerTest;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;

@@ -10,6 +10,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.testcontainers.shaded.org.apache.commons.lang3.RandomStringUtils;
+import ru.caselab.edm.backend.testutils.base.BaseControllerTest;
 import ru.caselab.edm.backend.testutils.builder.user.CreateUserDtoBuilder;
 import ru.caselab.edm.backend.testutils.builder.user.UpdateUserDtoBuilder;
 import ru.caselab.edm.backend.dto.user.CreateUserDTO;
