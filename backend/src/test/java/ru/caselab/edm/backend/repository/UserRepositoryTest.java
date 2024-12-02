@@ -19,7 +19,6 @@ import ru.caselab.edm.backend.repository.elastic.AttributeSearchRepository;
 import ru.caselab.edm.backend.repository.projection.TopUsersByDocumentCreationProjection;
 
 import java.time.Instant;
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -62,18 +61,18 @@ public class UserRepositoryTest {
         // Users
         User first = createUser("first@gmail.com", "first");
         User second = createUser("second@gmail.com", "second");
-        testDatabaseFacade.save(first, second);
+        testDatabaseFacade.saveAll(first, second);
 
         // DocumentType
         DocumentType documentType = createDocumentType("Type1");
-        testDatabaseFacade.save(documentType);
+        testDatabaseFacade.saveAll(documentType);
 
         // Documents
         Document document1 = createDocument(first, documentType, Instant.now().minusSeconds(500_000));
         Document document2 = createDocument(first, documentType, Instant.now().minusSeconds(400_000));
         Document document3 = createDocument(second, documentType, Instant.now().minusSeconds(300_000));
 
-        testDatabaseFacade.save(document1, document2, document3);
+        testDatabaseFacade.saveAll(document1, document2, document3);
     }
 
     private User createUser(String email, String login) {
