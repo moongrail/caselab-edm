@@ -130,11 +130,11 @@ class DocumentServiceTests {
 
         DocumentSortingType sortingType = DocumentSortingType.WITHOUT;
 
-        when(documentRepository.getAllDocumentWithNameAndStatusProjectionForUser(userId, pageable))
+        when(documentRepository.getAllDocumentWithNameAndStatusProjectionWhereUserOwner(userId, pageable))
                 .thenReturn(expectedPage);
         documentService.getAllDocumentForUser(page, size, userId, sortingType);
 
-        verify(documentRepository).getAllDocumentWithNameAndStatusProjectionForUser(
+        verify(documentRepository).getAllDocumentWithNameAndStatusProjectionWhereUserOwner(
                 userId,
                 pageable);
     }
@@ -149,12 +149,12 @@ class DocumentServiceTests {
         List<DocumentOutputAllDocumentsDTO> content = List.of(new DocumentOutputAllDocumentsDTO());
         Page<DocumentOutputAllDocumentsDTO> expectedPage = new PageImpl<>(content);
 
-        when(documentRepository.getAllDocumentWithNameAndStatusProjectionForUser(userId, pageable))
+        when(documentRepository.getAllDocumentWithNameAndStatusProjectionWhereUserOwner(userId, pageable))
                 .thenReturn(expectedPage);
 
         documentService.getAllDocumentForUser(page, size, userId, sortingType);
 
-        verify(documentRepository).getAllDocumentWithNameAndStatusProjectionForUser(
+        verify(documentRepository).getAllDocumentWithNameAndStatusProjectionWhereUserOwner(
                 userId,
                 pageable);
     }
