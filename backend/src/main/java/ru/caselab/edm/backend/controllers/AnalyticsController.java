@@ -1,6 +1,7 @@
 package ru.caselab.edm.backend.controllers;
 
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.Max;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import ru.caselab.edm.backend.repository.projection.TopUsersByDocumentCreationProjection;
 import ru.caselab.edm.backend.repository.projection.TopUsersByDocumentSigningProjection;
 import ru.caselab.edm.backend.repository.projection.TopUsersByReplacementProjection;
+import ru.caselab.edm.backend.repository.projection.TopVotesByParticipants;
 import ru.caselab.edm.backend.service.AnalyticsService;
 
 import java.time.LocalDate;
@@ -45,6 +47,8 @@ public class AnalyticsController {
         return analyticsService.findTopUsersByDocumentCreation(startDate, endDate, pageable);
     }
 
+
+
     @GetMapping("/top-users-by-document-signing-count")
     public List<TopUsersByDocumentSigningProjection> getTopUsersByDocumentSigningCount(
             @Parameter(description = "Page number starting from 0", example = "0")
@@ -75,6 +79,25 @@ public class AnalyticsController {
 
         PageRequest pageable = PageRequest.of(page, size);
         return analyticsService.findTopUserByReplacement(startDate, endDate, pageable);
+    }
+
+    @GetMapping("/top-votes-by-participants")
+    public List<TopVotesByParticipants> getTopVotesByParticipants(
+            @Parameter(description = "Page number starting from 0", example = "0")
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @Parameter(description = "Number of users per page", example = "10")
+            @RequestParam(value = "size", defaultValue = "10") int size,
+            @Parameter(description = "start time of stats", example="2024-12-03")
+            @RequestParam LocalDate startDate,
+            @Parameter(description = "end time of stats",example="2024-12-05")
+            @RequestParam LocalDate endDate) {
+
+        if (startDate.isAfter(endDate)) {
+            throw new IllegalArgumentException("Invalid date's parameters. Start date bust be before end date");
+        }
+
+        PageRequest pageable = PageRequest.of(page, size);
+        return analyticsService.findTopVotesByParticipants(startDate, endDate, pageable);
     }
 
 }
