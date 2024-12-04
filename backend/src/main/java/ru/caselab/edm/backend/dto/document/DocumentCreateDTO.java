@@ -30,6 +30,7 @@ public class DocumentCreateDTO {
 
     @JsonProperty("file")
     @Schema(description = "File's data")
+    @NotNull
     private FileDTO file;
 
     @Schema(description = "Value attributes")
