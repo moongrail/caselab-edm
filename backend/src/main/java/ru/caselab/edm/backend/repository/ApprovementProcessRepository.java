@@ -9,7 +9,7 @@ import java.util.Optional;
 
 @Repository
 public interface ApprovementProcessRepository extends JpaRepository<ApprovementProcess, Long> {
-
     Optional<ApprovementProcess> getApprovementProcessByDocumentVersion(DocumentVersion documentVersion);
+
 
 }

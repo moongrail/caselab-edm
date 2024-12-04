@@ -133,6 +133,7 @@ public class DocumentServiceImpl implements DocumentService {
         return allDocumentWithNameAndStatusProjectionWhereUserSignatories;
     }
 
+
     @Override
     public Page<DocumentOutputAllDocumentsDTO> getAllDocumentWhereUserSignatoriesBeforeSigner(int page,
                                                                                               int size,

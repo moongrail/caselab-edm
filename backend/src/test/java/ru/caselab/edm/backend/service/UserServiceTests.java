@@ -25,6 +25,7 @@ import ru.caselab.edm.backend.exceptions.UserAlreadyExistsException;
 import ru.caselab.edm.backend.mapper.user.UserMapper;
 import ru.caselab.edm.backend.repository.DepartmentRepository;
 import ru.caselab.edm.backend.repository.RefreshTokenRepository;
+import ru.caselab.edm.backend.repository.RefreshTokenRepository;
 import ru.caselab.edm.backend.repository.RoleRepository;
 import ru.caselab.edm.backend.repository.UserRepository;
 import ru.caselab.edm.backend.service.impl.UserServiceImpl;
@@ -282,7 +283,8 @@ public class UserServiceTests {
         verify(userRepository, times(1)).findById(userId);
         verify(passwordEncoder, times(1)).matches("invalidTest", user.getPassword());
     }
-  
+
+
     @Test
     void deleteUser_UserExists_ShouldReturnVoid() {
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));

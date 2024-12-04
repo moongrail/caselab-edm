@@ -41,7 +41,7 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
 
     @Query(value = """
             SELECT new ru.caselab.edm.backend.dto.document.DocumentOutputAllDocumentsDTO (d.id as id,
-                                                                                            u.login as login,
+                                                                                            u1.login as login,
                                                                                             d.createdAt as createdAt,
                                                                                             dv.documentName as documentName, 
                                                                                             dv.contentUrl as contentUrl, 
@@ -282,7 +282,7 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
             """,
             nativeQuery = true)
     List<Long> getDocumentsWithAttribute(@Param("attributeId") Long attributeId);
-           
+
     @Query("SELECT d FROM Document d WHERE d.id = :id AND d.isArchived = false")
     Optional<Document> getDocumentById(@Param("id") Long id);
 

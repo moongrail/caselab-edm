@@ -13,8 +13,8 @@ public class ApprovementProcessDTO {
     @Schema(description = "Approvement process ID ")
     private Long id;
 
-    @Schema(description = "Document Version ID")
-    private Long documentVersionId;
+    @Schema(description = "Document ID")
+    private Long documentId;
 
     @Schema(description = "Approvement Proccess status")
     private ApprovementProcessStatus status;

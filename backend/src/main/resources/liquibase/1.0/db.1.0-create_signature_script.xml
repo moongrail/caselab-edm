@@ -39,7 +39,7 @@
                 document_version_id BIGINT REFERENCES document_versions
             (
                 id
-            )
+            ) ON DELETE CASCADE
                 );
         </sql>
     </changeSet>

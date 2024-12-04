@@ -2,10 +2,12 @@ package ru.caselab.edm.backend.dto.document;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 import ru.caselab.edm.backend.dto.attributevalue.DocumentAttributeValueUpdateDTO;
+import ru.caselab.edm.backend.dto.file.FileDTO;
 
 import java.util.List;
 
@@ -22,9 +24,10 @@ public class DocumentUpdateDTO {
     @Size(min = 2, max = 255, message = "Document length must be between {min} and {max} characters")
     private String documentName;
 
-    @JsonProperty("base64Data")
-    @Schema(name = "base64Data", description = "File's data in Base64 format", example = "")
-    private String data;
+    @JsonProperty("file")
+    @Schema(description = "File's data")
+    @Valid
+    private FileDTO file;
 
     @Schema(description = "Value attributes")
     private List<DocumentAttributeValueUpdateDTO> attributeValues;

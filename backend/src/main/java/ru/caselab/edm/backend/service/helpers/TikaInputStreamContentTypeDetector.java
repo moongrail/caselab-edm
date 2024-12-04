@@ -13,9 +13,9 @@ public class TikaInputStreamContentTypeDetector implements InputStreamContentTyp
     private final Tika tika = new Tika();
 
     @Override
-    public String detect(InputStream inputStream) {
+    public String detect(String fileName, InputStream inputStream) {
         try {
-            return tika.detect(inputStream);
+            return tika.detect(inputStream, fileName);
         } catch (IOException ex) {
             throw new ContentTypeDetectionException("Exception while determining content type", ex);
         }

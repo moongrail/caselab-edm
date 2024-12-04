@@ -29,6 +29,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import ru.caselab.edm.backend.dto.approvementprocess.ApprovementProcessCreateDTO;
 import ru.caselab.edm.backend.dto.approvementprocess.ApprovementProcessDTO;
+import ru.caselab.edm.backend.dto.approvementprocess.ApprovementProcessResultDTO;
 import ru.caselab.edm.backend.dto.approvementprocessitem.ApprovementProcessItemDTO;
 import ru.caselab.edm.backend.dto.document.DocumentCreateDTO;
 import ru.caselab.edm.backend.dto.document.DocumentDTO;
@@ -37,6 +38,7 @@ import ru.caselab.edm.backend.dto.document.DocumentOutputAllDocumentsDTO;
 import ru.caselab.edm.backend.dto.document.DocumentPageDTO;
 import ru.caselab.edm.backend.dto.document.DocumentUpdateDTO;
 import ru.caselab.edm.backend.dto.documentversion.DocumentVersionDTO;
+import ru.caselab.edm.backend.dto.documentversion.DocumentVersionDtoWithAuthor;
 import ru.caselab.edm.backend.dto.signature.SignatureCreateDTO;
 import ru.caselab.edm.backend.entity.DocumentVersion;
 import ru.caselab.edm.backend.entity.UserInfoDetails;
@@ -64,7 +66,7 @@ public class DocumentController {
     private final MinioService minioService;
 
     @Operation(
-            summary = "Start approval process for current document version"
+            summary = "Start approval process for current document"
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Approval process was startes",
@@ -80,6 +82,22 @@ public class DocumentController {
             @AuthenticationPrincipal UserInfoDetails authenticatedUser
     ) {
         return new ResponseEntity<>(approvementService.createApprovementProcess(processCreateDTO, authenticatedUser), HttpStatus.OK);
+    }
+
+    @Operation(
+            summary = "Result approval process for current document "
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Result of approval process for current document id",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApprovementProcessResultDTO.class))),
+            @ApiResponse(responseCode = "404", description = "Document with provided  ID not found",
+                    content = @Content),
+    })
+    @PostMapping("/approvement/{documentId}/result")
+    public ResponseEntity<ApprovementProcessResultDTO> resultApprovement(
+            @PathVariable Long documentId
+    ) {
+        return new ResponseEntity<>(approvementService.resultOfApprovementProcess(documentId), HttpStatus.OK);
     }
 
 
@@ -130,9 +148,9 @@ public class DocumentController {
     })
     @PostMapping()
     @ResponseStatus(HttpStatus.CREATED)
-    public DocumentVersionDTO createDocument(@Valid @RequestBody DocumentCreateDTO documentCreateDTO,
-                                             @AuthenticationPrincipal UserInfoDetails user) {
-        return documentVersionMapper.toDto(documentService.saveDocument(documentCreateDTO, user.getId()));
+    public DocumentVersionDtoWithAuthor createDocument(@Valid @RequestBody DocumentCreateDTO documentCreateDTO,
+                                                       @AuthenticationPrincipal UserInfoDetails user) {
+        return documentVersionMapper.toDtoWithAuthor(documentService.saveDocument(documentCreateDTO, user.getId()));
     }
 
     @Operation(summary = "Returning last version all documents of the current user")

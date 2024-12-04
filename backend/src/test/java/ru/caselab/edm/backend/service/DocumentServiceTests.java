@@ -19,6 +19,11 @@ import ru.caselab.edm.backend.dto.document.DocumentCreateDTO;
 import ru.caselab.edm.backend.dto.document.DocumentOutputAllDocumentsDTO;
 import ru.caselab.edm.backend.dto.document.DocumentUpdateDTO;
 import ru.caselab.edm.backend.entity.*;
+import ru.caselab.edm.backend.dto.file.FileDTO;
+import ru.caselab.edm.backend.entity.Document;
+import ru.caselab.edm.backend.entity.DocumentType;
+import ru.caselab.edm.backend.entity.DocumentVersion;
+import ru.caselab.edm.backend.entity.User;
 import ru.caselab.edm.backend.enums.DocumentSortingType;
 import ru.caselab.edm.backend.exceptions.ResourceNotFoundException;
 import ru.caselab.edm.backend.repository.*;
@@ -309,6 +314,8 @@ class DocumentServiceTests {
         attributeSearch.getDocuments().add(1L);
 
         DocumentCreateDTO documentCreateDTO = new DocumentCreateDTO();
+        FileDTO fileDTO = new FileDTO("Data", "test_object_name");
+        documentCreateDTO.setFile(fileDTO);
         documentCreateDTO.setDocumentTypeId(documentTypeId);
 
         Mockito.when(attributeSearchRepository.findById(attributeSearch.getId())).thenReturn(Optional.of(attributeSearch));
@@ -333,6 +340,8 @@ class DocumentServiceTests {
     @Test
     void updateDocumentSuccess() {
         DocumentUpdateDTO documentUpdateDTO = new DocumentUpdateDTO();
+        FileDTO fileDTO = new FileDTO("Data", "test_object_name");
+        documentUpdateDTO.setFile(fileDTO);
         Attribute attribute = new Attribute();
         attribute.setId(1L);
         attribute.setName("name");

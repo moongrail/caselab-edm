@@ -1,7 +1,6 @@
 package ru.caselab.edm.backend.dto.attribute;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 import java.util.Set;
@@ -10,11 +9,9 @@ import java.util.Set;
 @Schema(description = "DTO for update attribute")
 public class AttributeUpdateDTO {
 
-    @NotBlank
     @Schema(description = "Attribute name", example = "attribute")
     private String name;
 
-    @NotBlank
     @Schema(description = "Attribute data type", example = "pdf")
     private String dataType;
 
@@ -23,4 +20,6 @@ public class AttributeUpdateDTO {
 
     @Schema(description = "DocumentType id's")
     private Set<Long> documentTypeIds;
+
+
 }

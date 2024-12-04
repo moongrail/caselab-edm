@@ -20,7 +20,7 @@
                 document_versions
             (
                 id
-            ),
+            ) ON DELETE CASCADE,
                 status text,
                 deadline TIMESTAMP DEFAULT NOW
             (

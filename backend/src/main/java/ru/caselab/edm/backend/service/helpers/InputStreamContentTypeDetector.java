@@ -4,5 +4,5 @@ import java.io.InputStream;
 
 public interface InputStreamContentTypeDetector {
 
-    String detect(InputStream inputStream);
+    String detect(String fileName, InputStream inputStream);
 }

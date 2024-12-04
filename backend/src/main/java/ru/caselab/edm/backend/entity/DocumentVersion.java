@@ -57,10 +57,10 @@ public class DocumentVersion {
     @OneToMany(mappedBy = "documentVersion", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<DocumentAttributeValue> documentAttributeValue = new ArrayList<>();
 
-    @OneToMany(mappedBy = "documentVersion", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "documentVersion", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<ApprovementProcessItem> approvementProcessItems;
 
-    @OneToMany(mappedBy = "documentVersion", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "documentVersion", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<ApprovementProcess> approvementProcesses;
 
     @Column(name = "state")
