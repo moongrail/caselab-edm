@@ -99,15 +99,9 @@ public class DocumentVersionServiceImpl implements DocumentVersionService {
         if (document.getFile() != null) {
             String data = document.getFile().data();
             String fileName = document.getFile().fileName();
-            if (data != null && !data.isEmpty()
-                    && fileName != null && !fileName.isEmpty()) {
-
-                MinioSaveDto saveDto = minioDocumentMapper.map(fileName, data, userId);
-                minioService.saveObject(saveDto);
-                updatingDocumentVersion.setContentUrl(saveDto.objectName());
-            } else {
-                updatingDocumentVersion.setContentUrl(exsistingVersion.getContentUrl());
-            }
+            MinioSaveDto saveDto = minioDocumentMapper.map(fileName, data, userId);
+            minioService.saveObject(saveDto);
+            updatingDocumentVersion.setContentUrl(saveDto.objectName());
         } else {
             updatingDocumentVersion.setContentUrl(exsistingVersion.getContentUrl());
         }
