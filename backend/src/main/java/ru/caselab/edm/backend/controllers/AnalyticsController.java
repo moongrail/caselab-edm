@@ -1,5 +1,6 @@
 package ru.caselab.edm.backend.controllers;
 
+import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
@@ -38,8 +39,11 @@ public class AnalyticsController {
     }
 
     @GetMapping("/top-votes-by-participants")
-    public List<TopVotesByParticipants> getTopVotesByParticipants(@RequestParam LocalDate startDate,
-                                                                  @RequestParam LocalDate endDate) {
+    public List<TopVotesByParticipants> getTopVotesByParticipants(
+            @Parameter(description = "start time of stats", example="2024-12-03")
+            @RequestParam LocalDate startDate,
+            @Parameter(description = "end time of stats",example="2024-12-05")
+            @RequestParam LocalDate endDate) {
 
         if (startDate.isAfter(endDate)) {
             throw new IllegalArgumentException("Invalid date's parameters. Start date bust be before end date");

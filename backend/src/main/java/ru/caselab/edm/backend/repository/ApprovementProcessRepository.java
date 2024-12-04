@@ -8,10 +8,9 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import ru.caselab.edm.backend.entity.ApprovementProcess;
 import ru.caselab.edm.backend.entity.DocumentVersion;
-import ru.caselab.edm.backend.repository.projection.TopUsersByDocumentCreationProjection;
 import ru.caselab.edm.backend.repository.projection.TopVotesByParticipants;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Repository
@@ -32,6 +31,6 @@ public interface ApprovementProcessRepository extends JpaRepository<ApprovementP
     GROUP BY p.id, d.id
     ORDER BY participantsCount DESC
     """)
-    Page<TopVotesByParticipants> findTopVotesByParticipants(@Param("startDate") Instant startDate, @Param("endDate") Instant endDate, Pageable pageable);
+    Page<TopVotesByParticipants> findTopVotesByParticipants(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate, Pageable pageable);
 
 }

@@ -11,6 +11,7 @@ import ru.caselab.edm.backend.service.AnalyticsService;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
 
@@ -35,10 +36,10 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     @Override
     public List<TopVotesByParticipants> findTopVotesByParticipants(LocalDate startDate, LocalDate endDate, Pageable pageable) {
 
-        Instant startInstant = startDate.atStartOfDay(ZoneId.systemDefault()).toInstant();
-        Instant endInstant = endDate.atStartOfDay(ZoneId.systemDefault()).toInstant();
+        LocalDateTime startDateTime = startDate.atStartOfDay();
+        LocalDateTime endDateTime = endDate.plusDays(1).atStartOfDay().minusNanos(1);
 
-        return approvementProcessRepository.findTopVotesByParticipants(startInstant, endInstant, pageable)
+        return approvementProcessRepository.findTopVotesByParticipants(startDateTime, endDateTime, pageable)
                 .getContent();
     }
 }
