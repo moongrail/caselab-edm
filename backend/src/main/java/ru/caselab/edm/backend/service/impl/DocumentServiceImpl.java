@@ -262,6 +262,8 @@ public class DocumentServiceImpl implements DocumentService {
     @Transactional
     @Override
     public void deleteDocument(long id) {
+        getDocument(id);
+        documentVersionService.getDocumentVersion(id).getState().delete(documentVersionService.getDocumentVersion(id));
         documentRepository.deleteById(id);
     }
 
