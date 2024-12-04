@@ -23,6 +23,8 @@ public class UserEntityBuilder implements BaseBuilder<User> {
     private String lastName = "DefaultLastName";
     private String patronymic = "DefaultPatronymic";
     private String position = "DefaultPosition";
+    private Department department = null;
+    private Department leadDepartment = null;
 
     private Set<Role> roles = new HashSet<>();
     private Set<RefreshToken> refreshTokens = new HashSet<>();
@@ -41,6 +43,8 @@ public class UserEntityBuilder implements BaseBuilder<User> {
                 .lastName(lastName)
                 .patronymic(patronymic)
                 .position(position)
+                .department(department)
+                .leadDepartment(leadDepartment)
                 .roles(roles)
                 .refreshTokens(refreshTokens)
                 .documents(documents)

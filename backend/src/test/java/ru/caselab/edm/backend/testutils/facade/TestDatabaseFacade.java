@@ -20,7 +20,18 @@ public class TestDatabaseFacade {
     public <T> T find(Object id, Class<T> entityClass) {
         return transactionTemplate.execute(status -> testEntityManager.find(entityClass, id));
     }
-    public <T> void save(T... entities) {
+
+
+    public <T> T save(T entity) {
+        transactionTemplate.execute(status -> {
+            testEntityManager.persistAndFlush(entity);
+            return entity;
+        });
+
+        return entity;
+    }
+
+    public <T> void saveAll(T... entities) {
         transactionTemplate.execute(status -> {
             for (T entity : entities) {
                 testEntityManager.persistAndFlush(entity);

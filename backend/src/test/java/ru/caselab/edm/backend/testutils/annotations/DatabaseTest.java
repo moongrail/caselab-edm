@@ -20,4 +20,7 @@ public @interface DatabaseTest {
     @AliasFor(annotation = DataJpaTest.class, attribute = "properties")
     String[] properties() default {};
 
+    @AliasFor(annotation = ActiveProfiles.class, attribute = "profiles")
+    String[] profiles() default {"test"};
+
 }

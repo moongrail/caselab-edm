@@ -1,4 +1,4 @@
-package ru.caselab.edm.backend.controllers;
+package ru.caselab.edm.backend.testutils.base;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;

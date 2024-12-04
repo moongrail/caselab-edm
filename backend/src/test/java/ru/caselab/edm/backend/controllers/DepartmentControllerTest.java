@@ -16,6 +16,7 @@ import ru.caselab.edm.backend.dto.department.CreateDepartmentDTO;
 import ru.caselab.edm.backend.dto.department.MembersDTO;
 import ru.caselab.edm.backend.service.DelegationService;
 import ru.caselab.edm.backend.service.DepartmentService;
+import ru.caselab.edm.backend.testutils.base.BaseControllerTest;
 
 import java.util.List;
 import java.util.UUID;
