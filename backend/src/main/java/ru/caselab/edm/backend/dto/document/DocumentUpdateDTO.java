@@ -2,6 +2,7 @@ package ru.caselab.edm.backend.dto.document;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
 import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -23,6 +24,7 @@ public class DocumentUpdateDTO {
 
     @JsonProperty("file")
     @Schema(description = "File's data")
+    @Valid
     private FileDTO file;
 
     @Schema(description = "Value attributes")
