@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import ru.caselab.edm.backend.repository.UserRepository;
+import ru.caselab.edm.backend.repository.ApprovementProcessRepository;
+import ru.caselab.edm.backend.repository.projection.TopVotesByParticipants;
 import ru.caselab.edm.backend.repository.projection.TopUsersByDocumentCreationProjection;
 import ru.caselab.edm.backend.repository.projection.TopUsersByDocumentSigningProjection;
 import ru.caselab.edm.backend.repository.projection.TopUsersByReplacementProjection;
@@ -13,6 +15,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
 
@@ -21,6 +24,7 @@ import java.util.List;
 public class AnalyticsServiceImpl implements AnalyticsService {
 
     private final UserRepository userRepository;
+    private final ApprovementProcessRepository approvementProcessRepository;
 
     @Override
     public List<TopUsersByDocumentCreationProjection> findTopUsersByDocumentCreation(LocalDate startDate,
@@ -48,5 +52,15 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         Instant endInstant = endDate.atStartOfDay(ZoneId.systemDefault()).toInstant();
 
         return userRepository.findTopUserByReplacement(startInstant, endInstant, pageable).getContent();
+    }
+
+    @Override
+    public List<TopVotesByParticipants> findTopVotesByParticipants(LocalDate startDate, LocalDate endDate, Pageable pageable) {
+
+        LocalDateTime startDateTime = startDate.atStartOfDay();
+        LocalDateTime endDateTime = endDate.plusDays(1).atStartOfDay().minusNanos(1);
+
+        return approvementProcessRepository.findTopVotesByParticipants(startDateTime, endDateTime, pageable)
+                .getContent();
     }
 }
