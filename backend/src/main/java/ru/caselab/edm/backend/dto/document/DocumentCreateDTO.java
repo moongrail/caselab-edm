@@ -2,6 +2,7 @@ package ru.caselab.edm.backend.dto.document;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -30,6 +31,8 @@ public class DocumentCreateDTO {
 
     @JsonProperty("file")
     @Schema(description = "File's data")
+    @NotNull
+    @Valid
     private FileDTO file;
 
     @Schema(description = "Value attributes")
