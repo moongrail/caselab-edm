@@ -93,7 +93,7 @@ public class DocumentController {
             @ApiResponse(responseCode = "404", description = "Document with provided  ID not found",
                     content = @Content),
     })
-    @PostMapping("/approvement/{documentId}/result")
+    @GetMapping("/approvement/{documentId}/result")
     public ResponseEntity<ApprovementProcessResultDTO> resultApprovement(
             @PathVariable Long documentId
     ) {

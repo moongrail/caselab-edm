@@ -28,6 +28,9 @@ import ru.caselab.edm.backend.repository.DocumentVersionRepository;
 import ru.caselab.edm.backend.repository.UserRepository;
 import ru.caselab.edm.backend.service.impl.DocumentServiceImpl;
 import ru.caselab.edm.backend.service.impl.DocumentVersionServiceImpl;
+import ru.caselab.edm.backend.state.DocumentBaseState;
+import ru.caselab.edm.backend.state.DocumentState;
+import ru.caselab.edm.backend.state.DocumentStatus;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -41,9 +44,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 class DocumentServiceTests {
 
@@ -331,11 +332,26 @@ class DocumentServiceTests {
     @Test
     @DisplayName("Delete Document")
     void deleteDocument_Success() {
-        doNothing().when(documentRepository).deleteById(1L);
+        long documentId = 1L;
+        Document mockDocument = new Document();
+        mockDocument.setId(documentId);
+        DocumentVersion mockVersion = new DocumentVersion();
+        mockVersion.setId(1L);
+        mockVersion.setDocument(mockDocument);
+        DocumentBaseState mockState = mock(DocumentBaseState.class);
+        mockVersion.setState(DocumentStatus.DRAFT);
+        mockDocument.setDocumentVersion(List.of(mockVersion));
 
-        documentService.deleteDocument(1L);
+        when(documentRepository.findById(documentId)).thenReturn(Optional.of(mockDocument));
 
-        verify(documentRepository).deleteById(1L);
+        when(documentRepository.save(any(Document.class))).thenReturn(mockDocument);
+
+        when(documentVersionService.getDocumentVersion(documentId)).thenReturn(mockVersion);
+
+        doNothing().when(mockState).delete(any(DocumentVersion.class));
+
+        documentService.deleteDocument(documentId);
+
     }
 
     @Test

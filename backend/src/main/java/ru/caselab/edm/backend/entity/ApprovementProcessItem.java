@@ -31,7 +31,7 @@ public class ApprovementProcessItem {
     @JoinColumn(name = "app_procc_id")
     private ApprovementProcess approvementProcess;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     private User user;
 
@@ -46,6 +46,6 @@ public class ApprovementProcessItem {
     @JoinColumn(name = "document_version_id")
     private DocumentVersion documentVersion;
 
-    @OneToOne(mappedBy = "approvementProcessItem")
+    @OneToOne(cascade = CascadeType.ALL, mappedBy = "approvementProcessItem")
     private Signature signature;
 }
