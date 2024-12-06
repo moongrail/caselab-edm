@@ -41,7 +41,7 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
 
     @Query(value = """
             SELECT new ru.caselab.edm.backend.dto.document.DocumentOutputAllDocumentsDTO (d.id as id,
-                                                                                            u1.login as login,
+                                                                                            u.login as login,
                                                                                             d.createdAt as createdAt,
                                                                                             dv.documentName as documentName, 
                                                                                             dv.contentUrl as contentUrl, 
@@ -49,10 +49,10 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
                         FROM Document d 
                         left join d.documentVersion dv 
                         left join dv.approvementProcessItems api 
-                        left join User u 
-                        ON (u.id = api.user.id)
                         left join User u1 
-                        ON (u1.id = d.user.id)
+                        ON (u1.id = api.user.id)
+                        left join User u 
+                        ON (u.id = d.user.id)
              			WHERE dv.id = (select dv1.id
              		                               from DocumentVersion dv1
              		                               where dv1.document.id = d.id
@@ -77,7 +77,7 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
 
     @Query(value = """
             SELECT new ru.caselab.edm.backend.dto.document.DocumentOutputAllDocumentsDTO (d.id as id,
-                                                                                            u1.login as login,
+                                                                                            u.login as login,
                                                                                             d.createdAt as createdAt,
                                                                                             dv.documentName as documentName, 
                                                                                             dv.contentUrl as contentUrl, 
@@ -85,10 +85,10 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
                         FROM Document d 
                         left join d.documentVersion dv 
                         left join dv.approvementProcessItems api 
-                        left join User u 
-                        ON (u.id = api.user.id)
                         left join User u1 
-                        ON (u1.id = d.user.id)
+                        ON (u1.id = api.user.id)
+                        left join User u 
+                        ON (u.id = d.user.id)
              			WHERE dv.id = (select dv1.id
              		                               from DocumentVersion dv1
              		                               where dv1.document.id = d.id
@@ -115,7 +115,7 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
 
     @Query(value = """
             SELECT new ru.caselab.edm.backend.dto.document.DocumentOutputAllDocumentsDTO (d.id as id,
-                                                                                            u1.login as login,
+                                                                                            u.login as login,
                                                                                             d.createdAt as createdAt,
                                                                                             dv.documentName as documentName, 
                                                                                             dv.contentUrl as contentUrl, 
@@ -123,10 +123,10 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
                         FROM Document d 
                         left join d.documentVersion dv 
                         left join dv.approvementProcessItems api 
-                        left join User u 
-                        ON (u.id = api.user.id)
                         left join User u1 
-                        ON (u1.id = d.user.id)
+                        ON (u1.id = api.user.id)
+                        left join User u 
+                        ON (u.id = d.user.id)
              			WHERE dv.id = (select dv1.id
              		                               from DocumentVersion dv1
              		                               where dv1.document.id = d.id
