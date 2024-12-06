@@ -12,7 +12,6 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -20,11 +19,11 @@ import org.springframework.web.bind.annotation.*;
 import ru.caselab.edm.backend.dto.department.*;
 import ru.caselab.edm.backend.dto.user.UserDTO;
 import ru.caselab.edm.backend.dto.user.UserPageDTO;
-import ru.caselab.edm.backend.entity.User;
 import ru.caselab.edm.backend.entity.UserInfoDetails;
 import ru.caselab.edm.backend.service.DelegationService;
 import ru.caselab.edm.backend.service.DepartmentService;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -72,8 +71,8 @@ public class DepartmentController {
     })
     @GetMapping()
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<DepartmentDTO> getDepartmentWithUser(@AuthenticationPrincipal UserInfoDetails user) {
-        return ResponseEntity.ok(departmentService.getDepartmentWithUser(user.getId()));
+    public ResponseEntity<List<DepartmentDTO>> getDepartmentWithUser(@AuthenticationPrincipal UserInfoDetails user) {
+        return ResponseEntity.ok(departmentService.getDepartmentsWithUser(user.getId()));
     }
 
     @Operation(

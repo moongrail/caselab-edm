@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import ru.caselab.edm.backend.entity.Department;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -24,7 +25,7 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
             LEFT JOIN d.manager mn 
             WHERE m.id = :userId OR mn.id = :userId
             """)
-    Optional<Department> getDepartmentWithUser(@Param("userId") UUID userId);
+    List<Department> getDepartmentsWithUser(@Param("userId") UUID userId);
 
     @Query(value = """
             SELECT d

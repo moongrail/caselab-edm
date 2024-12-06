@@ -21,6 +21,7 @@ import ru.caselab.edm.backend.repository.UserRepository;
 import ru.caselab.edm.backend.service.DepartmentService;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -77,10 +78,10 @@ public class DepartmentServiceImpl implements DepartmentService {
 
 
     @Override
-    public DepartmentDTO getDepartmentWithUser(UUID id) {
-        log.info("Fetching department with user id: {}", id);
-        Department department = departmentRepository.getDepartmentWithUser(id).orElseThrow(() -> new NotDepartmentMemberException("You are not a member of any department"));
-        return departmentMapper.toDto(department);
+    public List<DepartmentDTO> getDepartmentsWithUser(UUID id) {
+        log.info("Fetching departments with user id: {}", id);
+        List<Department> departments = departmentRepository.getDepartmentsWithUser(id);
+        return departments.stream().map(departmentMapper::toDto).collect(Collectors.toList());
     }
 
     @Override
