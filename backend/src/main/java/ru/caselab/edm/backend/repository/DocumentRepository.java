@@ -194,7 +194,7 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
                                                    order by dv1.createdAt DESC
              		                               LIMIT 1)
              		    AND (u.id = :userId)
-             		    AND (state IN ('AUTHOR_SIGNED', 'PENDING_AUTHOR_SIGN', 'PENDING_CONTRACTOR_SIGN')
+             		    AND (state IN ('PENDING_AUTHOR_SIGN', 'PENDING_CONTRACTOR_SIGN')
              		    OR ap.status IN('PUBLISHED_FOR_VOTING'))
              		    
             """, countQuery = """
@@ -209,7 +209,7 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
                                                    order by dv1.createdAt DESC
              		                               LIMIT 1)
              		    AND (u.id = :userId)
-             		    AND (state IN ('AUTHOR_SIGNED', 'PENDING_AUTHOR_SIGN', 'PENDING_CONTRACTOR_SIGN')
+             		    AND (state IN ('PENDING_AUTHOR_SIGN', 'PENDING_CONTRACTOR_SIGN')
              		    OR ap.status IN('PUBLISHED_FOR_VOTING'))
             """)
     Page<DocumentOutputAllDocumentsDTO> getAllDocumentWithNameAndStatusProjectionWhereUserOwnerBeforeSigner(UUID userId, Pageable pageable);
