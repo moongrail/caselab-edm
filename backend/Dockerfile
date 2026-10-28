@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.7
-FROM eclipse-temurin:17-jdk-alpine AS build
+FROM eclipse-temurin:25-jdk-alpine AS build
 WORKDIR /workspace
 
 RUN apk add --no-cache unzip
@@ -11,7 +11,7 @@ RUN chmod +x mvnw && ./mvnw -B -ntp dependency:go-offline
 COPY src ./src
 RUN ./mvnw -B -ntp clean package -DskipTests
 
-FROM eclipse-temurin:17-jre-alpine
+FROM eclipse-temurin:25-jre-alpine
 
 RUN apk add --no-cache curl \
     && addgroup -S app \
