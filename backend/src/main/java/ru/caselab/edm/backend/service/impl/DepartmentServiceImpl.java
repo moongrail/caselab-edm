@@ -26,6 +26,7 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 @RequiredArgsConstructor
+@Transactional
 public class DepartmentServiceImpl implements DepartmentService {
 
     private final DepartmentRepository departmentRepository;
@@ -41,18 +42,20 @@ public class DepartmentServiceImpl implements DepartmentService {
 
         User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Manager with id %s doesn't exists".formatted(id)));
 
-        System.out.println(userRepository.existsUserAsManager(id) + " " + id);
         if (userRepository.existsUserAsManager(id))
             throw new ManagerOfAnotherDepartmentException("User with id %s is already a manager of another department".formatted(id));
 
-        if (createDepartmentDTO.parentId() != 0) {
+        Long parentId = createDepartmentDTO.parentId();
+        if (parentId != null && parentId != 0L) {
             log.info("Getting parent department");
-            Department parentDepartment = departmentRepository.findById(createDepartmentDTO.parentId()).orElseThrow(() -> new ResourceNotFoundException("Parent department with id %s doesn't exists".formatted(createDepartmentDTO.parentId())));
+            Department parentDepartment = departmentRepository.findById(parentId)
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "Parent department with id %s doesn't exists".formatted(parentId)));
 
-            if (!userRepository.existsUserInOtherDepartmentsAsMember(UUID.fromString(createDepartmentDTO.manager()))) {
-                // Здесь get без проблем, т.к в верхних строчках мы проверяем существование этого пользователя
+            if (!userRepository.existsUserInOtherDepartmentsAsMember(id)) {
                 log.info("Adding manager of current department to members of parent department");
-                parentDepartment.getMembers().add(userRepository.findById(UUID.fromString(createDepartmentDTO.manager())).get());
+                user.setDepartment(parentDepartment);
+                parentDepartment.getMembers().add(user);
 
                 log.info("Saving parent department to repository");
                 departmentRepository.save(parentDepartment);
@@ -66,7 +69,7 @@ public class DepartmentServiceImpl implements DepartmentService {
 
         log.info("Creating department entity");
         Department department = Department.builder().name(createDepartmentDTO.name())
-                .description(createDepartmentDTO.description()).parentId(createDepartmentDTO.parentId())
+                .description(createDepartmentDTO.description()).parentId(parentId)
                 .manager(user).build();
 
         log.info("Saving department to repository");
@@ -77,6 +80,7 @@ public class DepartmentServiceImpl implements DepartmentService {
     }
 
 
+    @Transactional(readOnly = true)
     @Override
     public List<DepartmentDTO> getDepartmentsWithUser(UUID id) {
         log.info("Fetching departments with user id: {}", id);
@@ -84,6 +88,7 @@ public class DepartmentServiceImpl implements DepartmentService {
         return departments.stream().map(departmentMapper::toDto).collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     @Override
     public UserDTO getManagerOfDepartment(Long id) {
         log.info("Fetching manager with department id: {}",id);
@@ -91,6 +96,7 @@ public class DepartmentServiceImpl implements DepartmentService {
         return userMapper.toDTO(manager);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public UserPageDTO getAllMembersOfDepartment(int page, int size, Long id) {
         log.info("Fetching all members - page: {}, size: {}, with department id: {}", page, size, id);
@@ -99,6 +105,7 @@ public class DepartmentServiceImpl implements DepartmentService {
         return userMapper.toPageDTO(members);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public DepartmentPageDTO getAllSubordinateDepartments(int page, int size, UUID id) {
         log.info("Fetching all subordinate departments - page: {}, size: {}, with user id: {}", page, size, id);
@@ -111,7 +118,7 @@ public class DepartmentServiceImpl implements DepartmentService {
     public StatisticMembersDTO addMembersToDepartment(MembersDTO addMembersDTO, Long departmentId) {
         Optional<Department> department = departmentRepository.findById(departmentId);
         if (department.isEmpty())
-            throw new ResourceNotFoundException("Department not found with id = %s".formatted(department));
+            throw new ResourceNotFoundException("Department not found with id = %s".formatted(departmentId));
 
         Department existingDepartment = department.get();
 
@@ -154,7 +161,7 @@ public class DepartmentServiceImpl implements DepartmentService {
     public StatisticMembersDTO kickMembersFromDepartment(MembersDTO kickMembersDTO, Long departmentId) {
         Optional<Department> department = departmentRepository.findById(departmentId);
         if (department.isEmpty())
-            throw new ResourceNotFoundException("Department not found with id = %s".formatted(department));
+            throw new ResourceNotFoundException("Department not found with id = %s".formatted(departmentId));
 
         Department existingDepartment = department.get();
 
@@ -172,7 +179,7 @@ public class DepartmentServiceImpl implements DepartmentService {
             } else {
                 User existingUser = user.get();
                 log.info("User with id: {} exists", id);
-                if(!members.remove(user.get())) {
+                if(!members.remove(existingUser)) {
                     log.info("User with id: {} doesn't represent in department members list with department id: {}", id, departmentId);
                     skipped.add(id);
                 } else {
@@ -198,7 +205,7 @@ public class DepartmentServiceImpl implements DepartmentService {
         log.info("Removing user with id: {} from members of department", id);
         department.getMembers().remove(user);
 
-        if (department.getManager() == user) {
+        if (department.getManager() != null && department.getManager().getId().equals(id)) {
             log.info("Removing user with id: {} from managers of department", id);
             department.setManager(null);
         }

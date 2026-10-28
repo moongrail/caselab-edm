@@ -1,22 +1,24 @@
 package ru.caselab.edm.backend.entity;
 
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Column;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.CascadeType;
-import jakarta.persistence.Enumerated;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import ru.caselab.edm.backend.state.DocumentBaseState;
 import ru.caselab.edm.backend.state.DocumentState;
@@ -25,14 +27,17 @@ import ru.caselab.edm.backend.state.DocumentStatus;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
 @Table(name = "document_versions")
 @Builder
 public class DocumentVersion {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -55,6 +60,7 @@ public class DocumentVersion {
     private Document document;
 
     @OneToMany(mappedBy = "documentVersion", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @Builder.Default
     private List<DocumentAttributeValue> documentAttributeValue = new ArrayList<>();
 
     @OneToMany(mappedBy = "documentVersion", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
@@ -65,13 +71,36 @@ public class DocumentVersion {
 
     @Column(name = "state")
     @Enumerated(EnumType.STRING)
-    private DocumentStatus state;
+    private DocumentStatus status;
 
-    public DocumentStatus getStatus() {
-        return state;
+    @Transient
+    public DocumentState getStateMachine() {
+        return DocumentBaseState.INSTANCE;
     }
 
-    public DocumentState getState() {
-        return new DocumentBaseState();
+    /**
+     * Оставлено для обратной совместимости с существующим кодом/тестами.
+     *
+     * @deprecated используйте {@link #setStatus(DocumentStatus)}.
+     */
+    @Deprecated
+    public void setState(DocumentStatus status) {
+        this.status = status;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof DocumentVersion other)) {
+            return false;
+        }
+        return getId() != null && Objects.equals(getId(), other.getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
     }
 }

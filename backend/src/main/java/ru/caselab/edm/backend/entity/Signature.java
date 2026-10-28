@@ -9,14 +9,13 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 
-@Data
 @Getter
 @Setter
 @NoArgsConstructor
@@ -24,6 +23,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "signatures")
 public class Signature {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -32,17 +32,25 @@ public class Signature {
     @JoinColumn(name = "approvement_item_id", referencedColumnName = "id")
     private ApprovementProcessItem approvementProcessItem;
 
-/*    @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;*/
-
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
     @Column(name = "hash", nullable = false, columnDefinition = "TEXT")
     private String hash;
 
-/*    @ManyToOne
-    @JoinColumn(name = "document_version_id", nullable = false)
-    private DocumentVersion documentVersion;*/
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof Signature other)) {
+            return false;
+        }
+        return getId() != null && Objects.equals(getId(), other.getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
 }

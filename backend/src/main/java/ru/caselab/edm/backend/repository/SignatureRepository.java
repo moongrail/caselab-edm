@@ -7,11 +7,10 @@ import ru.caselab.edm.backend.entity.Signature;
 @Repository
 public interface SignatureRepository extends JpaRepository<Signature, Long> {
     /**
-     * Checks if a Signature exists with the given user ID and version ID.
+     * Проверяет, что по заявке на подписание уже сформирована подпись.
      *
-     * @param userId the UUID of the user
-     * @param versionId the Long version ID
-     * @return true if exists, false otherwise
+     * @param approvementProcessItemId идентификатор заявки на подписание
+     * @return true, если подпись уже существует
      */
-    //boolean existsByUserIdAndDocumentVersionId(UUID userId, Long versionId);
+    boolean existsByApprovementProcessItemId(Long approvementProcessItemId);
 }

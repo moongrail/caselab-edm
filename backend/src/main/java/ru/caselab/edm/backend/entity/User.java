@@ -15,7 +15,6 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -62,6 +61,7 @@ public class User {
     private String position;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @Builder.Default
     private Set<RefreshToken> refreshTokens = new HashSet<>();
 
     @OneToMany(mappedBy = "user")
@@ -99,30 +99,23 @@ public class User {
     @OneToMany(mappedBy = "user")
     private List<ApprovementProcessItem> approvementProcessItems;
 
+    /**
+     * Для JPA-сущностей равенство определяется только идентификатором.
+     * Пароль и ленивые коллекции не участвуют, чтобы не было рекурсии и утечек.
+     */
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        User user = (User) o;
-        return Objects.equals(id, user.id) && login.equals(user.login) &&
-                email.equals(user.email) && password.equals(user.password) &&
-                firstName.equals(user.firstName) && lastName.equals(user.lastName)
-                && Objects.equals(patronymic, user.patronymic) && Objects.equals(position, user.position)
-                && roles.equals(user.roles);
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof User other)) {
+            return false;
+        }
+        return id != null && Objects.equals(id, other.id);
     }
 
     @Override
     public int hashCode() {
-        int result = Objects.hashCode(id);
-        result = 31 * result + login.hashCode();
-        result = 31 * result + email.hashCode();
-        result = 31 * result + password.hashCode();
-        result = 31 * result + firstName.hashCode();
-        result = 31 * result + lastName.hashCode();
-        result = 31 * result + Objects.hashCode(patronymic);
-        result = 31 * result + Objects.hashCode(position);
-        result = 31 * result + roles.hashCode();
-        return result;
+        return getClass().hashCode();
     }
 }

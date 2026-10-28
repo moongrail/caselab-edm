@@ -1,5 +1,6 @@
 package ru.caselab.edm.backend.repository;
 
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -11,6 +12,7 @@ import java.util.UUID;
 
 @Repository
 public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Long> {
+    @EntityGraph(attributePaths = {"user", "user.roles"})
     Optional<RefreshToken> findRefreshTokenByToken(String token);
 
     @Modifying

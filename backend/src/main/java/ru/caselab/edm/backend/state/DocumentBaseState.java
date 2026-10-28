@@ -11,38 +11,55 @@ import java.util.Set;
 
 import static ru.caselab.edm.backend.enums.ApprovementProcessStatus.PUBLISHED_FOR_VOTING;
 
+/**
+ * Stateless-реализация переходов статусов документа.
+ * Экземпляр один на приложение, поэтому конструктор закрыт.
+ */
+public final class DocumentBaseState implements DocumentState {
 
-public class DocumentBaseState implements DocumentState {
+    public static final DocumentBaseState INSTANCE = new DocumentBaseState();
 
-    private final Map<DocumentStatus, Set<DocumentStatus>> allowedTransitions = new EnumMap<>(DocumentStatus.class);
+    private final Map<DocumentStatus, Set<DocumentStatus>> allowedTransitions =
+            new EnumMap<>(DocumentStatus.class);
 
-    public DocumentBaseState() {
-        allowedTransitions.put(DocumentStatus.DRAFT, Set.of(DocumentStatus.AUTHOR_SIGNED, DocumentStatus.PENDING_AUTHOR_SIGN, DocumentStatus.IN_VOTING, DocumentStatus.DELETED, DocumentStatus.REWORK_REQUIRED));
-        allowedTransitions.put(DocumentStatus.PENDING_CONTRACTOR_SIGN, Set.of(DocumentStatus.APPROVED, DocumentStatus.REJECTED, DocumentStatus.REWORK_REQUIRED));
-        allowedTransitions.put(DocumentStatus.AUTHOR_SIGNED, Set.of(DocumentStatus.PENDING_CONTRACTOR_SIGN));
-        allowedTransitions.put(DocumentStatus.REWORK_REQUIRED, Set.of(DocumentStatus.DELETED, DocumentStatus.REWORK_REQUIRED));
+    private DocumentBaseState() {
+        allowedTransitions.put(DocumentStatus.DRAFT, Set.of(
+                DocumentStatus.AUTHOR_SIGNED,
+                DocumentStatus.PENDING_AUTHOR_SIGN,
+                DocumentStatus.IN_VOTING,
+                DocumentStatus.DELETED,
+                DocumentStatus.REWORK_REQUIRED));
+        allowedTransitions.put(DocumentStatus.PENDING_CONTRACTOR_SIGN, Set.of(
+                DocumentStatus.APPROVED,
+                DocumentStatus.REJECTED,
+                DocumentStatus.REWORK_REQUIRED));
+        allowedTransitions.put(DocumentStatus.AUTHOR_SIGNED, Set.of(
+                DocumentStatus.PENDING_CONTRACTOR_SIGN));
+        allowedTransitions.put(DocumentStatus.REWORK_REQUIRED, Set.of(
+                DocumentStatus.DELETED,
+                DocumentStatus.REWORK_REQUIRED));
         allowedTransitions.put(DocumentStatus.APPROVED, Set.of(DocumentStatus.DELETED));
         allowedTransitions.put(DocumentStatus.REJECTED, Set.of(DocumentStatus.DELETED));
         allowedTransitions.put(DocumentStatus.PENDING_AUTHOR_SIGN, Set.of(DocumentStatus.AUTHOR_SIGNED));
     }
 
-
     private void changeState(DocumentVersion version, DocumentStatus newStatus) {
         DocumentStatus currentStatus = version.getStatus();
         if (allowedTransitions.getOrDefault(currentStatus, Set.of()).contains(newStatus)) {
-            version.setState(newStatus);
+            version.setStatus(newStatus);
         } else {
-            throw new InvalidDocumentStateException("Transition from " + currentStatus + " to " + newStatus + " is not allowed.");
+            throw new InvalidDocumentStateException(
+                    "Transition from " + currentStatus + " to " + newStatus + " is not allowed.");
         }
     }
-
 
     @Override
     public void signAuthor(DocumentVersion version) {
         if (isVotingDocument(version)) {
             ApprovementProcess process = version.getApprovementProcesses().get(0);
             if (process.getStatus() != PUBLISHED_FOR_VOTING) {
-                throw new InvalidDocumentStateException("Action - sign document during the voting is not allowed in the current state.");
+                throw new InvalidDocumentStateException(
+                        "Action - sign document during the voting is not allowed in the current state.");
             }
         } else {
             changeState(version, DocumentStatus.AUTHOR_SIGNED);
@@ -54,25 +71,25 @@ public class DocumentBaseState implements DocumentState {
         ApprovementProcess process = item.getApprovementProcess();
         if (process != null) {
             if (process.getStatus() != PUBLISHED_FOR_VOTING) {
-                throw new InvalidDocumentStateException("Action - sign document during the voting is not allowed in the current state.");
+                throw new InvalidDocumentStateException(
+                        "Action - sign document during the voting is not allowed in the current state.");
             }
-        } else {
-            DocumentStatus targetStatus;
-            switch (item.getStatus()) {
-                case APPROVED -> targetStatus = DocumentStatus.APPROVED;
-                case REJECTED -> targetStatus = DocumentStatus.REJECTED;
-                case REWORK_REQUIRED -> targetStatus = DocumentStatus.REWORK_REQUIRED;
-                default -> throw new InvalidDocumentStateException("Invalid status for contractor sign action.");
-            }
-            changeState(item.getDocumentVersion(), targetStatus);
+            return;
         }
 
+        DocumentStatus targetStatus = switch (item.getStatus()) {
+            case APPROVED -> DocumentStatus.APPROVED;
+            case REJECTED -> DocumentStatus.REJECTED;
+            case REWORK_REQUIRED -> DocumentStatus.REWORK_REQUIRED;
+            default -> throw new InvalidDocumentStateException(
+                    "Invalid status for contractor sign action.");
+        };
+        changeState(item.getDocumentVersion(), targetStatus);
     }
-
 
     @Override
     public void sendForSign(DocumentVersion version) {
-        DocumentStatus newStatus = (version.getStatus() == DocumentStatus.DRAFT)
+        DocumentStatus newStatus = version.getStatus() == DocumentStatus.DRAFT
                 ? DocumentStatus.PENDING_AUTHOR_SIGN
                 : DocumentStatus.PENDING_CONTRACTOR_SIGN;
         changeState(version, newStatus);
@@ -81,13 +98,11 @@ public class DocumentBaseState implements DocumentState {
     @Override
     public void publishForVoting(DocumentVersion version) {
         changeState(version, DocumentStatus.IN_VOTING);
-
     }
 
     private boolean isVotingDocument(DocumentVersion version) {
         return version.getApprovementProcesses() != null && !version.getApprovementProcesses().isEmpty();
     }
-
 
     @Override
     public void delete(DocumentVersion version) {
@@ -98,5 +113,4 @@ public class DocumentBaseState implements DocumentState {
     public void modified(DocumentVersion version) {
         changeState(version, DocumentStatus.REWORK_REQUIRED);
     }
-
 }

@@ -3,13 +3,13 @@ package ru.caselab.edm.backend.controllers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.context.ActiveProfiles;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.testcontainers.shaded.org.apache.commons.lang3.RandomStringUtils;
 import ru.caselab.edm.backend.testutils.base.BaseControllerTest;
 import ru.caselab.edm.backend.testutils.builder.user.CreateUserDtoBuilder;
 import ru.caselab.edm.backend.testutils.builder.user.UpdateUserDtoBuilder;
@@ -34,6 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WithMockUser(roles = "ADMIN")
+@ActiveProfiles("test")
 @WebMvcTest(UserController.class)
 public class UserControllerTest extends BaseControllerTest {
 
@@ -406,6 +407,6 @@ public class UserControllerTest extends BaseControllerTest {
     }
 
     private static String generateStringWithLength(int length) {
-        return RandomStringUtils.random(length);
+        return "x".repeat(length);
     }
 }

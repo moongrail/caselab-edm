@@ -1,13 +1,10 @@
 package ru.caselab.edm.backend.mapper.documentversion.impl;
 
-import jakarta.persistence.OneToMany;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import ru.caselab.edm.backend.dto.attributevalue.DocumentAttributeValueDTO;
 import ru.caselab.edm.backend.dto.documentversion.DocumentVersionDTO;
 import ru.caselab.edm.backend.dto.documentversion.DocumentVersionDtoWithAuthor;
-import ru.caselab.edm.backend.entity.ApprovementProcess;
-import ru.caselab.edm.backend.entity.ApprovementProcessItem;
 import ru.caselab.edm.backend.entity.DocumentAttributeValue;
 import ru.caselab.edm.backend.entity.DocumentVersion;
 import ru.caselab.edm.backend.mapper.documentversion.DocumentVersionMapper;
@@ -47,12 +44,6 @@ public class DocumentVersionMapperImpl implements DocumentVersionMapper {
         return documentVersionDtoWithAuthor;
     }
 
-    @OneToMany(mappedBy = "documentVersion")
-    private List<ApprovementProcessItem> approvementProcessItems;
-
-    @OneToMany(mappedBy = "documentVersion")
-    private List<ApprovementProcess> approvementProcesses;
-
     @Override
     public List<DocumentVersionDTO> toDto(List<DocumentVersion> versions) {
         List<DocumentVersionDTO> documentVersionDTOList = new ArrayList<>();
@@ -71,6 +62,9 @@ public class DocumentVersionMapperImpl implements DocumentVersionMapper {
     }
 
     private List<DocumentAttributeValueDTO> toAttrDtos(List<DocumentAttributeValue> entityList) {
+        if (entityList == null || entityList.isEmpty()) {
+            return List.of();
+        }
         return entityList.stream()
                 .map(this::toAttrDtos)
                 .toList();

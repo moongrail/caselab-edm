@@ -13,6 +13,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.caselab.edm.backend.configurations.JacksonConfig;
 import ru.caselab.edm.backend.dto.attribute.AttributeDTO;
@@ -43,6 +44,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Import({JwtServiceImpl.class, UserDetailsServiceImpl.class, JacksonConfig.class})
+@ActiveProfiles("test")
 @WebMvcTest(controllers = DocumentTypeController.class)
 class DocumentTypeControllerTest {
     @MockBean

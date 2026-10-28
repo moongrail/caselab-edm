@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.27.xsd">
+
+    <changeSet id="1.1-01-signature-unique" author="caselab">
+        <comment>One signature per approval item; remove historical duplicates before constraint.</comment>
+        <sql>
+            DELETE FROM signatures
+            WHERE approvement_item_id IS NOT NULL
+              AND id NOT IN (
+                  SELECT MAX(id)
+                  FROM signatures
+                  WHERE approvement_item_id IS NOT NULL
+                  GROUP BY approvement_item_id
+              );
+
+            ALTER TABLE signatures
+                ADD CONSTRAINT uq_signatures_approvement_item UNIQUE (approvement_item_id);
+        </sql>
+        <rollback>
+            ALTER TABLE signatures DROP CONSTRAINT uq_signatures_approvement_item;
+        </rollback>
+    </changeSet>
+</databaseChangeLog>

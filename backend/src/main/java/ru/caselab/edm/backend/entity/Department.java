@@ -40,4 +40,19 @@ public class Department {
     )
     private User manager;
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof Department other)) {
+            return false;
+        }
+        return getId() != 0 && getId() == other.getId();
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
 }

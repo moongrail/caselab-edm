@@ -45,5 +45,6 @@ public class ApprovementProcess {
     private float agreementProcent;
 
     @OneToMany(mappedBy = "approvementProcess")
+    @Builder.Default
     private List<ApprovementProcessItem> approvementProcessItems = new ArrayList<>();
 }

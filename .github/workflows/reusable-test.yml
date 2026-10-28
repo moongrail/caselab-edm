@@ -19,9 +19,15 @@ on:
         required: false
         type: string
 
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+
 jobs:
   run_tests:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -29,18 +35,29 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@v4
         with:
-          java-version: ${{ inputs.java_version  }}
+          java-version: ${{ inputs.java_version }}
           distribution: ${{ inputs.java_distribution }}
           cache: ${{ inputs.cache_build_tool }}
           cache-dependency-path: ${{ inputs.cache_path }}
 
-      - name: Run Tests
-        run: mvn -f backend/pom.xml -ntp clean verify
+      - name: Run tests
+        working-directory: backend
+        run: |
+          chmod +x mvnw
+          ./mvnw -B -ntp clean verify
 
-      - name: Publish Test Report
+      - name: Publish test report
         uses: mikepenz/action-junit-report@v4
         if: success() || failure()
         with:
-          report_paths: ${{ inputs.test_report_path}}
+          report_paths: ${{ inputs.test_report_path }}
           detailed_summary: true
+          require_tests: true
 
+      - name: Upload test reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: surefire-reports
+          path: backend/target/surefire-reports/
+          retention-days: 7

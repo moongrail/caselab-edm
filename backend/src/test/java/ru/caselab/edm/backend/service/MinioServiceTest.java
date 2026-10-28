@@ -19,6 +19,7 @@ import ru.caselab.edm.backend.service.impl.MinioServiceImpl;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Duration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -128,6 +129,21 @@ public class MinioServiceTest {
         assertThat(getPresignedObjectUrlArgs.bucket()).isEqualTo(BUCKET_NAME);
         assertThat(getPresignedObjectUrlArgs.expiry()).isPositive();
         assertThat(getPresignedObjectUrlArgs.method()).isEqualTo(Method.GET);
+    }
+
+    @Test
+    void generateTemporaryUrlToObject_usesPublicEndpointForPresignedUrl() {
+        when(minioConfigProperties.getEndpoint()).thenReturn("http://minio:9000");
+        when(minioConfigProperties.getPublicEndpoint()).thenReturn("http://localhost:9000");
+        when(minioConfigProperties.getUsername()).thenReturn("access-key");
+        when(minioConfigProperties.getPassword()).thenReturn("secret-key");
+        when(minioConfigProperties.getPresignedUrlExpiry()).thenReturn(Duration.ofMinutes(5));
+        MinioServiceImpl service = new MinioServiceImpl(
+                minioConfigProperties, minioClient, contentTypeDetector);
+
+        String url = service.generateTemporaryUrlToObject("content/1");
+
+        assertThat(url).startsWith("http://localhost:9000/" + BUCKET_NAME + "/content/1");
     }
 
     @Test

@@ -1,19 +1,29 @@
-FROM maven:3.8.7-amazoncorretto-17 AS build
-WORKDIR /app
+# syntax=docker/dockerfile:1.7
+FROM eclipse-temurin:17-jdk-alpine AS build
+WORKDIR /workspace
 
-COPY pom.xml .
-RUN mvn dependency:resolve
+RUN apk add --no-cache unzip
+
+COPY .mvn .mvn
+COPY mvnw pom.xml ./
+RUN chmod +x mvnw && ./mvnw -B -ntp dependency:go-offline
 
 COPY src ./src
-RUN mvn clean package -DskipTests
+RUN ./mvnw -B -ntp clean package -DskipTests
 
-FROM amazoncorretto:17-alpine-jdk
+FROM eclipse-temurin:17-jre-alpine
+
+RUN apk add --no-cache curl \
+    && addgroup -S app \
+    && adduser -S app -G app
 WORKDIR /app
+COPY --from=build /workspace/target/*.jar app.jar
 
-COPY --from=build /app/target/*.jar app.jar
+USER app
+EXPOSE 8080
 
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENV JAVA_OPTS="-XX:MaxRAMPercentage=75 -XX:+UseG1GC"
+HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=5 \
+    CMD curl -fsS http://localhost:8080/api/v1/actuator/health | grep -q '"status":"UP"' || exit 1
 
-# FROM amazoncorretto:17-alpine-jdk
-# COPY target/*.jar app.jar
-# ENTRYPOINT ["java","-jar","/app.jar"]
+ENTRYPOINT ["sh", "-c", "exec java $JAVA_OPTS -jar /app/app.jar"]

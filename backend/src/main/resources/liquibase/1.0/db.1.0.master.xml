@@ -1,10 +1,9 @@
-<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="UTF-8"?>
 <databaseChangeLog
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
 
-    <include file="liquibase/1.0/db.1.0-drop_all_tables.xml"/>
     <include file="liquibase/1.0/db.1.0-user_and_role_script.xml"/>
     <include file="liquibase/1.0/db.1.0-document_types_script.xml"/>
     <include file="liquibase/1.0/db.1.0-document_script.xml"/>
@@ -17,10 +16,7 @@
     <include file="liquibase/1.0/db.1.0-approvement_process_item_script.xml"/>
     <include file="liquibase/1.0/db.1.0-signature_script.xml"/>
     <include file="liquibase/1.0/db.1.0-add_roles.xml"/>
-    <include file="liquibase/1.0/db.1.0-add_admin.xml"/>
     <include file="liquibase/1.0/db.1.0-add_state_to_documents.xml"/>
     <include file="liquibase/1.0/db.1.0-department_script.xml"/>
-    <include file="liquibase/1.0/db.1.0-fix_departments_members_script.xml"/>
-    <include file="liquibase/1.0/db.1.0-add_department.xml"/>
 
 </databaseChangeLog>

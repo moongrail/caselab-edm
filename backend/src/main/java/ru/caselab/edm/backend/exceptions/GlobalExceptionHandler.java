@@ -19,8 +19,8 @@ import java.util.Map;
 public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     ResponseEntity<String> anyException(Exception ex) {
-        log.error(ex.getMessage(), ex);
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        log.error("Unhandled exception", ex);
+        return new ResponseEntity<>("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @ExceptionHandler(InvalidDocumentStateException.class)
@@ -88,7 +88,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(SignatureAlreadyExistsException.class)
     ResponseEntity<String> handleSignatureAlreadyExistsException(SignatureAlreadyExistsException ex) {
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.CONFLICT);
     }
 
     @ExceptionHandler(DocumentTypeAlreadyExistsException.class)

@@ -6,7 +6,28 @@ import ru.caselab.edm.backend.entity.AttributeSearch;
 
 @Mapper(componentModel = "spring")
 public interface AttributeSearchMapper {
-    AttributeSearch toDTO(Attribute attribute);
 
-    Attribute toEntity(AttributeSearch attributeSearch);
+    default AttributeSearch toDTO(Attribute attribute) {
+        if (attribute == null) {
+            return null;
+        }
+        return AttributeSearch.builder()
+                .id(attribute.getId())
+                .name(attribute.getName())
+                .dataType(attribute.getDataType())
+                .isRequired(attribute.isRequired())
+                .build();
+    }
+
+    default Attribute toEntity(AttributeSearch attributeSearch) {
+        if (attributeSearch == null) {
+            return null;
+        }
+        return Attribute.builder()
+                .id(attributeSearch.getId())
+                .name(attributeSearch.getName())
+                .dataType(attributeSearch.getDataType())
+                .isRequired(attributeSearch.isRequired())
+                .build();
+    }
 }

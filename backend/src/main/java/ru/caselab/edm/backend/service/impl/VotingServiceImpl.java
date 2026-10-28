@@ -10,6 +10,7 @@ import org.quartz.SchedulerException;
 import org.quartz.Trigger;
 import org.quartz.TriggerBuilder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.caselab.edm.backend.entity.ApprovementProcess;
 import ru.caselab.edm.backend.entity.ApprovementProcessItem;
 import ru.caselab.edm.backend.enums.ApprovementProcessItemStatus;
@@ -25,6 +26,7 @@ import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.List;
 
+import static ru.caselab.edm.backend.enums.ApprovementProcessStatus.PUBLISHED_FOR_VOTING;
 import static ru.caselab.edm.backend.enums.ApprovementProcessStatus.VOTING_APPROVED;
 import static ru.caselab.edm.backend.enums.ApprovementProcessStatus.VOTING_COMPLETED;
 import static ru.caselab.edm.backend.enums.ApprovementProcessStatus.VOTING_REJECTED;
@@ -42,7 +44,6 @@ public class VotingServiceImpl implements VotingService {
         log.info("New job for process {} with deadline {}", processId, deadline);
         JobDataMap jobDataMap = new JobDataMap();
         jobDataMap.put("processId", processId);
-        System.out.println(1);
         JobDetail jobDetail = JobBuilder.newJob(VoteResultAggregatorJob.class)
                 .usingJobData(jobDataMap)
                 .withIdentity("job_" + processId)
@@ -62,15 +63,22 @@ public class VotingServiceImpl implements VotingService {
         try {
             scheduler.scheduleJob(jobDetail, trigger);
         } catch (SchedulerException e) {
-            log.error(e.getMessage());
+            log.error("Failed to schedule voting job for process {}", processId, e);
+            throw new IllegalStateException(
+                    "Failed to schedule voting completion for process %d".formatted(processId), e);
         }
 
     }
 
+    @Transactional
     @Override
     public void collectVotingResults(Long processId) {
         log.info("The job for the process {} was triggered", processId);
         ApprovementProcess process = findApprovementProcess(processId);
+        if (process.getStatus() != PUBLISHED_FOR_VOTING) {
+            log.warn("Voting for process {} is already completed, skipping", processId);
+            return;
+        }
         process.setStatus(VOTING_COMPLETED);
         float requiredAgreementPercent = process.getAgreementProcent();
         List<ApprovementProcessItem> items = findItemsByProcess(process);

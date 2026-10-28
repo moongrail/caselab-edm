@@ -4,8 +4,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.JpaSort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,24 +13,35 @@ import ru.caselab.edm.backend.dto.approvementprocessitem.ApprovementProcessItemD
 import ru.caselab.edm.backend.dto.document.DocumentCreateDTO;
 import ru.caselab.edm.backend.dto.document.DocumentOutputAllDocumentsDTO;
 import ru.caselab.edm.backend.dto.document.DocumentUpdateDTO;
-import ru.caselab.edm.backend.entity.*;
+import ru.caselab.edm.backend.entity.Attribute;
+import ru.caselab.edm.backend.entity.AttributeSearch;
+import ru.caselab.edm.backend.entity.Document;
+import ru.caselab.edm.backend.entity.DocumentVersion;
+import ru.caselab.edm.backend.entity.ApprovementProcessItem;
+import ru.caselab.edm.backend.entity.ReplacementManager;
+import ru.caselab.edm.backend.entity.User;
+import ru.caselab.edm.backend.entity.UserInfoDetails;
 import ru.caselab.edm.backend.enums.ApprovementProcessItemStatus;
 import ru.caselab.edm.backend.enums.DocumentSortingType;
 import ru.caselab.edm.backend.event.DocumentSignRequestEvent;
 import ru.caselab.edm.backend.exceptions.ApprovementProccessItemAlreadyExistsException;
-import ru.caselab.edm.backend.exceptions.DocumentForbiddenAccess;
 import ru.caselab.edm.backend.exceptions.ResourceNotFoundException;
-import ru.caselab.edm.backend.exceptions.WrongDateException;
 import ru.caselab.edm.backend.mapper.approvementprocessitem.ApprovementProccessItemMapper;
-import ru.caselab.edm.backend.repository.*;
+import ru.caselab.edm.backend.repository.ApprovementItemRepository;
+import ru.caselab.edm.backend.repository.DocumentRepository;
+import ru.caselab.edm.backend.repository.DocumentTypeRepository;
+import ru.caselab.edm.backend.repository.DocumentVersionRepository;
+import ru.caselab.edm.backend.repository.ReplacementManagerRepository;
+import ru.caselab.edm.backend.repository.UserRepository;
 import ru.caselab.edm.backend.repository.elastic.AttributeSearchRepository;
+import ru.caselab.edm.backend.service.AuthorizationService;
 import ru.caselab.edm.backend.service.DocumentService;
 import ru.caselab.edm.backend.service.DocumentVersionService;
 import ru.caselab.edm.backend.state.DocumentStatus;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -42,13 +53,14 @@ public class DocumentServiceImpl implements DocumentService {
     private final DocumentRepository documentRepository;
     private final UserRepository userRepository;
     private final DocumentTypeRepository documentTypeRepository;
+    private final DocumentVersionRepository documentVersionRepository;
     private final ApplicationEventPublisher eventPublisher;
     private final ApprovementItemRepository approvementItemRepository;
     private final ApprovementProccessItemMapper approvementProccessItemMapper;
     private final ReplacementManagerRepository replacementManagerRepository;
     private final DocumentVersionService documentVersionService;
     private final AttributeSearchRepository attributeSearchRepository;
-
+    private final AuthorizationService authorizationService;
 
     @Override
     public Page<Document> getAllDocuments(int page, int size) {
@@ -57,8 +69,8 @@ public class DocumentServiceImpl implements DocumentService {
 
     @Override
     public Document getDocument(long id) {
-        return documentRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Document not found"));
+        return documentRepository.getDocumentById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Document not found with id = %d".formatted(id)));
     }
 
     @Override
@@ -66,17 +78,11 @@ public class DocumentServiceImpl implements DocumentService {
                                                                      int size,
                                                                      UUID userId,
                                                                      DocumentSortingType sortingType) {
-        log.info("Get all document for user with sorting- page: {}, size: {}, userId: {}, sortingType: {}",
-                page, size, userId, sortingType);
-        PageRequest pageable = PageRequest.of(page, size);
-        if (!DocumentSortingType.WITHOUT.equals(sortingType)) {
-            pageable = pageable.withSort(JpaSort.unsafe(sortingType.getDirection(), sortingType.getFieldName()));
-        }
-        Page<DocumentOutputAllDocumentsDTO> allDocumentWithNameAndStatusProjectionForUser =
+        PageRequest pageable = buildPageable(page, size, sortingType);
+        Page<DocumentOutputAllDocumentsDTO> documents =
                 documentRepository.getAllDocumentWithNameAndStatusProjectionWhereUserOwner(userId, pageable);
-
-        log.info("Get {} document", allDocumentWithNameAndStatusProjectionForUser.getTotalElements());
-        return allDocumentWithNameAndStatusProjectionForUser;
+        log.info("Found {} documents for user {}", documents.getTotalElements(), userId);
+        return documents;
     }
 
     @Override
@@ -84,17 +90,11 @@ public class DocumentServiceImpl implements DocumentService {
                                                                                        int size,
                                                                                        UUID userId,
                                                                                        DocumentSortingType sortingType) {
-        log.info("Get all document for user with sorting- page: {}, size: {}, userId: {}, sortingType: {}",
-                page, size, userId, sortingType);
-        PageRequest pageable = PageRequest.of(page, size);
-        if (!DocumentSortingType.WITHOUT.equals(sortingType)) {
-            pageable = pageable.withSort(JpaSort.unsafe(sortingType.getDirection(), sortingType.getFieldName()));
-        }
-        Page<DocumentOutputAllDocumentsDTO> allDocumentWithNameAndStatusProjectionForUser =
+        PageRequest pageable = buildPageable(page, size, sortingType);
+        Page<DocumentOutputAllDocumentsDTO> documents =
                 documentRepository.getAllDocumentWithNameAndStatusProjectionWhereUserOwnerAfterSigner(userId, pageable);
-
-        log.info("Get {} document", allDocumentWithNameAndStatusProjectionForUser.getTotalElements());
-        return allDocumentWithNameAndStatusProjectionForUser;
+        log.info("Found {} signed documents for owner {}", documents.getTotalElements(), userId);
+        return documents;
     }
 
     @Override
@@ -102,17 +102,11 @@ public class DocumentServiceImpl implements DocumentService {
                                                                                         int size,
                                                                                         UUID userId,
                                                                                         DocumentSortingType sortingType) {
-        log.info("Get all document for user with sorting- page: {}, size: {}, userId: {}, sortingType: {}",
-                page, size, userId, sortingType);
-        PageRequest pageable = PageRequest.of(page, size);
-        if (!DocumentSortingType.WITHOUT.equals(sortingType)) {
-            pageable = pageable.withSort(JpaSort.unsafe(sortingType.getDirection(), sortingType.getFieldName()));
-        }
-        Page<DocumentOutputAllDocumentsDTO> allDocumentWithNameAndStatusProjectionForUser =
+        PageRequest pageable = buildPageable(page, size, sortingType);
+        Page<DocumentOutputAllDocumentsDTO> documents =
                 documentRepository.getAllDocumentWithNameAndStatusProjectionWhereUserOwnerBeforeSigner(userId, pageable);
-
-        log.info("Get {} document", allDocumentWithNameAndStatusProjectionForUser.getTotalElements());
-        return allDocumentWithNameAndStatusProjectionForUser;
+        log.info("Found {} documents awaiting signature for owner {}", documents.getTotalElements(), userId);
+        return documents;
     }
 
     @Override
@@ -120,36 +114,23 @@ public class DocumentServiceImpl implements DocumentService {
                                                                                   int size,
                                                                                   UUID userId,
                                                                                   DocumentSortingType sortingType) {
-        log.info("Get all document for user with sorting- page: {}, size: {}, userId: {}, sortingType: {}",
-                page, size, userId, sortingType);
-        PageRequest pageable = PageRequest.of(page, size);
-        if (!DocumentSortingType.WITHOUT.equals(sortingType)) {
-            pageable = pageable.withSort(JpaSort.unsafe(sortingType.getDirection(), sortingType.getFieldName()));
-        }
-        Page<DocumentOutputAllDocumentsDTO> allDocumentWithNameAndStatusProjectionWhereUserSignatories =
+        PageRequest pageable = buildPageable(page, size, sortingType);
+        Page<DocumentOutputAllDocumentsDTO> documents =
                 documentRepository.getAllDocumentWithNameAndStatusProjectionWhereUserSignatories(userId, pageable);
-
-        log.info("Get {} document", allDocumentWithNameAndStatusProjectionWhereUserSignatories.getTotalElements());
-        return allDocumentWithNameAndStatusProjectionWhereUserSignatories;
+        log.info("Found {} documents for signatory {}", documents.getTotalElements(), userId);
+        return documents;
     }
-
 
     @Override
     public Page<DocumentOutputAllDocumentsDTO> getAllDocumentWhereUserSignatoriesBeforeSigner(int page,
                                                                                               int size,
                                                                                               UUID userId,
                                                                                               DocumentSortingType sortingType) {
-        log.info("Get all document for user with sorting- page: {}, size: {}, userId: {}, sortingType: {}",
-                page, size, userId, sortingType);
-        PageRequest pageable = PageRequest.of(page, size);
-        if (!DocumentSortingType.WITHOUT.equals(sortingType)) {
-            pageable = pageable.withSort(JpaSort.unsafe(sortingType.getDirection(), sortingType.getFieldName()));
-        }
-        Page<DocumentOutputAllDocumentsDTO> allDocumentWithNameAndStatusProjectionWhereUserSignatories =
+        PageRequest pageable = buildPageable(page, size, sortingType);
+        Page<DocumentOutputAllDocumentsDTO> documents =
                 documentRepository.getAllDocumentWithNameAndStatusProjectionWhereUserSignatoriesBeforeSigner(userId, pageable);
-
-        log.info("Get {} document", allDocumentWithNameAndStatusProjectionWhereUserSignatories.getTotalElements());
-        return allDocumentWithNameAndStatusProjectionWhereUserSignatories;
+        log.info("Found {} documents awaiting signature for signatory {}", documents.getTotalElements(), userId);
+        return documents;
     }
 
     @Override
@@ -157,67 +138,32 @@ public class DocumentServiceImpl implements DocumentService {
                                                                                              int size,
                                                                                              UUID userId,
                                                                                              DocumentSortingType sortingType) {
-        log.info("Get all document for user with sorting- page: {}, size: {}, userId: {}, sortingType: {}",
-                page, size, userId, sortingType);
-        PageRequest pageable = PageRequest.of(page, size);
-        if (!DocumentSortingType.WITHOUT.equals(sortingType)) {
-            pageable = pageable.withSort(JpaSort.unsafe(sortingType.getDirection(), sortingType.getFieldName()));
-        }
-        Page<DocumentOutputAllDocumentsDTO> allDocumentWithNameAndStatusProjectionWhereUserSignatories =
+        PageRequest pageable = buildPageable(page, size, sortingType);
+        Page<DocumentOutputAllDocumentsDTO> documents =
                 documentRepository.getAllDocumentWithNameAndStatusProjectionWhereUserSignatoriesAfterSigner(userId, pageable);
-
-        log.info("Get {} document", allDocumentWithNameAndStatusProjectionWhereUserSignatories.getTotalElements());
-        return allDocumentWithNameAndStatusProjectionWhereUserSignatories;
+        log.info("Found {} processed documents for signatory {}", documents.getTotalElements(), userId);
+        return documents;
     }
 
     @Override
     public DocumentVersion getLastVersionDocumentForUser(long id, UUID userId) {
-        log.info("Get document with id: {} for user: {}", id, userId);
-        Document document = documentRepository.getDocumentForUser(id, userId)
+        documentRepository.getDocumentForUser(id, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Document not found"));
-        log.info("Get last version document");
-        DocumentVersion lastDocumentVersion = document.getDocumentVersion()
-                .stream()
-                .max(Comparator.comparing(DocumentVersion::getCreatedAt))
-                .orElseThrow();
-
-        return lastDocumentVersion;
+        return latestVersionFromRepository(id);
     }
 
     @Override
     public DocumentVersion getLastVersionDocumentWhereUserSignatories(long id, UUID userId) {
-        log.info("Get document with id: {} for user: {}", id, userId);
-        Document document = documentRepository.getDocumentWhereUserSignatories(id, userId)
+        documentRepository.getDocumentWhereUserSignatories(id, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Document not found"));
-        log.info("Get last version document");
-        DocumentVersion lastDocumentVersion = document.getDocumentVersion()
-                .stream()
-                .max(Comparator.comparing(DocumentVersion::getCreatedAt))
-                .orElseThrow();
-
-        return lastDocumentVersion;
+        return latestVersionFromRepository(id);
     }
 
     @Override
-    public Page<DocumentVersion> getAllVersionDocumentForUser(long id,
-                                                              UUID userId,
-                                                              int page,
-                                                              int size) {
-        log.info("Get document with id: {} for user: {}", id, userId);
-        Document document = documentRepository.getDocumentForUser(id, userId)
+    public Page<DocumentVersion> getAllVersionDocumentForUser(long id, UUID userId, int page, int size) {
+        documentRepository.getDocumentForUser(id, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Document not found"));
-
-        PageRequest pageable = PageRequest.of(page, size);
-
-        log.info("Get all version document");
-        List<DocumentVersion> allDocumentVersion = document.getDocumentVersion();
-        allDocumentVersion.sort((dv1, dv2) -> Math.toIntExact(dv2.getId() - dv1.getId()));
-
-        int start = (int) pageable.getOffset();
-        int end = Math.min((start + pageable.getPageSize()), allDocumentVersion.size());
-
-        List<DocumentVersion> pageContent = allDocumentVersion.subList(start, end);
-        return new PageImpl<>(pageContent, pageable, allDocumentVersion.size());
+        return getVersionPage(id, page, size);
     }
 
     @Override
@@ -225,21 +171,9 @@ public class DocumentServiceImpl implements DocumentService {
                                                                            UUID userId,
                                                                            int page,
                                                                            int size) {
-        log.info("Get document with id: {} for user: {}", id, userId);
-        Document document = documentRepository.getDocumentWhereUserSignatories(id, userId)
+        documentRepository.getDocumentWhereUserSignatories(id, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Document not found"));
-
-        PageRequest pageable = PageRequest.of(page, size);
-
-        log.info("Get all version document");
-        List<DocumentVersion> allDocumentVersion = document.getDocumentVersion();
-        allDocumentVersion.sort((dv1, dv2) -> Math.toIntExact(dv2.getId() - dv1.getId()));
-
-        int start = (int) pageable.getOffset();
-        int end = Math.min((start + pageable.getPageSize()), allDocumentVersion.size());
-
-        List<DocumentVersion> pageContent = allDocumentVersion.subList(start, end);
-        return new PageImpl<>(pageContent, pageable, allDocumentVersion.size());
+        return getVersionPage(id, page, size);
     }
 
     @Transactional
@@ -252,121 +186,123 @@ public class DocumentServiceImpl implements DocumentService {
                 documentTypeRepository.findById(documentTypeId)
                         .orElseThrow(() -> new ResourceNotFoundException("Document type not found"))
         );
-        log.info("Creating document for User: {}", userId);
-        newDocument.setUser(
-                userRepository.findById(userId)
-                        .orElseThrow(() -> new ResourceNotFoundException("User not found"))
-        );
-        log.info("Save new document with id {}", newDocument.getId());
+        newDocument.setUser(userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found")));
+
         Document saved = documentRepository.save(newDocument);
+        indexDocumentAttributes(saved);
+        log.info("Document saved with id {}", saved.getId());
 
-        for (Attribute attribute : saved.getDocumentType().getAttributes()) {
-            Optional<AttributeSearch> attributeSearch = attributeSearchRepository.findById(attribute.getId());
-            if (attributeSearch.isPresent()) {
-                AttributeSearch existingAttributeSearch = attributeSearch.get();
-                existingAttributeSearch.getDocuments().add(saved.getId());
-                attributeSearchRepository.save(existingAttributeSearch);
-                log.info("Save AttributeSearch with id {}", existingAttributeSearch.getId());
-            }
-        }
-
-        log.info("Save document version document {}", document.getDocumentName());
-        DocumentVersion documentVersion = documentVersionService.saveDocumentVersion(document, saved, userId);
-        return documentVersion;
+        return documentVersionService.saveDocumentVersion(document, saved, userId);
     }
 
     @Transactional
     @Override
     public DocumentVersion updateDocument(long id, DocumentUpdateDTO document, UUID userId) {
         log.info("Updating document with id: {}", id);
-        Document existingDocument = documentRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Document not found"));
-
-        if (userId != null) {
-            existingDocument.setUser(
-                    userRepository.findById(userId)
-                            .orElseThrow(() -> new ResourceNotFoundException("User not found"))
-            );
-        }
+        Document existingDocument = authorizationService.requireOwnedDocument(id, userId);
 
         existingDocument = documentRepository.save(existingDocument);
+        indexDocumentAttributes(existingDocument);
 
-        for (Attribute attribute : existingDocument.getDocumentType().getAttributes()) {
-            Optional<AttributeSearch> attributeSearch = attributeSearchRepository.findById(attribute.getId());
-
-            if (attributeSearch.isPresent()) {
-                AttributeSearch existingAttributeSearch = attributeSearch.get();
-                existingAttributeSearch.getDocuments().add(existingDocument.getId());
-                attributeSearchRepository.save(existingAttributeSearch);
-            }
-        }
-
-        DocumentVersion documentVersion = documentVersionService.updateDocumentVersion(document, existingDocument, userId);
-        log.info("Document update successfully");
+        DocumentVersion documentVersion = documentVersionService.updateDocumentVersion(
+                document, existingDocument, userId);
+        log.info("Document {} updated successfully", id);
         return documentVersion;
-    }
-
-    private void validateDate(DocumentVersion documentVersion) {
-        if (documentVersion.getCreatedAt().isAfter(documentVersion.getUpdatedAt())) {
-            throw new WrongDateException("The creation date cannot be later than the update date");
-        }
     }
 
     @Transactional
     @Override
     public void deleteDocument(long id, UUID userId) {
-        Document document = documentRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Document not found"));
+        Document document = authorizationService.requireOwnedDocument(id, userId);
         document.setArchived(true);
-        DocumentVersion version = document.getDocumentVersion()
-                .stream()
-                .max(Comparator.comparing(DocumentVersion::getCreatedAt))
-                .orElseThrow();
-        version.getState().delete(version);
+
+        DocumentVersion version = latestVersion(document, id);
+        version.getStateMachine().delete(version);
 
         for (Attribute attribute : document.getDocumentType().getAttributes()) {
             Optional<AttributeSearch> attributeSearch = attributeSearchRepository.findById(attribute.getId());
-
-            if (attributeSearch.isPresent()) {
-                AttributeSearch existingAttributeSearch = attributeSearch.get();
-                existingAttributeSearch.getDocuments().remove(document.getId());
-
-                attributeSearchRepository.save(existingAttributeSearch);
-            }
-
-            documentRepository.save(document);
+            attributeSearch.ifPresent(search -> {
+                search.getDocuments().remove(document.getId());
+                attributeSearchRepository.save(search);
+            });
         }
-    }
 
+        documentRepository.save(document);
+        log.info("Document {} archived by user {}", id, userId);
+    }
 
     @Transactional
     @Override
     public ApprovementProcessItemDTO sendForSign(UUID userId, Long documentId, UserInfoDetails authenticatedUser) {
-        User user = getUserOrTempManagerById(userId);
         DocumentVersion documentVersion = getLastVersionDocumentForUser(documentId, authenticatedUser.getId());
-        if (!documentVersion.getDocument().getUser().getId().equals(authenticatedUser.getId())) {
-            throw new DocumentForbiddenAccess("You don't have access to this document with id = %d".formatted(documentId));
-        }
+        authorizationService.checkDocumentOwner(documentVersion.getDocument(), authenticatedUser.getId());
+        User user = getUserOrTempManagerById(userId);
         if (approvementItemRepository.existsByDocumentVersionIdAndUserId(documentVersion.getId(), user.getId())) {
             throw new ApprovementProccessItemAlreadyExistsException("Provided document already sent to user");
         }
-        //проверка можно ли такой документ отправить на подпись
-        documentVersion.getState().sendForSign(documentVersion);
 
-        ApprovementProcessItem approvementProcessItem = new ApprovementProcessItem();
-        approvementProcessItem.setUser(user);
-        approvementProcessItem.setDocumentVersion(documentVersion);
+        documentVersion.getStateMachine().sendForSign(documentVersion);
 
-        approvementProcessItem.setStatus(documentVersion.getStatus() == DocumentStatus.PENDING_AUTHOR_SIGN ? ApprovementProcessItemStatus.PENDING_AUTHOR_SIGN : ApprovementProcessItemStatus.PENDING_CONTRACTOR_SIGN);
-        approvementProcessItem.setCreatedAt(LocalDateTime.now());
-        approvementItemRepository.save(approvementProcessItem);
-        eventPublisher.publishEvent(new DocumentSignRequestEvent(this, approvementProcessItem));
-        return approvementProccessItemMapper.toDTO(approvementProcessItem);
+        ApprovementProcessItem item = new ApprovementProcessItem();
+        item.setUser(user);
+        item.setDocumentVersion(documentVersion);
+        item.setStatus(documentVersion.getStatus() == DocumentStatus.PENDING_AUTHOR_SIGN
+                ? ApprovementProcessItemStatus.PENDING_AUTHOR_SIGN
+                : ApprovementProcessItemStatus.PENDING_CONTRACTOR_SIGN);
+        item.setCreatedAt(LocalDateTime.now());
+        approvementItemRepository.save(item);
+        eventPublisher.publishEvent(new DocumentSignRequestEvent(this, item));
+        return approvementProccessItemMapper.toDTO(item);
     }
 
     @Override
     public Page<DocumentOutputAllDocumentsDTO> getArchivedDocuments(int page, int size, UUID userId) {
         return documentRepository.getArchivedDocumentsForUser(userId, PageRequest.of(page, size));
+    }
+
+    private PageRequest buildPageable(int page, int size, DocumentSortingType sortingType) {
+        PageRequest pageable = PageRequest.of(page, size);
+        if (!DocumentSortingType.WITHOUT.equals(sortingType)) {
+            pageable = pageable.withSort(JpaSort.unsafe(sortingType.getDirection(), sortingType.getFieldName()));
+        }
+        return pageable;
+    }
+
+    private Page<DocumentVersion> getVersionPage(long documentId, int page, int size) {
+        PageRequest pageable = PageRequest.of(page, size,
+                Sort.by(Sort.Direction.DESC, "createdAt").and(Sort.by(Sort.Direction.DESC, "id")));
+        return documentVersionRepository.findPageByDocumentId(documentId, pageable);
+    }
+
+    private DocumentVersion latestVersion(Document document, long documentId) {
+        return document.getDocumentVersion().stream()
+                .max(Comparator.comparing(DocumentVersion::getCreatedAt)
+                        .thenComparing(DocumentVersion::getId, Comparator.nullsFirst(Comparator.naturalOrder())))
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Document version not found for document id = %d".formatted(documentId)));
+    }
+
+    private DocumentVersion latestVersionFromRepository(long documentId) {
+        return documentVersionRepository.findByDocumentId(documentId).stream()
+                .max(Comparator.comparing(DocumentVersion::getCreatedAt)
+                        .thenComparing(DocumentVersion::getId, Comparator.nullsFirst(Comparator.naturalOrder())))
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Document version not found for document id = %d".formatted(documentId)));
+    }
+
+    private void indexDocumentAttributes(Document document) {
+        for (Attribute attribute : document.getDocumentType().getAttributes()) {
+            attributeSearchRepository.findById(attribute.getId()).ifPresent(search -> {
+                if (search.getDocuments() == null) {
+                    search.setDocuments(new ArrayList<>());
+                }
+                if (!search.getDocuments().contains(document.getId())) {
+                    search.getDocuments().add(document.getId());
+                }
+                attributeSearchRepository.save(search);
+            });
+        }
     }
 
     private User getUserOrTempManagerById(UUID userId) {
@@ -377,7 +313,7 @@ public class DocumentServiceImpl implements DocumentService {
 
     private User getUserById(UUID userId) {
         return userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with id = %s".formatted(userId)));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "User not found with id = %s".formatted(userId)));
     }
-
 }

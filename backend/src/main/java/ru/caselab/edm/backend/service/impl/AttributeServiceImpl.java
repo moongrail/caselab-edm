@@ -1,13 +1,12 @@
 package ru.caselab.edm.backend.service.impl;
 
-import jakarta.annotation.PostConstruct;
-import jakarta.transaction.Transactional;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.caselab.edm.backend.dto.attribute.AttributeCreateDTO;
 import ru.caselab.edm.backend.dto.attribute.AttributeDTO;
 import ru.caselab.edm.backend.dto.attribute.AttributeUpdateDTO;
@@ -17,6 +16,7 @@ import ru.caselab.edm.backend.entity.Attribute;
 import ru.caselab.edm.backend.entity.AttributeSearch;
 import ru.caselab.edm.backend.entity.Document;
 import ru.caselab.edm.backend.entity.DocumentType;
+import ru.caselab.edm.backend.entity.DocumentVersion;
 import ru.caselab.edm.backend.exceptions.AttributeAlreadyExistsException;
 import ru.caselab.edm.backend.exceptions.ResourceNotFoundException;
 import ru.caselab.edm.backend.mapper.attribute.AttributeMapper;
@@ -46,26 +46,13 @@ public class AttributeServiceImpl implements AttributeService {
     private final DocumentRepository documentRepository;
     private final DocumentVersionMapper documentVersionMapper;
 
-    @PostConstruct
-    public void init() {
-        List<Attribute> attributes = attributeRepository.findAll();
-        for (Attribute attribute : attributes) {
-            List<Long> documents = documentRepository.getDocumentsWithAttribute(attribute.getId());
-                    AttributeSearch attributeSearch = new AttributeSearch(attribute.getId(),
-                    attribute.getName(),
-                    attribute.getDataType(),
-                    attribute.isRequired(),
-                            documents);
-            attributeSearchRepository.save(attributeSearch);
-        }
-    }
-
     @Override
     public List<AttributeSearch> searchByName(String name) {
         log.info("Attribute search with string: {}", name);
         return attributeSearchRepository.findByName(name);
     }
 
+    @Transactional
     @Override
     public Set<DocumentVersionDtoWithAuthor> findByNameWithMinLength(String name) {
         log.info("Attribute search with string: {}", name);
@@ -74,13 +61,13 @@ public class AttributeServiceImpl implements AttributeService {
 
         for (AttributeSearch attributeSearch : attributeSearchRepository.findByNameWithMinLength(name)) {
             for (Long id : attributeSearch.getDocuments()) {
-                Optional<Document> document = documentRepository.findById(id);
-
-                if (document.isPresent()) {
-                    Document existingDocument = document.get();
-                    documentVersionDtoWithAuthors.add(documentVersionMapper.toDtoWithAuthor(
-                            existingDocument.getDocumentVersion().get(existingDocument.getDocumentVersion().size() - 1)));
-                }
+                documentRepository.findById(id).ifPresent(existingDocument ->
+                        existingDocument.getDocumentVersion().stream()
+                                .max(Comparator.comparing(DocumentVersion::getCreatedAt)
+                                        .thenComparing(DocumentVersion::getId,
+                                                Comparator.nullsFirst(Comparator.naturalOrder())))
+                                .map(documentVersionMapper::toDtoWithAuthor)
+                                .ifPresent(documentVersionDtoWithAuthors::add));
             }
         }
 
@@ -135,6 +122,7 @@ public class AttributeServiceImpl implements AttributeService {
         return attributeMapper.toDTO(attribute);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public Page<AttributeDTO> getAllAttributes(int page, int size) {
         log.info("Fetching all attributes - page: {}, size: {}", page, size);

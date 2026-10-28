@@ -14,7 +14,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.JpaSort;
-import org.testcontainers.shaded.org.checkerframework.checker.units.qual.A;
 import ru.caselab.edm.backend.dto.document.DocumentCreateDTO;
 import ru.caselab.edm.backend.dto.document.DocumentOutputAllDocumentsDTO;
 import ru.caselab.edm.backend.dto.document.DocumentUpdateDTO;
@@ -35,7 +34,7 @@ import ru.caselab.edm.backend.state.DocumentStatus;
 import java.time.Instant;
 import java.util.*;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -64,6 +63,8 @@ class DocumentServiceTests {
     private DocumentVersionRepository documentVersionRepository;
     @Mock
     private DocumentState documentState;
+    @Mock
+    private AuthorizationService authorizationService;
 
 
     @InjectMocks
@@ -183,6 +184,7 @@ class DocumentServiceTests {
         document.setDocumentVersion(documentVersionList);
 
         when(documentRepository.getDocumentForUser(documentId, userId)).thenReturn(Optional.of(document));
+        when(documentVersionRepository.findByDocumentId(documentId)).thenReturn(documentVersionList);
 
         DocumentVersion result = documentService.getLastVersionDocumentForUser(documentId, userId);
 
@@ -221,9 +223,9 @@ class DocumentServiceTests {
 
         Page<DocumentVersion> documentVersionPage = new PageImpl<>(documentVersionList);
 
-        document.setDocumentVersion(documentVersionList);
-
         when(documentRepository.getDocumentForUser(documentId, userId)).thenReturn(Optional.of(document));
+        when(documentVersionRepository.findPageByDocumentId(eq(documentId), any(PageRequest.class)))
+                .thenReturn(documentVersionPage);
 
         Page<DocumentVersion> result = documentService.getAllVersionDocumentForUser(documentId, userId, 0, 5);
 
@@ -256,24 +258,24 @@ class DocumentServiceTests {
     @Test
     @DisplayName("Get Document success")
     void getDocument_Success() {
-        when(documentRepository.findById(1L)).thenReturn(Optional.of(document));
+        when(documentRepository.getDocumentById(1L)).thenReturn(Optional.of(document));
         Document foundDocument = documentService.getDocument(1L);
 
         assertEquals(document.getId(), foundDocument.getId(), "Document ID should match");
         assertEquals(document.getUser(), foundDocument.getUser(), "User should match");
         assertEquals(document.getDocumentType(), foundDocument.getDocumentType(), "Document type should match");
 
-        verify(documentRepository).findById(1L);
+        verify(documentRepository).getDocumentById(1L);
     }
 
     @Test
     @DisplayName("Document not found")
     void getDocument_NotFound() {
-        when(documentRepository.findById(1L)).thenReturn(Optional.empty());
+        when(documentRepository.getDocumentById(1L)).thenReturn(Optional.empty());
 
         assertThrows(ResourceNotFoundException.class, () -> documentService.getDocument(1L));
 
-        verify(documentRepository).findById(1L);
+        verify(documentRepository).getDocumentById(1L);
     }
 
     @Test
@@ -310,8 +312,7 @@ class DocumentServiceTests {
         attributeSearch.setId(1L);
         attributeSearch.setName(attribute.getName());
         attributeSearch.setDataType(attribute.getDataType());
-        attributeSearch.setDocuments(new ArrayList<Long>());
-        attributeSearch.getDocuments().add(1L);
+        attributeSearch.setDocuments(null);
 
         DocumentCreateDTO documentCreateDTO = new DocumentCreateDTO();
         FileDTO fileDTO = new FileDTO("Data", "test_object_name");
@@ -327,7 +328,7 @@ class DocumentServiceTests {
 
         Mockito.when(userRepository.findById(userId)).thenReturn(Optional.of(user1));
 
-        Mockito.when(documentRepository.save(document1)).thenReturn(savedDocument);
+        Mockito.when(documentRepository.save(any(Document.class))).thenReturn(savedDocument);
 
         Mockito.when(documentVersionService.saveDocumentVersion(documentCreateDTO,
                 savedDocument, userId)).thenReturn(documentVersion1);
@@ -335,6 +336,8 @@ class DocumentServiceTests {
         Long result = documentService.saveDocument(documentCreateDTO, userId).getId();
 
         assertEquals(documentVersion1.getId(), result);
+        assertEquals(java.util.List.of(1L), attributeSearch.getDocuments());
+        verify(attributeSearchRepository).save(attributeSearch);
     }
 
     @Test
@@ -355,6 +358,8 @@ class DocumentServiceTests {
         Document existingDocument = new Document();
         existingDocument.setDocumentType(documentType);
         User user = new User();
+        user.setId(userId);
+        existingDocument.setUser(user);
 
         DocumentVersion documentVersion = new DocumentVersion();
 
@@ -362,8 +367,7 @@ class DocumentServiceTests {
 
 
         Mockito.when(attributeSearchRepository.findById(attributeSearch.getId())).thenReturn(Optional.of(attributeSearch));
-        when(documentRepository.findById(documentId)).thenReturn(Optional.of(existingDocument));
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(authorizationService.requireOwnedDocument(documentId, userId)).thenReturn(existingDocument);
 
         when(documentRepository.save(existingDocument)).thenReturn(existingDocument);
 
@@ -371,8 +375,7 @@ class DocumentServiceTests {
 
         DocumentVersion updatedDocument = documentService.updateDocument(documentId, documentUpdateDTO, userId);
 
-        verify(documentRepository).findById(documentId);
-        verify(userRepository).findById(userId);
+        verify(authorizationService).requireOwnedDocument(documentId, userId);
         verify(documentRepository).save(any());
         verify(documentVersionService).updateDocumentVersion(documentUpdateDTO, existingDocument, userId);
 
@@ -399,6 +402,9 @@ class DocumentServiceTests {
         mockDocument.setId(documentId);
         mockDocument.setDocumentType(documentType);
         mockDocument.setArchived(false);
+        User owner = new User();
+        owner.setId(userId);
+        mockDocument.setUser(owner);
 
         DocumentVersion mockVersion = new DocumentVersion();
         mockVersion.setId(1L);
@@ -415,12 +421,12 @@ class DocumentServiceTests {
         attributeSearch.getDocuments().add(1L);
 
         Mockito.when(attributeSearchRepository.findById(attributeSearch.getId())).thenReturn(Optional.of(attributeSearch));
-        when(documentRepository.findById(documentId)).thenReturn(Optional.of(mockDocument));
+        when(authorizationService.requireOwnedDocument(documentId, userId)).thenReturn(mockDocument);
         when(documentRepository.save(any(Document.class))).thenReturn(mockDocument);
 
         documentService.deleteDocument(documentId, userId);
 
-        assertTrue("Документ должен быть заархивирован", mockDocument.isArchived());
+        assertTrue(mockDocument.isArchived(), "Документ должен быть заархивирован");
     }
 
     @Test

@@ -103,6 +103,7 @@ public class DocumentAttributeValueServiceImpl implements DocumentAttributeValue
         return documentAttributeValueRepository.saveAll(newDocumentAttributeValueList);
     }
 
+    @Transactional
     @Override
     public List<DocumentAttributeValue> createDocumentAttributeValues(
             List<AttributeValuetoCreateDocumentDTO> newAttributeValues,
@@ -114,13 +115,14 @@ public class DocumentAttributeValueServiceImpl implements DocumentAttributeValue
 
         for (Attribute attribute : attributeIds) {
             Optional<String> attributeValue = getAttributeValue(newAttributeValues, attribute.getId());
-            if (attribute.isRequired() && attributeValue.isEmpty()) {
+            String value = attributeValue.orElse("");
+            if (attribute.isRequired() && value.isBlank()) {
                 throw new RequieredAttributeEmptyValueException("Attribute %s is required but not send".formatted(attribute.getName()));
             }
             DocumentAttributeValue documentAttributeValue = DocumentAttributeValue.builder()
                     .attribute(attribute)
                     .documentVersion(documentVersion)
-                    .value(attributeValue.get())
+                    .value(value)
                     .build();
 
             documentAttributeValueList.add(documentAttributeValue);

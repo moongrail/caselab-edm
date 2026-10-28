@@ -14,6 +14,7 @@ import jakarta.validation.constraints.Min;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import ru.caselab.edm.backend.dto.department.*;
@@ -54,6 +55,7 @@ public class DepartmentController {
     })
     @PostMapping()
     @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<DepartmentDTO> createDepartment(
             @RequestBody
             @Valid CreateDepartmentDTO createDepartmentDTO) {
@@ -128,6 +130,7 @@ public class DepartmentController {
     )
     @PostMapping("/add/{id}")
     @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<StatisticMembersDTO> addMembersToDepartment(@RequestBody
                                                                       @Valid MembersDTO addMembersDTO,
                                                                       @Parameter(description = "Department id", required = true, example = "1")
@@ -147,6 +150,7 @@ public class DepartmentController {
     )
     @PostMapping("/kick/{id}")
     @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<StatisticMembersDTO> kickMembersFromDepartment(@RequestBody
                                                                          @Valid MembersDTO kickMembersDTO,
                                                                          @Parameter(description = "Department id", required = true, example = "1")
@@ -178,6 +182,7 @@ public class DepartmentController {
             content = @Content)
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasRole('ADMIN')")
     public void deleteDepartment(@PathVariable Long id) {
         departmentService.deleteDepartment(id);
     }

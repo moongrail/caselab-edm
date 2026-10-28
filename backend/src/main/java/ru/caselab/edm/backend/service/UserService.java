@@ -1,7 +1,5 @@
 package ru.caselab.edm.backend.service;
 
-import ru.caselab.edm.backend.dto.auth.JwtDTO;
-import ru.caselab.edm.backend.dto.auth.LoginUserDTO;
 import ru.caselab.edm.backend.dto.user.CreateUserDTO;
 import ru.caselab.edm.backend.dto.user.UpdatePasswordDTO;
 import ru.caselab.edm.backend.dto.user.UpdatePasswordForAdminDTO;
@@ -26,7 +24,4 @@ public interface UserService {
     void updatePasswordAsAdmin(UUID userId, UpdatePasswordForAdminDTO updatePasswordForAdminDTO);
 
     void deleteUser(UUID id);
-
-    JwtDTO auth(LoginUserDTO loginUserDTO);
-
 }

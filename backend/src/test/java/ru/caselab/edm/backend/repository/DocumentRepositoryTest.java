@@ -78,6 +78,27 @@ class DocumentRepositoryTest {
     }
 
     @Test
+    void existsAccessibleByContentUrl_ownerAndSignatoryAllowed() {
+        initdb();
+        UUID owner = UUID.fromString("48bbbd31-45c0-43c5-b989-c1c14a8c3b8b");
+        UUID signatory = UUID.fromString("c5df47fe-f4d2-45c2-8084-e646c85a7eba");
+
+        Assertions.assertThat(repository.existsAccessibleByContentUrl("test_url", owner)).isTrue();
+        Assertions.assertThat(repository.existsAccessibleByContentUrl("test_url1", signatory)).isTrue();
+        Assertions.assertThat(repository.existsAccessibleByContentUrl("test_url1", owner)).isTrue();
+        Assertions.assertThat(repository.existsAccessibleByContentUrl("test_url3", signatory)).isTrue();
+    }
+
+    @Test
+    void existsAccessibleByContentUrl_foreignAndUnknownContentDenied() {
+        initdb();
+        UUID owner = UUID.fromString("48bbbd31-45c0-43c5-b989-c1c14a8c3b8b");
+
+        Assertions.assertThat(repository.existsAccessibleByContentUrl("test_url4", owner)).isFalse();
+        Assertions.assertThat(repository.existsAccessibleByContentUrl("unknown", owner)).isFalse();
+    }
+
+    @Test
     void getAllDocumentWithNameAndStatusProjectionWhereUserOwner() {
         initdb();
         Pageable pageable = PageRequest.of(0, 5);

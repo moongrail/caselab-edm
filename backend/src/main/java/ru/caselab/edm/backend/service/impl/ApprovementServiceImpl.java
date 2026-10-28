@@ -7,16 +7,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.caselab.edm.backend.dto.approvementprocess.ApprovementProcessCreateDTO;
 import ru.caselab.edm.backend.dto.approvementprocess.ApprovementProcessDTO;
-import ru.caselab.edm.backend.entity.*;
 import ru.caselab.edm.backend.dto.approvementprocess.ApprovementProcessResultDTO;
 import ru.caselab.edm.backend.entity.ApprovementProcess;
 import ru.caselab.edm.backend.entity.ApprovementProcessItem;
 import ru.caselab.edm.backend.entity.DocumentVersion;
+import ru.caselab.edm.backend.entity.ReplacementManager;
 import ru.caselab.edm.backend.entity.User;
 import ru.caselab.edm.backend.entity.UserInfoDetails;
 import ru.caselab.edm.backend.enums.ApprovementProcessItemStatus;
 import ru.caselab.edm.backend.event.DocumentSignRequestEvent;
-import ru.caselab.edm.backend.exceptions.DocumentForbiddenAccess;
 import ru.caselab.edm.backend.exceptions.ResourceNotFoundException;
 import ru.caselab.edm.backend.mapper.approvementproccess.ApprovementProcessMapper;
 import ru.caselab.edm.backend.repository.ApprovementItemRepository;
@@ -24,15 +23,20 @@ import ru.caselab.edm.backend.repository.ApprovementProcessRepository;
 import ru.caselab.edm.backend.repository.ReplacementManagerRepository;
 import ru.caselab.edm.backend.repository.UserRepository;
 import ru.caselab.edm.backend.service.ApprovementService;
+import ru.caselab.edm.backend.service.AuthorizationService;
 import ru.caselab.edm.backend.service.DocumentService;
 import ru.caselab.edm.backend.service.DocumentVersionService;
 import ru.caselab.edm.backend.service.VotingService;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static java.util.stream.Collectors.toSet;
 import static ru.caselab.edm.backend.enums.ApprovementProcessStatus.PUBLISHED_FOR_VOTING;
 
 @Service
@@ -48,6 +52,7 @@ public class ApprovementServiceImpl implements ApprovementService {
     private final ApplicationEventPublisher eventPublisher;
     private final DocumentService documentService;
     private final DocumentVersionService documentVersionService;
+    private final AuthorizationService authorizationService;
 
     @Transactional
     @Override
@@ -55,14 +60,12 @@ public class ApprovementServiceImpl implements ApprovementService {
         log.info("Started approval process for document {}", createProcess.getDocumentId());
 
         DocumentVersion documentVersion = documentService.getLastVersionDocumentForUser(createProcess.getDocumentId(), authenticatedUser.getId());
-        if (!documentVersion.getDocument().getUser().getId().equals(authenticatedUser.getId())) {
-            throw new DocumentForbiddenAccess("You don't have access to this document with id = %d".formatted(createProcess.getDocumentId()));
-        }
-        documentVersion.getState().publishForVoting(documentVersion);
+        authorizationService.checkDocumentOwner(documentVersion.getDocument(), authenticatedUser.getId());
+        documentVersion.getStateMachine().publishForVoting(documentVersion);
         ApprovementProcess process = buildApprovementProcess(createProcess, documentVersion);
         List<User> usersForApproval = findUsersForApprovementProcess(createProcess.getUsersIds());
         List<ApprovementProcessItem> processItems = usersForApproval.stream()
-                .map(u -> createItem(u, documentVersion, process, authenticatedUser))
+                .map(u -> createItem(u, documentVersion, process))
                 .toList();
         process.getApprovementProcessItems().clear();
         process.getApprovementProcessItems().addAll(processItems);
@@ -79,6 +82,7 @@ public class ApprovementServiceImpl implements ApprovementService {
         return processMapper.toDTO(process);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public ApprovementProcessResultDTO resultOfApprovementProcess(Long documentId) {
         log.info("Result of approval process for document {}", documentId);
@@ -88,7 +92,7 @@ public class ApprovementServiceImpl implements ApprovementService {
         return processMapper.toResultDTO(process);
     }
 
-    private ApprovementProcessItem createItem(User user, DocumentVersion documentVersion, ApprovementProcess process, UserInfoDetails authenticatedUser) {
+    private ApprovementProcessItem createItem(User user, DocumentVersion documentVersion, ApprovementProcess process) {
         ApprovementProcessItem approvementProcessItem = new ApprovementProcessItem();
         approvementProcessItem.setUser(user);
         approvementProcessItem.setDocumentVersion(documentVersion);
@@ -113,17 +117,21 @@ public class ApprovementServiceImpl implements ApprovementService {
 
     private List<User> findUsersForApprovementProcess(Set<UUID> userIds) {
         Map<UUID, User> userReplacementsMap = findReplacementsForUsers(userIds);
-        List<User> usersForApproval = getUsersIdWithoutReplacements(userReplacementsMap, userIds);
+        List<User> usersForApproval = new ArrayList<>(
+                getUsersIdWithoutReplacements(userReplacementsMap, userIds));
         usersForApproval.addAll(userReplacementsMap.values());
 
-        return usersForApproval;
+        Map<UUID, User> uniqueUsers = new LinkedHashMap<>();
+        usersForApproval.forEach(user -> uniqueUsers.putIfAbsent(user.getId(), user));
+        return new ArrayList<>(uniqueUsers.values());
     }
 
     private Map<UUID, User> findReplacementsForUsers(Set<UUID> userIds) {
         return replacementManagerRepository.findActiveReplacementsByManagerUserIds(userIds).stream()
                 .collect(Collectors.toMap(
-                        replacement -> replacement.getManagerUser().getId(), //Key
-                        ReplacementManager::getTempManagerUser)); //Value
+                        replacement -> replacement.getManagerUser().getId(),
+                        ReplacementManager::getTempManagerUser,
+                        (existing, replacement) -> existing));
     }
 
     private List<User> getUsersIdWithoutReplacements(Map<UUID, User> userReplacements, Set<UUID> userIds) {
