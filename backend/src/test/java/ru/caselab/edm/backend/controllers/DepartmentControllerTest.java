@@ -3,6 +3,7 @@ package ru.caselab.edm.backend.controllers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.context.ActiveProfiles;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.EmptySource;
@@ -11,7 +12,6 @@ import org.junit.jupiter.params.provider.NullSource;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.testcontainers.shaded.org.apache.commons.lang3.RandomStringUtils;
 import ru.caselab.edm.backend.dto.department.CreateDepartmentDTO;
 import ru.caselab.edm.backend.dto.department.MembersDTO;
 import ru.caselab.edm.backend.service.DelegationService;
@@ -33,6 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WithMockUser(roles = "ADMIN")
+@ActiveProfiles("test")
 @WebMvcTest(DepartmentController.class)
 public class DepartmentControllerTest extends BaseControllerTest {
 
@@ -56,7 +57,7 @@ public class DepartmentControllerTest extends BaseControllerTest {
                 "name",
                 "descr",
                 1L,
-                "manager"
+                "123e4567-e89b-12d3-a456-426614174000"
         );
 
         performRequest(post(BASE_URI), createDepartmentDTO)
@@ -91,7 +92,7 @@ public class DepartmentControllerTest extends BaseControllerTest {
                 name,
                 "descr",
                 1L,
-                "test"
+                "123e4567-e89b-12d3-a456-426614174000"
         );
 
         performRequest(post(BASE_URI), createDepartmentDTO)
@@ -161,6 +162,6 @@ public class DepartmentControllerTest extends BaseControllerTest {
     }
 
     private static String generateStringWithInvalidLength() {
-        return RandomStringUtils.random(INVALID_LENGTH);
+        return "x".repeat(INVALID_LENGTH);
     }
 }

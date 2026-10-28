@@ -2,10 +2,8 @@ package ru.caselab.edm.backend.dto.department;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
-
-import java.util.UUID;
 
 @Schema(description = "DTO for creating department")
 public record CreateDepartmentDTO(
@@ -22,6 +20,10 @@ public record CreateDepartmentDTO(
 
         @Schema(description = "ID of manager of this department")
         @NotBlank
+        @Pattern(
+                regexp = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$",
+                message = "Manager id must be a valid UUID"
+        )
         String manager
 ) {
 

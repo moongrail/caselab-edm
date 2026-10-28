@@ -1,8 +1,10 @@
 package ru.caselab.edm.backend.configurations;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -18,6 +20,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import ru.caselab.edm.backend.security.filter.JwtFilter;
 
+import java.util.Arrays;
 import java.util.List;
 
 @Configuration
@@ -25,46 +28,53 @@ import java.util.List;
 @EnableMethodSecurity
 public class WebSecurityConfiguration {
 
-    public static final String[] WHITELIST = {
-            "/swagger-ui/**",
-            "/swagger-ui",
-            "/v3/api-docs/**",
-            "/swagger-resources/**",
-            "/swagger-resources",
-            "/api/v1/check/**",
-            "/check/**",
-            "/api/v1/jwt/**",
-            "/swagger/**",
-            "/jwt/**",
-            "/check/**",
-            "/api/v1/error",
-            "/error",
-            "/api/v1/auth",
+    /**
+     * Пути указаны относительно context-path (/api/v1).
+     */
+    private static final String[] PUBLIC_ENDPOINTS = {
             "/auth",
+            "/auth/**",
+            "/jwt/update",
+            "/actuator/health",
+            "/actuator/health/**",
+            "/v3/api-docs/**",
+            "/swagger-ui/**",
+            "/swagger-ui.html",
+            "/swagger-resources/**",
+            "/error"
     };
+
     private final JwtFilter jwtFilter;
+    private final List<String> allowedOrigins;
 
-
-    @Autowired
-    public WebSecurityConfiguration(JwtFilter jwtFilter) {
+    public WebSecurityConfiguration(JwtFilter jwtFilter,
+                                    @Value("${security.cors.allowed-origins:}") String allowedOrigins) {
         this.jwtFilter = jwtFilter;
+        this.allowedOrigins = Arrays.stream(allowedOrigins.split(","))
+                .map(String::trim)
+                .filter(origin -> !origin.isEmpty())
+                .toList();
     }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        return http.
-                headers(headers -> headers.httpStrictTransportSecurity(config -> config.disable()))
+        return http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(WHITELIST).permitAll()
+                        .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .exceptionHandling(exceptions -> exceptions
+                        .authenticationEntryPoint((request, response, ex) ->
+                                writeError(response, HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized"))
+                        .accessDeniedHandler((request, response, ex) ->
+                                writeError(response, HttpServletResponse.SC_FORBIDDEN, "Forbidden"))
+                )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
-
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -79,12 +89,23 @@ public class WebSecurityConfiguration {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(List.of("*"));
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH"));
+        configuration.setAllowedOrigins(allowedOrigins);
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowCredentials(true);
-        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "Origin"));
+        configuration.setExposedHeaders(List.of("Location"));
+        configuration.setMaxAge(3600L);
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
+    }
+
+    private static void writeError(HttpServletResponse response, int status, String message)
+            throws java.io.IOException {
+        response.setStatus(status);
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        response.setCharacterEncoding("UTF-8");
+        response.getWriter().write("{\"error\":\"%s\"}".formatted(message));
     }
 }

@@ -39,7 +39,6 @@ public class AttributeMapperTest {
 
 
         AttributeDTO map = mapper.toDTO(testAttribute);
-        System.out.println(map);
         Assertions.assertThat(mapper.toDTO(testAttribute)).isEqualTo(testAttributeDTO);
     }
 

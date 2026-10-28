@@ -10,15 +10,16 @@ import ru.caselab.edm.backend.entity.Signature;
 import ru.caselab.edm.backend.entity.UserInfoDetails;
 import ru.caselab.edm.backend.enums.ApprovementProcessItemStatus;
 import ru.caselab.edm.backend.exceptions.ResourceNotFoundException;
+import ru.caselab.edm.backend.exceptions.SignatureAlreadyExistsException;
 import ru.caselab.edm.backend.repository.ApprovementItemRepository;
 import ru.caselab.edm.backend.repository.SignatureRepository;
 import ru.caselab.edm.backend.service.DocumentService;
 import ru.caselab.edm.backend.service.SignatureService;
 
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -34,22 +35,24 @@ public class SignatureServiceImpl implements SignatureService {
 
         DocumentVersion documentVersion = documentService.getLastVersionDocumentWhereUserSignatories(documentId, authenticatedUser.getId());
 
-        Optional<ApprovementProcessItem> approvementProcessItemOptional = approvementItemRepository.findByDocumentVersionIdAndUserId(documentVersion.getId(), authenticatedUser.getId());
+        ApprovementProcessItem approvementProcessItem = approvementItemRepository
+                .findByDocumentVersionIdAndUserId(documentVersion.getId(), authenticatedUser.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Signing request not found"));
 
-        if (approvementProcessItemOptional.isEmpty()) {
-            throw new ResourceNotFoundException("Signing request not found");
+        if (signatureRepository.existsByApprovementProcessItemId(approvementProcessItem.getId())) {
+            throw new SignatureAlreadyExistsException(
+                    "Document has already been signed by user with id = %s".formatted(authenticatedUser.getId()));
         }
 
-        ApprovementProcessItem approvementProcessItem = approvementProcessItemOptional.get();
         approvementProcessItem.setStatus(ApprovementProcessItemStatus.valueOf(createDTO.getStatus()));
 
         //Изменение статуса версии документа после подписи
         if (isAuthorSign(documentVersion, authenticatedUser.getId())) {
             //проверка, что документ в данном состоянии может подписать автор
-            documentVersion.getState().signAuthor(documentVersion);
+            documentVersion.getStateMachine().signAuthor(documentVersion);
         } else {
             //проверка, что документ в данном состоянии может подписать контрагент
-            documentVersion.getState().signContractor(approvementProcessItem);
+            documentVersion.getStateMachine().signContractor(approvementProcessItem);
 
         }
 
@@ -72,7 +75,7 @@ public class SignatureServiceImpl implements SignatureService {
 
             String combined = userId.toString() + documentVersionId.toString();
 
-            byte[] hashBytes = digest.digest(combined.getBytes());
+            byte[] hashBytes = digest.digest(combined.getBytes(StandardCharsets.UTF_8));
 
             StringBuilder hexString = new StringBuilder();
             for (byte b : hashBytes) {
@@ -83,7 +86,7 @@ public class SignatureServiceImpl implements SignatureService {
 
             return hexString.toString();
         } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("Hashing algorithm not found", e);
+            throw new IllegalStateException("Hashing algorithm SHA-256 is not available", e);
         }
     }
 }

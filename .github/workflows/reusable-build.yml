@@ -15,9 +15,13 @@ on:
       DOCKER_TOKEN:
         required: true
 
+permissions:
+  contents: read
+
 jobs:
   build_image:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -36,13 +40,17 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: ${{ inputs.image_name }}
-          tags: ${{ inputs.image_tag }}
+          tags: |
+            type=raw,value=${{ inputs.image_tag }}
+            type=sha,prefix=sha-
 
       - name: Build and push Docker image
-        id: push
         uses: docker/build-push-action@v6
         with:
           context: ./backend
+          file: ./backend/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
-
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

@@ -3,17 +3,17 @@ package ru.caselab.edm.backend.security.service.impl;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.stereotype.Service;
+import ru.caselab.edm.backend.configurations.props.JwtProperties;
 import ru.caselab.edm.backend.exceptions.ExpiredJwtTokenException;
 import ru.caselab.edm.backend.security.service.JwtService;
 
-import java.security.Key;
+import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -21,15 +21,19 @@ import java.util.Map;
 import java.util.function.Function;
 
 @Service
+@EnableConfigurationProperties(JwtProperties.class)
 public class JwtServiceImpl implements JwtService {
 
-    private static final int JWT_TOKEN_LIFETIME = 60 * 60 * 1000; // 1 час
-    private static String SECRET_KEY;
+    private final SecretKey signingKey;
+    private final long accessTokenLifetimeMillis;
     private final JwtParser jwtParser;
 
-    public JwtServiceImpl(@Value("${secret.key}") String key) {
-        SECRET_KEY = key;
-        jwtParser = Jwts.parser().setSigningKey(SECRET_KEY).build();
+    public JwtServiceImpl(JwtProperties jwtProperties) {
+        this.signingKey = Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtProperties.getSecret()));
+        this.accessTokenLifetimeMillis = jwtProperties.getAccessTokenTtl().toMillis();
+        this.jwtParser = Jwts.parser()
+                .verifyWith(signingKey)
+                .build();
     }
 
     @Override
@@ -44,49 +48,45 @@ public class JwtServiceImpl implements JwtService {
 
     @Override
     public boolean validateToken(String token, UserDetails user) {
-        final String username = getLogin(token);
-
-        if (!isExpired(token))
-            return (username.equals(user.getUsername()));
-        else
+        if (isExpired(token)) {
             throw new ExpiredJwtTokenException("JWT token expired");
+        }
+        return getLogin(token).equals(user.getUsername());
     }
 
     @Override
     public <T> T getClaims(String token, Function<Claims, T> function) {
-        Claims claims = jwtParser.parseClaimsJws(token).getBody();
-
+        Claims claims = jwtParser.parseSignedClaims(token).getPayload();
         return function.apply(claims);
     }
 
     @Override
     public String generateToken(UserDetails user) {
-
-        return createToken(new HashMap<String, Object>(), user);
+        return createToken(new HashMap<>(), user);
     }
-
 
     @Override
     public boolean isExpired(String token) {
-        return getExpiration(token).before(new Date());
+        try {
+            return getExpiration(token).before(new Date());
+        } catch (io.jsonwebtoken.ExpiredJwtException ex) {
+            return true;
+        }
     }
-
-    public Key getSignKey() {
-        return Keys.hmacShaKeyFor(Decoders.BASE64.decode(SECRET_KEY));
-    }
-
 
     private String createToken(Map<String, Object> claims, UserDetails user) {
-        List<String> roles = user.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
+        List<String> roles = user.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .toList();
         claims.put("authorities", roles);
 
+        Date now = new Date();
         return Jwts.builder()
-                .setClaims(claims)
-                .setSubject(user.getUsername())
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + (JWT_TOKEN_LIFETIME)))
-                .signWith(getSignKey(), SignatureAlgorithm.HS256).compact();
+                .claims(claims)
+                .subject(user.getUsername())
+                .issuedAt(now)
+                .expiration(new Date(now.getTime() + accessTokenLifetimeMillis))
+                .signWith(signingKey, Jwts.SIG.HS256)
+                .compact();
     }
-
-
 }

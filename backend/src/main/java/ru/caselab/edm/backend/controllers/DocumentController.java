@@ -45,6 +45,7 @@ import ru.caselab.edm.backend.entity.UserInfoDetails;
 import ru.caselab.edm.backend.enums.DocumentSortingType;
 import ru.caselab.edm.backend.mapper.documentversion.DocumentVersionMapper;
 import ru.caselab.edm.backend.service.ApprovementService;
+import ru.caselab.edm.backend.service.AuthorizationService;
 import ru.caselab.edm.backend.service.DocumentService;
 import ru.caselab.edm.backend.service.MinioService;
 import ru.caselab.edm.backend.service.SignatureService;
@@ -64,6 +65,7 @@ public class DocumentController {
     private final DocumentVersionMapper documentVersionMapper;
     private final ApprovementService approvementService;
     private final MinioService minioService;
+    private final AuthorizationService authorizationService;
 
     @Operation(
             summary = "Start approval process for current document"
@@ -105,7 +107,7 @@ public class DocumentController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Document was successfully signed",
                     content = @Content),
-            @ApiResponse(responseCode = "400", description = "Signature already exists")
+            @ApiResponse(responseCode = "409", description = "Signature already exists")
     })
     @PostMapping("/{id}/sign")
     @ResponseStatus(HttpStatus.OK)
@@ -363,7 +365,9 @@ public class DocumentController {
     @ResponseStatus(HttpStatus.OK)
     public DocumentLinkDTO downloadDocument(
             @Parameter(description = "The value of the contentUrl field of the document", example = "")
-            @RequestParam("url") String url) {
+            @RequestParam("url") String url,
+            @AuthenticationPrincipal UserInfoDetails user) {
+        authorizationService.ensureContentAccess(url, user.getId());
         return new DocumentLinkDTO(minioService.generateTemporaryUrlToObject(url));
     }
 

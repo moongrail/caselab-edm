@@ -12,6 +12,7 @@ import ru.caselab.edm.backend.dto.minio.MinioSaveDto;
 import ru.caselab.edm.backend.entity.Document;
 import ru.caselab.edm.backend.entity.DocumentAttributeValue;
 import ru.caselab.edm.backend.entity.DocumentVersion;
+import ru.caselab.edm.backend.exceptions.ResourceNotFoundException;
 import ru.caselab.edm.backend.mapper.document.MinioDocumentMapper;
 import ru.caselab.edm.backend.repository.DocumentVersionRepository;
 import ru.caselab.edm.backend.service.DocumentAttributeValueService;
@@ -39,8 +40,10 @@ public class DocumentVersionServiceImpl implements DocumentVersionService {
 
         DocumentVersion latestDocumentVersion = documentVersion
                 .stream()
-                .max(Comparator.comparing(DocumentVersion::getCreatedAt))
-                .orElseThrow();
+                .max(Comparator.comparing(DocumentVersion::getCreatedAt)
+                        .thenComparing(DocumentVersion::getId, Comparator.nullsFirst(Comparator.naturalOrder())))
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Document version not found for document id = %d".formatted(documentId)));
 
         return latestDocumentVersion;
     }
@@ -55,13 +58,14 @@ public class DocumentVersionServiceImpl implements DocumentVersionService {
         return documentVersionRepository.findAll(PageRequest.of(page, size));
     }
 
+    @Transactional
     @Override
     public DocumentVersion saveDocumentVersion(DocumentCreateDTO document, Document newDocument, UUID userId) {
 
         DocumentVersion newDocumentVersion = new DocumentVersion();
         newDocumentVersion.setDocumentName(document.getDocumentName());
         newDocumentVersion.setDocument(newDocument);
-        newDocumentVersion.setState(DocumentStatus.DRAFT);
+        newDocumentVersion.setStatus(DocumentStatus.DRAFT);
 
         MinioSaveDto saveDto = minioDocumentMapper.map(document.getFile().fileName(), document.getFile().data(), userId);
         minioService.saveObject(saveDto);
@@ -83,12 +87,15 @@ public class DocumentVersionServiceImpl implements DocumentVersionService {
         DocumentVersion updatingDocumentVersion = new DocumentVersion();
         DocumentVersion exsistingVersion = existingDocument.getDocumentVersion()
                 .stream()
-                .max(Comparator.comparing(DocumentVersion::getCreatedAt))
-                .orElseThrow();
+                .max(Comparator.comparing(DocumentVersion::getCreatedAt)
+                        .thenComparing(DocumentVersion::getId, Comparator.nullsFirst(Comparator.naturalOrder())))
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Document version not found for document id = %d"
+                                .formatted(existingDocument.getId())));
         updatingDocumentVersion.setDocument(existingDocument);
 
         //Проверка можно ли модифицировать документ
-        exsistingVersion.getState().modified(exsistingVersion);
+        exsistingVersion.getStateMachine().modified(exsistingVersion);
 
         if (document.getDocumentName() != null) {
             updatingDocumentVersion.setDocumentName(document.getDocumentName());
@@ -106,7 +113,7 @@ public class DocumentVersionServiceImpl implements DocumentVersionService {
             updatingDocumentVersion.setContentUrl(exsistingVersion.getContentUrl());
         }
 
-        updatingDocumentVersion.setState(DocumentStatus.DRAFT);
+        updatingDocumentVersion.setStatus(DocumentStatus.DRAFT);
         documentVersionRepository.saveAndFlush(updatingDocumentVersion);
 
         List<DocumentAttributeValue> documentAttributeValueList =

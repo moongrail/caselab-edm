@@ -32,6 +32,11 @@ public class EmailServiceImpl implements EmailService {
 
     @Override
     public void sendEmailForSign(ApprovementProcessItem processItem) {
+        if (senderEmail == null || senderEmail.isBlank()) {
+            log.info("Mail sender is not configured; skipping notification for user {}",
+                    processItem.getUser().getEmail());
+            return;
+        }
         try {
             log.info("Preparing email to send to user: {}", processItem.getUser().getEmail());
             MimeMessage message = mailSender.createMimeMessage();

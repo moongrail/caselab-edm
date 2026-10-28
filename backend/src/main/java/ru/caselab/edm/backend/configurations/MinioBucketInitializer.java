@@ -3,51 +3,36 @@ package ru.caselab.edm.backend.configurations;
 import io.minio.BucketExistsArgs;
 import io.minio.MakeBucketArgs;
 import io.minio.MinioClient;
-import io.minio.errors.MinioException;
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.annotation.Configuration;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.ApplicationArguments;
+import org.springframework.boot.ApplicationRunner;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Component;
 import ru.caselab.edm.backend.configurations.props.MinioConfigProperties;
 
-import java.io.IOException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-
+@Component
 @RequiredArgsConstructor
-@Configuration
-public class MinioBucketInitializer {
+@Slf4j
+@ConditionalOnProperty(name = "app.minio.initialize-bucket", havingValue = "true", matchIfMissing = true)
+public class MinioBucketInitializer implements ApplicationRunner {
 
     private final MinioClient minioClient;
     private final MinioConfigProperties minioConfigProperties;
 
-
-    @PostConstruct
-    public void initializeBucket() {
+    @Override
+    public void run(ApplicationArguments args) {
+        String bucketName = minioConfigProperties.getBucketName();
         try {
-            String bucketName = minioConfigProperties.getBucketName();
-
-            if (!isBucketExists(bucketName)) {
-                createBucket(bucketName);
+            boolean exists = minioClient.bucketExists(
+                    BucketExistsArgs.builder().bucket(bucketName).build());
+            if (!exists) {
+                minioClient.makeBucket(MakeBucketArgs.builder().bucket(bucketName).build());
+                log.info("MinIO bucket '{}' created", bucketName);
             }
-
         } catch (Exception ex) {
-            throw new RuntimeException(ex);
+            // Инфраструктура может быть недоступна при старте: приложение продолжает работу.
+            log.warn("MinIO bucket '{}' initialization skipped: {}", bucketName, ex.getMessage());
         }
-    }
-
-    private boolean isBucketExists(String bucketName) throws MinioException, IOException, NoSuchAlgorithmException, InvalidKeyException {
-        return minioClient.bucketExists(
-                BucketExistsArgs.builder()
-                        .bucket(bucketName)
-                        .build()
-        );
-    }
-
-    private void createBucket(String bucketName) throws MinioException, IOException, NoSuchAlgorithmException, InvalidKeyException {
-        minioClient.makeBucket(
-                MakeBucketArgs.builder()
-                        .bucket(bucketName)
-                        .build()
-        );
     }
 }

@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.caselab.edm.backend.dto.documenttype.DocumentTypeCreateDTO;
 import ru.caselab.edm.backend.dto.documenttype.DocumentTypeDTO;
 import ru.caselab.edm.backend.dto.documenttype.DocumentTypeUpdateDTO;
@@ -28,6 +29,7 @@ public class DocumentTypeImpl implements DocumentTypeService {
     private final AttributeRepository attributeRepository;
     private final DocumentTypeMapper mapper;
 
+    @Transactional(readOnly = true)
     public Page<DocumentTypeDTO> getAllDocumentType(int page, int size) {
         log.info("Get all document type - page: {}, size: {}", page, size);
         Page<DocumentType> documentTypes = documentTypeRepository.findAll(
@@ -38,6 +40,7 @@ public class DocumentTypeImpl implements DocumentTypeService {
         return documentTypes.map(mapper::toDto);
     }
 
+    @Transactional(readOnly = true)
     public DocumentTypeDTO getDocumentTypeById(Long id) {
         DocumentType documentType = documentTypeRepository.findById(id)
                 .orElseThrow(() -> {
@@ -48,6 +51,7 @@ public class DocumentTypeImpl implements DocumentTypeService {
         return mapper.toDto(documentType);
     }
 
+    @Transactional
     public DocumentTypeDTO createDocumentType(DocumentTypeCreateDTO createdDocumentType) {
         log.info("Creating document type with name: {}", createdDocumentType.getName());
         if (!documentTypeRepository.findByName(createdDocumentType.getName()).isEmpty()) {
@@ -70,6 +74,7 @@ public class DocumentTypeImpl implements DocumentTypeService {
         return mapper.toDto(documentType);
     }
 
+    @Transactional
     public DocumentTypeDTO updateDocumentType(Long id, DocumentTypeUpdateDTO updateDocumentType) {
         log.info("Updating document type with id: {}", id);
         DocumentType documentType = documentTypeRepository.findById(id)
@@ -98,6 +103,7 @@ public class DocumentTypeImpl implements DocumentTypeService {
         return mapper.toDto(documentType);
     }
 
+    @Transactional
     public void deleteDocumentType(Long id) {
         log.info("Deleting document type with id: {}", id);
         DocumentType documentType = documentTypeRepository.findById(id)

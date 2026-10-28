@@ -1,17 +1,62 @@
-version: '3.8'
+# Инфраструктура для запуска backend из IDE.
+# Запуск: cp .env.example .env && docker compose --env-file .env -f docker/docker-compose-services.yaml up -d
+name: ${COMPOSE_PROJECT_NAME:-caselab-edm}
+
 services:
-  backend:
-    build: ../backend
-    image: backend-image
-    container_name: backend-container
-    ports:
-      - "8080:8080"
+  edm-db:
+    image: postgres:14-alpine
+    restart: unless-stopped
     environment:
-      - DATABASE_URL=jdbc:postgresql://edm-db-test:5432/edm
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
-      - MINIO_ROOT_USER=minio-user
-      - MINIO_ROOT_PASSWORD=minio-password
-      - MINIO_ENDPOINT=http://minio:9000
-    restart: always
+      POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB is required}
+      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER is required}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  minio:
+    image: minio/minio:RELEASE.2024-10-13T13-34-11Z.fips
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:?MINIO_ACCESS_KEY is required}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:?MINIO_SECRET_KEY is required}
+    command: server /data --console-address ":9090"
+    volumes:
+      - minio_data:/data
+    ports:
+      - "127.0.0.1:9000:9000"
+      - "127.0.0.1:9090:9090"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  elasticsearch:
+    image: elasticsearch:8.7.1
+    restart: unless-stopped
+    environment:
+      discovery.type: single-node
+      ES_JAVA_OPTS: -Xms512m -Xmx512m
+      xpack.security.enabled: "false"
+      http.host: 0.0.0.0
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    ports:
+      - "127.0.0.1:9200:9200"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:9200"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+
+volumes:
+  postgres_data:
+  minio_data:
+  elasticsearch_data:
