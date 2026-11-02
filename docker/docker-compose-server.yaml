@@ -1,6 +1,5 @@
-# Production-сервер. Образ backend собирается и публикуется GitHub Actions.
-# На сервере должен лежать .env (права 600), заполненный по .env.example.
-# Запуск на сервере выполняется автоматически после merge в main.
+# Production compose used only by the CI/CD workflow after a merge to main.
+# The server keeps secrets in a protected .env file; no manual deployment is required.
 name: ${COMPOSE_PROJECT_NAME:-caselab-edm}
 
 services:
@@ -13,6 +12,21 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  security-db:
+    image: postgres:14-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${SECURITY_POSTGRES_DB:?SECURITY_POSTGRES_DB is required}
+      POSTGRES_USER: ${SECURITY_POSTGRES_USER:?SECURITY_POSTGRES_USER is required}
+      POSTGRES_PASSWORD: ${SECURITY_POSTGRES_PASSWORD:?SECURITY_POSTGRES_PASSWORD is required}
+    volumes:
+      - security_postgres_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 10s
@@ -53,11 +67,45 @@ services:
       timeout: 10s
       retries: 10
 
+  security:
+    image: ${SECURITY_IMAGE:?SECURITY_IMAGE is required}
+    restart: unless-stopped
+    depends_on:
+      security-db:
+        condition: service_healthy
+    ports:
+      - "8081:8081"
+    environment:
+      SERVER_PORT: 8081
+      SECURITY_DATABASE_URL: jdbc:postgresql://security-db:5432/${SECURITY_POSTGRES_DB:?SECURITY_POSTGRES_DB is required}
+      SECURITY_DATABASE_USERNAME: ${SECURITY_POSTGRES_USER:?SECURITY_POSTGRES_USER is required}
+      SECURITY_DATABASE_PASSWORD: ${SECURITY_POSTGRES_PASSWORD:?SECURITY_POSTGRES_PASSWORD is required}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
+      JWT_ACCESS_TOKEN_TTL: ${JWT_ACCESS_TOKEN_TTL:-1h}
+      JWT_REFRESH_TOKEN_TTL: ${JWT_REFRESH_TOKEN_TTL:-30d}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:?CORS_ALLOWED_ORIGINS is required}
+      SECURITY_INTERNAL_TOKEN: ${SECURITY_INTERNAL_TOKEN:?SECURITY_INTERNAL_TOKEN is required}
+      BOOTSTRAP_ADMIN_ENABLED: ${BOOTSTRAP_ADMIN_ENABLED:-false}
+      BOOTSTRAP_ADMIN_LOGIN: ${BOOTSTRAP_ADMIN_LOGIN:-}
+      BOOTSTRAP_ADMIN_EMAIL: ${BOOTSTRAP_ADMIN_EMAIL:-}
+      BOOTSTRAP_ADMIN_PASSWORD: ${BOOTSTRAP_ADMIN_PASSWORD:-}
+      BOOTSTRAP_ADMIN_FIRST_NAME: ${BOOTSTRAP_ADMIN_FIRST_NAME:-Administrator}
+      BOOTSTRAP_ADMIN_LAST_NAME: ${BOOTSTRAP_ADMIN_LAST_NAME:-System}
+      BOOTSTRAP_ADMIN_POSITION: ${BOOTSTRAP_ADMIN_POSITION:-Administrator}
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8081/api/v1/actuator/health | grep -q '\"status\":\"UP\"'"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+
   backend:
-    image: ${BACKEND_IMAGE:-moongrail/caselab-backend:latest}
+    image: ${BACKEND_IMAGE:?BACKEND_IMAGE is required}
     restart: unless-stopped
     depends_on:
       edm-db:
+        condition: service_healthy
+      security:
         condition: service_healthy
       minio:
         condition: service_healthy
@@ -73,8 +121,9 @@ services:
       DATABASE_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
       JWT_ACCESS_TOKEN_TTL: ${JWT_ACCESS_TOKEN_TTL:-1h}
-      JWT_REFRESH_TOKEN_TTL: ${JWT_REFRESH_TOKEN_TTL:-30d}
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:?CORS_ALLOWED_ORIGINS is required}
+      SECURITY_SERVICE_URL: http://security:8081/api/v1
+      SECURITY_INTERNAL_TOKEN: ${SECURITY_INTERNAL_TOKEN:?SECURITY_INTERNAL_TOKEN is required}
       MINIO_ENDPOINT: http://minio:9000
       MINIO_PUBLIC_ENDPOINT: ${MINIO_PUBLIC_ENDPOINT:?MINIO_PUBLIC_ENDPOINT is required}
       MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:?MINIO_ACCESS_KEY is required}
@@ -88,13 +137,6 @@ services:
       MAIL_USERNAME: ${MAIL_USERNAME:?MAIL_USERNAME is required}
       MAIL_PASSWORD: ${MAIL_PASSWORD:?MAIL_PASSWORD is required}
       OPENAPI_SERVER_URL: ${OPENAPI_SERVER_URL:?OPENAPI_SERVER_URL is required}
-      BOOTSTRAP_ADMIN_ENABLED: ${BOOTSTRAP_ADMIN_ENABLED:-false}
-      BOOTSTRAP_ADMIN_LOGIN: ${BOOTSTRAP_ADMIN_LOGIN:-}
-      BOOTSTRAP_ADMIN_EMAIL: ${BOOTSTRAP_ADMIN_EMAIL:-}
-      BOOTSTRAP_ADMIN_PASSWORD: ${BOOTSTRAP_ADMIN_PASSWORD:-}
-      BOOTSTRAP_ADMIN_FIRST_NAME: ${BOOTSTRAP_ADMIN_FIRST_NAME:-Администратор}
-      BOOTSTRAP_ADMIN_LAST_NAME: ${BOOTSTRAP_ADMIN_LAST_NAME:-Системы}
-      BOOTSTRAP_ADMIN_POSITION: ${BOOTSTRAP_ADMIN_POSITION:-Administrator}
     healthcheck:
       test: ["CMD-SHELL", "curl -fsS http://localhost:8080/api/v1/actuator/health | grep -q '\"status\":\"UP\"'"]
       interval: 30s
@@ -104,5 +146,6 @@ services:
 
 volumes:
   postgres_data:
+  security_postgres_data:
   minio_data:
   elasticsearch_data:

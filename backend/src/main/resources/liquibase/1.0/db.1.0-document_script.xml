@@ -20,10 +20,7 @@
             (
                 id
             ),
-                user_id UUID REFERENCES users
-            (
-                id
-            ) ON DELETE CASCADE,
+                owner_id UUID NOT NULL,
                 created_at TIMESTAMP DEFAULT NOW
             (
             )

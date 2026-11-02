@@ -2,25 +2,29 @@
 
 ## 1. Модель
 
-- `dev` — интеграционная ветка, каждый push запускает тесты.
-- PR в `dev` — тесты обязательны, деплоя нет.
-- `main` — production-ветка. Push/merge в `main` запускает полный конвейер:
-  тесты → сборка и публикация образа → деплой на сервер → health-check.
-
-Ручной запуск Docker Compose на сервере **не является** штатным способом выпуска.
-Штатный путь — merge в `main`.
+- `dev` — интеграционная ветка. Push и PR запускают тесты, деплоя нет.
+- `main` — production-ветка. Merge/push в `main` запускает полный конвейер:
+  тесты → сборка и публикация двух образов → автоматический деплой →
+  health-check обоих сервисов.
+- Ручной запуск production Compose не является штатным способом выпуска.
+  Штатный путь — merge в `main`.
 
 ## 2. GitHub Actions
 
 Файлы:
 
 - `.github/workflows/main-workflow.yml` — точки входа и порядок jobs;
-- `reusable-test.yml` — JDK 17, Maven Wrapper, `clean verify`, JaCoCo, отчёты;
-- `reusable-build.yml` — multi-stage Docker build, push в Docker Hub;
-- `reusable-deploy.yml` — копирование compose на сервер, pull/up, health-check.
+- `reusable-test.yml` — JDK 17, Maven Wrapper, `clean verify` всего reactor,
+  JaCoCo для трёх модулей и публикация отчётов;
+- `reusable-build.yml` — multi-stage Docker build, push в Docker Hub; один
+  вызов собирает backend, второй — security-service;
+- `reusable-deploy.yml` — копирование `docker-compose-server.yaml`, pull/up,
+  health-check.
 
-Деплой запускается только для `refs/heads/main` и только после успешных `test` и
-`build`. Concurrency не позволяет двум деплоям выполняться одновременно.
+Деплой запускается только для `refs/heads/main` после успешных `test`,
+`build-backend` и `build-security`. Concurrency запрещает одновременные
+деплои. Оба образа собираются из корня репозитория, поэтому изменения starter
+проходят один и тот же конвейер.
 
 ## 3. Необходимые GitHub Secrets
 
@@ -49,67 +53,91 @@ Environment `prod` рекомендуется защитить: required reviewe
    `scp_remote` в `main-workflow.yml`.
 5. Создать `/home/ubuntu/.env` на основе `.env.example`, заполнить реальными
    значениями, выставить `chmod 600 .env`.
-6. Убедиться, что порты 8080/9000 доступны только так, как требует архитектура;
-   TLS и внешний доступ — через reverse proxy.
+6. Настроить TLS/reverse proxy: наружу публикуются API, но **не**
+   `/internal/**`.
 7. Открыть firewall для SSH и HTTPS, остальное закрыть.
-8. Настроить `docker login` на сервере, если образ приватный.
-9. Выполнить первый деплой merge в `main`; дальше — только автоматически.
+8. Настроить `docker login` на сервере, если образы приватные.
+9. Выполнить первый merge в `main`; дальше деплой выполняется автоматически.
 
 `scp-action` копирует `docker/docker-compose-server.yaml` в `/home/ubuntu` с
-`strip_components: 1`. В результате на сервере лежит `docker-compose-server.yaml`
-рядом с `.env`.
+`strip_components: 1`. Compose-файл лежит рядом с `.env`; `.env` workflow не
+перезаписывает.
 
 ## 5. Переменные production
 
 Обязательные переменные `docker/docker-compose-server.yaml`:
 
-- `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`;
-- `JWT_SECRET`;
+- `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD` — база backend;
+- `SECURITY_POSTGRES_DB`, `SECURITY_POSTGRES_USER`,
+  `SECURITY_POSTGRES_PASSWORD` — отдельная база identity;
+- `BACKEND_IMAGE`, `SECURITY_IMAGE` — опубликованные образы;
+- `JWT_SECRET` — одинаковый для backend и security;
+- `SECURITY_INTERNAL_TOKEN` — секрет внутреннего directory API;
 - `CORS_ALLOWED_ORIGINS`;
 - `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY`, `MINIO_PUBLIC_ENDPOINT`;
 - `MAIL_HOST`, `MAIL_USERNAME`, `MAIL_PASSWORD` — SMTP обязателен в production;
 - `OPENAPI_SERVER_URL`.
 
-Необязательные (имеют безопасные значения по умолчанию): `JWT_ACCESS_TOKEN_TTL`,
-`JWT_REFRESH_TOKEN_TTL`, `MAIL_PORT`, `MINIO_BUCKET`,
-`ELASTIC_REINDEX_ON_STARTUP`, `BOOTSTRAP_ADMIN_*`.
+Необязательные: `JWT_ACCESS_TOKEN_TTL`, `JWT_REFRESH_TOKEN_TTL`, `MAIL_PORT`,
+`MINIO_BUCKET`, `ELASTIC_REINDEX_ON_STARTUP`, `BOOTSTRAP_ADMIN_*`.
 
-`MINIO_ENDPOINT` и `ELASTIC_ENDPOINT` задаются внутри compose как внутренние адреса
-контейнеров. `SPRING_PROFILES_ACTIVE=prod`.
+`MINIO_ENDPOINT` и `ELASTIC_ENDPOINT` задаются внутри compose как внутренние
+адреса контейнеров. Backend получает `SECURITY_SERVICE_URL` также из compose.
+`SPRING_PROFILES_ACTIVE=prod` задаётся для backend.
 
-Без обязательной переменной Compose завершится с ошибкой `... is required` — это
-защита от запуска с неполной конфигурацией.
+Без обязательной переменной Compose завершится с ошибкой `... is required` —
+это защита от запуска с неполной конфигурацией.
 
 ## 6. Первый запуск и миграции
 
-1. Backend стартует, Liquibase применяет changelog.
-2. Hibernate проверяет схему (`ddl-auto=validate`) и падает при расхождении.
-3. Если БД пустая и нужен администратор, временно включить
-   `BOOTSTRAP_ADMIN_ENABLED=true` и задать `BOOTSTRAP_ADMIN_*`.
-4. После создания администратора выключить bootstrap и перезапустить сервис.
-5. Проверить `/api/v1/actuator/health` и Swagger.
+1. `security-service` стартует, Liquibase применяет identity-схему.
+2. Backend стартует после health identity-сервиса, Liquibase применяет схему
+   документооборота.
+3. Hibernate проверяет обе схемы (`ddl-auto=validate`) и падает при
+   расхождении.
+4. Если база identity пустая, временно включить `BOOTSTRAP_ADMIN_ENABLED=true`
+   и задать `BOOTSTRAP_ADMIN_*`.
+5. После создания администратора выключить bootstrap и перезапустить
+   `security-service`.
+6. Проверить оба health endpoint и Swagger.
 
-Существующую БД перед первым деплоем новой версии необходимо забэкапить. Миграции
-не удаляют пользовательские данные; старые демо-учётки могут остаться и должны быть
-удалены/ротированы вручную.
+Существующие базы перед первым деплоем новой версии необходимо забэкапить.
+
+Для backend-базы Liquibase 1.2 автоматически обрабатывает старую схему:
+
+- переименовывает `documents.user_id` в `owner_id`;
+- переименовывает `approvment_process_item.user_id` в `signer_id`;
+- удаляет старые FK на `users` у документов, заявок и
+  `replacement_managers`;
+- сохраняет UUID существующих владельцев и подписантов.
+
+Старые identity-таблицы (`users`, `roles`, `refresh_token` и т.д.) могут
+остаться в backend-базе, но приложение их больше не читает. Перенос
+пользователей в отдельную базу `security` и запуск `security-service` на этой
+схеме выполняются отдельно: нужна копия identity-таблиц либо чистый запуск с
+bootstrap администратора. Перед переключением проверьте UUID-ссылки и
+ротируйте/удалите демо-учётки.
 
 ## 7. Health-check и диагностика
 
 Workflow после `up -d` опрашивает:
 
 ```text
+GET http://localhost:8081/api/v1/actuator/health
 GET http://localhost:8080/api/v1/actuator/health
 ```
 
 до 30 попыток с интервалом 5 секунд. При неудаче печатаются `compose ps` и
-последние 200 строк логов backend, job завершается ошибкой.
+последние 200 строк логов `security` и `backend`, job завершается ошибкой.
 
 Типовые причины:
 
 | Симптом | Проверить |
 |---|---|
+| security не стартует | `SECURITY_DATABASE_URL`, `JWT_SECRET`, миграции identity |
 | backend не стартует | обязательные переменные `.env`, `docker compose config` |
 | `Schema-validation` | неприменённая миграция, несоответствие сущности и БД |
+| 401 на directory API | одинаковый `SECURITY_INTERNAL_TOKEN` в двух сервисах |
 | 401 на health | неверный контекстный путь/прокси |
 | health DOWN | подключение к БД, MinIO, Elasticsearch |
 | образ не скачивается | Docker Hub token/приватность образа |
@@ -124,7 +152,7 @@ GET http://localhost:8080/api/v1/actuator/health
 
 - миграции должны быть обратно совместимыми: сначала добавить новое, потом
   переключить код, затем удалять старое;
-- перед рискованными изменениями — backup БД;
+- перед рискованными изменениями — backup обеих БД;
 - не выполнять ручные `docker run`/`compose up` как основной способ отката;
   аварийные действия допустимы только по runbook и с последующей нормализацией
   через `main`.
@@ -132,17 +160,19 @@ GET http://localhost:8080/api/v1/actuator/health
 ## 9. Обновление секретов
 
 1. Обновить значение в GitHub Environment/Secrets и/или в `.env` на сервере.
-2. Для JWT — перезапустить backend (старые токены инвалидируются).
-3. Для БД/MinIO/SMTP — сначала подготовить новый доступ, затем переключить
+2. Для `JWT_SECRET` — обновить оба сервиса; старые access-токены станут
+   невалидными.
+3. Для `SECURITY_INTERNAL_TOKEN` — обновить security и backend одновременно.
+4. Для БД/MinIO/SMTP — сначала подготовить новый доступ, затем переключить
    приложение, затем отозвать старый.
-4. Проверить health, логи и ключевые сценарии.
-5. Зафиксировать дату ротации в внутреннем журнале (вне репозитория).
+5. Проверить health, логи и ключевые сценарии.
+6. Зафиксировать дату ротации во внутреннем журнале (вне репозитория).
 
 Подробнее: [SECURITY.md](SECURITY.md).
 
 ## 10. Локальная проверка конфигурации
 
-Перед merge полезно проверить, что compose синтаксически валиден:
+Перед merge полезно проверить синтаксис compose:
 
 ```bash
 docker compose --env-file .env -f docker/docker-compose-server.yaml config

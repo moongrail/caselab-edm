@@ -1,0 +1,21 @@
+package ru.caselab.edm.security.persistence;
+
+import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.stereotype.Repository;
+import ru.caselab.edm.security.domain.RefreshToken;
+
+import java.util.Optional;
+import java.util.UUID;
+
+@Repository
+public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Long> {
+    @EntityGraph(attributePaths = {"user", "user.roles", "user.department", "user.leadDepartment"})
+    Optional<RefreshToken> findRefreshTokenByToken(String token);
+
+    @Modifying
+    @Query(value = "DELETE FROM RefreshToken rt WHERE rt.user.id = :userId")
+    void deleteAllByUserId(UUID userId);
+}

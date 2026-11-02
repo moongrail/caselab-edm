@@ -2,213 +2,152 @@
 
 ## 1. Принципы
 
-- Unit-тесты не требуют Docker, PostgreSQL, MinIO или Elasticsearch.
-- Интеграционные тесты репозиториев и контекста используют H2 в режиме
-  PostgreSQL-совместимости и Liquibase.
-- Тестовая схема создаётся теми же changeset, что и production, и проверяется
-  Hibernate (`ddl-auto=validate`). Это ловит расхождения миграций и сущностей.
-- Внешние сервисы (MinIO, SMTP, Elasticsearch, Quartz Scheduler) в unit-тестах
-  заменяются Mockito.
-- Тесты фиксируют не только happy path, но и отказы: чужая версия, повторная
-  подпись, недопустимый переход статуса, отсутствие документа.
+- Unit- и slice-тесты не требуют Docker, PostgreSQL, MinIO или Elasticsearch.
+- Repository-тесты поднимают H2 и ту же Liquibase-схему, что и production, с
+  `ddl-auto=validate`.
+- Identity-база и backend-база тестируются раздельно; backend-тесты не содержат
+  таблиц `users`/`departments`.
+- Внешние сервисы заменяются Mockito, HTTP-клиент identity — MockRestServiceServer.
+- Проверяются не только happy path, но и отказы: чужой документ, повторная
+  подпись, невалидные DTO, истёкшие токены, недоступный сервис.
+- ArchUnit проверяет, что `security-service` не зависит от backend.
 
-## 2. Команды
+## 2. Запуск
+
+Сборка из корня проверяет все модули:
 
 ```bash
-cd backend
 ./mvnw -ntp clean verify
 ```
 
 Windows PowerShell:
 
 ```powershell
-cd backend
 .\mvnw.cmd -ntp clean verify
 ```
 
-Только тесты без упаковки:
+Только тесты:
 
 ```bash
 ./mvnw -ntp test
 ```
 
-Один класс:
+Один тест или класс:
 
 ```bash
-./mvnw -ntp -Dtest=SignatureServiceImplTest test
+./mvnw -ntp -pl backend -Dtest=SignatureServiceImplTest test
+./mvnw -ntp -pl security-service -Dtest=InternalTokenFilterTest test
+./mvnw -ntp -pl platform-spring-boot-starter -Dtest=JwtTokenServiceImplTest test
 ```
 
-Несколько классов (PowerShell требует кавычек):
+Несколько тестов (PowerShell требует кавычек):
 
 ```powershell
-.\mvnw.cmd -ntp "-Dtest=SignatureServiceImplTest,DocumentServiceImplAdditionalTest" test
+.\mvnw.cmd -ntp -pl backend "-Dtest=SignatureServiceImplTest,DocumentServiceImplAdditionalTest" test
+```
+
+Если модуль зависит от starter, используйте `-am`:
+
+```bash
+./mvnw -ntp -pl backend -am test
 ```
 
 ## 3. Покрытие
 
-JaCoCo включён в `verify` и падает при покрытии строк ниже **90%**:
+JaCoCo запускается на `verify` и валидирует минимум **90% строк отдельно для
+каждого модуля**:
 
-```bash
-backend/target/site/jacoco/index.html
-```
+- `platform-spring-boot-starter/target/site/jacoco/index.html`;
+- `security-service/target/site/jacoco/index.html`;
+- `backend/target/site/jacoco/index.html`.
 
-Исключены из расчёта:
+Исключены из coverage: bootstrap/configuration, DTO, JPA-сущности, enum,
+exception, repository-интерфейсы и сгенерированные MapStruct-реализации.
+Новый технический код (JWT, фильтры, ObjectStorage, SMTP, UserDirectory)
+покрывается тестами, а не исключается.
 
-- `BackendApplication`;
-- `configurations` (инфраструктурные бины);
-- `dto`, `entity`, `enums`, `exceptions`;
-- `repository` (проверяются интеграционными тестами, но не считаются бизнес-кодом);
-- сгенерированные `mapper/**/*Impl.class`.
+Текущий baseline:
 
-Текущее покрытие после рефакторинга: **92.37% строк** (1235/1337), **80.25% ветвей**
-(260/324), **356 тестов**. Порог фиксирует минимум и не позволяет снизить покрытие
-незаметно.
+| Модуль | Тесты | Строки |
+|---|---:|---:|
+| `platform-spring-boot-starter` | 40 | 98.62% (286/290) |
+| `security-service` | 117 | 93.08% (363/390) |
+| `backend` | 266 | 92.97% (860/925) |
+| **Итого** | **423** | — |
 
-## 4. Уровни тестов
+## 4. Что покрыто
 
-### Unit-тесты сервисов
+### Platform starter
 
-- `SignatureServiceImplTest` — подписание, повторная подпись, недопустимый статус,
-  отсутствующая заявка, SHA-256.
-- `AuthorizationServiceImplTest` — владелец/посторонний, отсутствующий документ,
-  null/пустой `contentUrl`, доступ к скачиванию.
-- `DocumentServiceTests`,
-  `DocumentServiceImplAdditionalTest` — создание, обновление, удаление,
-  архивирование, пагинация, доступ владельца/подписанта, отправка на подписание,
-  скачивание.
-- `ApprovementServiceImplTest` — участники, делегирование, дубликаты, отправка на
-  голосование.
-- `VotingServiceImplTest` — планирование Quartz, ошибка планирования, подсчёт
-  голосов, идемпотентность.
-- `DelegationServiceImplTest`, `DepartmentServiceImplTest`,
-  `ReplacementManagementServiceImplTest` — организационная модель и замещения.
+- `JwtTokenServiceImplTest` — access/refresh claims, TTL, невалидные токены.
+- `JwtAuthenticationFilterTest` — публичные пути, невалидный/просроченный
+  токен, JSON 401.
+- `PlatformSecurityIntegrationTest` — security chain и `AuthenticatedUser`.
+- `AutoConfigurationTest` — условная активация JWT/MinIO/mail/Elastic.
+- `MinioObjectStorageTest` — загрузка, presigned URL, удаление.
+- `SmtpEmailSenderTest` — SMTP-письма без реальной почты.
+
+### Security service
+
+- `AuthServiceImplTest` — вход, выдача access/refresh.
+- `SecurityJwtServicesTest` — refresh, claims, роли.
+- `UserServiceTests` — CRUD пользователей, пароли, конфликты.
+- `DepartmentServiceImplTest` — подразделения, менеджеры, участники.
+- `InternalUserServiceTest` — проекции для backend и replacement candidates.
+- `InternalTokenFilterTest` — доступ к `/internal/**` только с токеном.
+- `InternalUserControllerTest` — internal HTTP-контракт.
+- `UserControllerTest`, `DepartmentControllerTest` — публичные MVC-контракты.
+- `SecurityArchitectureTest` — запрет зависимостей security → backend.
+
+### Backend
+
+- `DocumentServiceTests`, `DocumentServiceImplAdditionalTest` — создание,
+  обновление, удаление, отправка на подписание, проверка владельца.
+- `DocumentControllerTest`, `DocumentTypeControllerTest` — HTTP-контракты,
+  включая исторические `/document` URL approval-сценариев.
+- `SignatureServiceImplTest` — подпись, запрет повторной подписи, SHA-256.
+- `ApprovementServiceImplTest` — согласование, участники, дубликаты.
+- `VotingServiceImplTest` — Quartz, дедлайн, идемпотентный сбор результатов.
+- `DelegationServiceImplTest`, `ReplacementManagementServiceImplTest` —
+  замещение, проверка подразделения, пагинация.
 - `AttributeServiceImplTest`, `DocumentAttributeValueServiceImplTest`,
-  `DocumentVersionServiceImplTest` — атрибуты, версии, поиск.
-- `DocumentBaseStateTest` — переходы state machine для всех статусов.
-- `AuthServiceImplTest`, `SecurityServicesTest`, `JwtFilterTest` — вход, JWT,
-  refresh, публичные пути, 401/403.
-- `AnalyticsServiceImplTest`, `EmailServiceImplTest`,
-  `InfrastructureComponentsTest`, `MapperDefaultMethodsTest` — аналитика,
-  уведомления, bootstrap, инфраструктура.
+  `DocumentVersionServiceImplTest` — атрибуты и версии.
+- `DocumentBaseStateTest` — переходы state machine.
+- `DocumentResourceAccessPolicyTest`, `ResourceAuthorizationServiceImplTest` —
+  resource-authorization.
+- `HttpUserDirectoryClientTest` — контракт `/internal/**`, ошибки и заголовок
+  `X-Internal-Token`.
+- `ElasticsearchReindexRunnerTest`, `EmailServiceImplTest` — интеграционные
+  адаптеры.
+- `DocumentRepositoryTest`, `AnalyticsRepositoryTest`,
+  `ReplacementManagerRepositoryTest` — H2 + Liquibase + Hibernate validate.
 
-### Интеграционные тесты репозиториев
+## 5. Smoke-сценарий
 
-`@DataJpaTest` + `@ActiveProfiles("test")`:
+Полный стек запускается по [README](../README.md). После `up -d --build`
+проверьте:
 
-- Liquibase создаёт схему;
-- Hibernate проверяет её;
-- проверяются запросы документов, доступ по `contentUrl`, сортировки, страницы,
-  проекции и ограничения.
+1. `GET /api/v1/actuator/health` на `8081` и `8080` возвращает `UP`.
+2. Bootstrap создаёт администратора в `security-service`.
+3. `POST /api/v1/auth` с логином/паролем выдаёт access и refresh.
+4. `POST /api/v1/jwt/update` обновляет access по refresh.
+5. Backend принимает access-токен без запроса в identity-БД.
+6. Создание документа, загрузка версии и проверка атрибутов.
+7. Отправка на подписание, подпись автора и контрагента.
+8. Повторная подпись возвращает `409`.
+9. Чужой пользователь не может скачать файл (403).
+10. Делегирование подписи в активном периоде.
+11. Голосование с дедлайном и идемпотентный сбор результатов.
+12. Данные в обеих PostgreSQL и MinIO сохраняются после перезапуска.
 
-### Контекстный тест
+## 6. Типовые проблемы
 
-`BackendApplicationTests` поднимает полный Spring-контекст без Docker. Elasticsearch
-repository мокается, MinIO и переиндексация отключены флагами. Это проверяет
-конфигурацию, бины, Liquibase и security-цепочку.
-
-### Контроллеры
-
-`@WebMvcTest` проверяет коды ответов, валидацию DTO, JSON и вызовы сервисов.
-Скачивание проверяется отдельно: разрешённый пользователь получает ссылку,
-запрещённый — 403 и не получает presigned URL.
-
-## 5. Сценарии подписания (обязательные)
-
-| № | Сценарий | Ожидание |
-|---|---|---|
-| 1 | Автор отправляет версию на подписание | создаётся заявка, событие уведомления |
-| 2 | Участник подписывает последнюю версию | статус заявки и версии меняется, подпись сохранена |
-| 3 | Повторная подпись той же заявки | 409, статусы и подпись не меняются |
-| 4 | Подпись несуществующей заявки | 404 |
-| 5 | Подпись чужого документа | 403/404, без изменения данных |
-| 6 | Недопустимый переход статуса | 409, транзакция откатывается |
-| 7 | Подписание не последней версии | отклоняется |
-| 8 | Делегирование подписи | подписывает замещающий пользователь |
-| 9 | Завершение всех подписей | процесс переходит к голосованию/результату |
-| 10 | Ошибка планирования Quartz | исключение, создание процесса откатывается |
-| 11 | Повторный сбор результатов | идемпотентно, без дублей |
-| 12 | Скачивание файла участником | ссылка выдаётся |
-| 13 | Скачивание файла посторонним | 403, ссылка не генерируется |
-| 14 | JWT истёк, refresh валиден | `/jwt/update` доступен без access-токена |
-
-Эти сценарии распределены между `SignatureServiceImplTest`,
-`DocumentServiceImplAdditionalTest`, `DocumentControllerTest`,
-`VotingServiceImplTest`, `DelegationServiceImplTest` и `JwtFilterTest`.
-
-## 6. Полный стек в VirtualBox
-
-Docker Desktop может быть недоступен; ниже — воспроизводимая проверка на VM.
-
-### Подготовка
-
-1. VirtualBox: Ubuntu Server 22.04/24.04, 4 vCPU, 8 ГБ RAM, 40 ГБ диска.
-2. NAT + проброс порта 8080 (и 9000 при необходимости).
-3. Установить Docker Engine и Compose plugin.
-4. Клонировать репозиторий и перейти на проверяемую ветку.
-
-### Запуск
-
-```bash
-cp .env.example .env
-# заполнить POSTGRES_*, JWT_SECRET, MINIO_*, CORS_ALLOWED_ORIGINS
-docker compose --env-file .env -f docker/docker-compose-all.yaml up -d --build
-docker compose --env-file .env -f docker/docker-compose-all.yaml ps
-```
-
-Проверить:
-
-```bash
-curl -fsS http://localhost:8080/api/v1/actuator/health
-```
-
-Ожидается `{"status":"UP"}`. Swagger:
-`http://<vm-host>:8080/api/v1/swagger-ui/index.html`.
-
-### Smoke-сценарий
-
-1. Создать администратора через bootstrap-переменные или войти существующим.
-2. Создать тип документа и атрибуты.
-3. Создать документ, загрузить файл, проверить версию.
-4. Отправить версию на подписание другому пользователю.
-5. Войти подписавшим, подписать, проверить статус.
-6. Повторить подпись — получить 409.
-7. Скачать файл владельцем и подписантом — 200.
-8. Попробовать скачать файл посторонним — 403.
-9. Проверить `/jwt/update` с истёкшим access-токеном и валидным refresh.
-10. Перезапустить контейнеры и убедиться, что данные и файлы сохранились.
-
-Финальная проверка на Compose после выноса авторизации: health `UP`, скачивание
-владельцем — 200, presigned URL — 200, посторонним — 403. Полный сценарий
-подписания, повторная подпись (409), решения голосования и сохранность данных
-после перезапуска проверены ранее на том же стенде.
-
-### Ограничения VM
-
-- Elasticsearch требует памяти; при 4 ГБ RAM возможны OOM — увеличьте VM или
-  отключите reindex.
-- SMTP может быть недоступен; уведомления не должны ломать основной сценарий.
-- Не используйте production-секреты в VM.
-
-## 7. Отладка тестов
-
-| Проблема | Решение |
+| Сообщение | Решение |
 |---|---|
-| `Schema-validation: missing table` | проверьте URL H2 без `DATABASE_TO_UPPER=false`; Liquibase должен применить схему до JPA |
-| `Port already in use` | остановите локальный PostgreSQL/Elasticsearch или измените порт |
-| Тест зависит от порядка | используйте фиксированные `createdAt`/`id`, не полагайтесь на порядок БД |
-| `Strict stubbing` в Mockito | удалите неиспользуемый `when`, проверьте аргументы |
-| JaCoCo ниже 90% | добавьте тест на непокрытую ветку, не понижайте порог |
-| Тест требует Docker | это ошибка: unit/integration тесты должны работать без Docker |
-
-## 8. Что проверяется в CI
-
-`./mvnw -B -ntp clean verify`:
-
-- компиляция;
-- unit/интеграционные тесты;
-- Liquibase + H2 + `ddl-auto=validate`;
-- JaCoCo threshold;
-- сборка jar;
-- публикация отчётов и артефактов при падении.
-
-Docker-сборка и деплой запускаются только для `main` после успешных тестов.
+| `Schema-validation: missing table` | проверить, что Liquibase-схема нужного сервиса применилась до JPA |
+| `Port already in use` | освободить 8080/8081/5432/5433/9000/9200 |
+| `Strict stubbing` в Mockito | убрать лишние `when`, проверить аргументы |
+| JaCoCo ниже 90% | добавить тесты на отказные сценарии, не понижать порог |
+| context-тест падает без Docker | тест должен использовать H2 и моки, не Testcontainers |
+| 401 на `/internal/**` | одинаковый `SECURITY_INTERNAL_TOKEN` в двух сервисах |
+| `UserDirectoryException` | проверить `SECURITY_SERVICE_URL`, health identity и логи |

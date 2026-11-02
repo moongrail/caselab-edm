@@ -7,16 +7,30 @@ on:
       - dev
     paths:
       - 'backend/**'
-      - '.github/workflows/**'
+      - 'security-service/**'
+      - 'platform-spring-boot-starter/**'
       - 'docker/**'
+      - '.github/workflows/**'
+      - 'pom.xml'
+      - 'mvnw'
+      - 'mvnw.cmd'
+      - '.mvn/**'
+      - '.dockerignore'
   pull_request:
     branches:
       - main
       - dev
     paths:
       - 'backend/**'
-      - '.github/workflows/**'
+      - 'security-service/**'
+      - 'platform-spring-boot-starter/**'
       - 'docker/**'
+      - '.github/workflows/**'
+      - 'pom.xml'
+      - 'mvnw'
+      - 'mvnw.cmd'
+      - '.mvn/**'
+      - '.dockerignore'
 
 permissions:
   contents: read
@@ -36,21 +50,38 @@ jobs:
       java_version: '17'
       java_distribution: 'corretto'
       cache_build_tool: 'maven'
-      cache_path: 'backend/pom.xml'
-      test_report_path: 'backend/target/surefire-reports/TEST-*.xml'
+      cache_path: |
+        pom.xml
+        platform-spring-boot-starter/pom.xml
+        security-service/pom.xml
+        backend/pom.xml
+      test_report_path: '**/target/surefire-reports/TEST-*.xml'
 
-  build:
+  build-backend:
     if: github.ref == 'refs/heads/main'
     needs: test
     uses: ./.github/workflows/reusable-build.yml
     with:
       image_name: 'moongrail/caselab-backend'
       image_tag: 'latest'
+      dockerfile: './backend/Dockerfile'
+    secrets: inherit
+
+  build-security:
+    if: github.ref == 'refs/heads/main'
+    needs: test
+    uses: ./.github/workflows/reusable-build.yml
+    with:
+      image_name: 'moongrail/caselab-security'
+      image_tag: 'latest'
+      dockerfile: './security-service/Dockerfile'
     secrets: inherit
 
   deploy-prod:
     if: github.ref == 'refs/heads/main'
-    needs: build
+    needs:
+      - build-backend
+      - build-security
     uses: ./.github/workflows/reusable-deploy.yml
     with:
       environment: prod

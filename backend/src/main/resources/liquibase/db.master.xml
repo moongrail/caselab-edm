@@ -7,4 +7,5 @@
 
     <include file="liquibase/1.0/db.1.0.master.xml"/>
     <include file="liquibase/1.1/db.1.1.master.xml"/>
+    <include file="liquibase/1.2/db.1.2.master.xml"/>
 </databaseChangeLog>

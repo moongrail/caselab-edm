@@ -2,7 +2,7 @@ version: 2
 
 updates:
   - package-ecosystem: maven
-    directory: /backend
+    directory: /
     schedule:
       interval: weekly
       day: monday
@@ -41,6 +41,18 @@ updates:
       interval: weekly
       day: monday
       time: '05:00'
+      timezone: Europe/Moscow
+    open-pull-requests-limit: 3
+    labels:
+      - dependencies
+      - docker
+
+  - package-ecosystem: docker
+    directory: /security-service
+    schedule:
+      interval: weekly
+      day: monday
+      time: '05:10'
       timezone: Europe/Moscow
     open-pull-requests-limit: 3
     labels:

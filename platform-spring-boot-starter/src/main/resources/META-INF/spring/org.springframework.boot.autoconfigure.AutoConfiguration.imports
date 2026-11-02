@@ -1,0 +1,4 @@
+ru.caselab.edm.platform.autoconfigure.PlatformSecurityAutoConfiguration
+ru.caselab.edm.platform.autoconfigure.MinioAutoConfiguration
+ru.caselab.edm.platform.autoconfigure.EmailAutoConfiguration
+ru.caselab.edm.platform.autoconfigure.ElasticsearchAutoConfiguration

@@ -67,14 +67,22 @@ jobs:
             sudo docker compose --env-file .env -f docker-compose-server.yaml up -d --remove-orphans
 
             for attempt in $(seq 1 30); do
+              security_ready=false
+              backend_ready=false
+              if curl -fsS http://localhost:8081/api/v1/actuator/health | grep -q '"status":"UP"'; then
+                security_ready=true
+              fi
               if curl -fsS http://localhost:8080/api/v1/actuator/health | grep -q '"status":"UP"'; then
-                echo "Backend is healthy"
+                backend_ready=true
+              fi
+              if [ "$security_ready" = true ] && [ "$backend_ready" = true ]; then
+                echo "Security service and backend are healthy"
                 exit 0
               fi
               sleep 5
             done
 
-            echo "Backend health check failed"
+            echo "Health check failed"
             sudo docker compose --env-file .env -f docker-compose-server.yaml ps
-            sudo docker compose --env-file .env -f docker-compose-server.yaml logs --tail=200 backend
+            sudo docker compose --env-file .env -f docker-compose-server.yaml logs --tail=200 security backend
             exit 1

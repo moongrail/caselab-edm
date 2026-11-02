@@ -1,0 +1,34 @@
+# Build output
+**/target/
+*.class
+*.log
+
+# Secrets and local environment
+.env
+.env.*
+!.env.example
+*.pem
+*.p12
+*.jks
+
+# VCS and IDE
+.git/
+.github/
+.idea/
+*.iml
+.vscode/
+
+# Local tooling
+node_modules/
+
+# Keep build inputs
+!mvnw
+!mvnw.cmd
+!.mvn/
+!pom.xml
+!backend/pom.xml
+!platform-spring-boot-starter/pom.xml
+!security-service/pom.xml
+!backend/src/
+!platform-spring-boot-starter/src/
+!security-service/src/

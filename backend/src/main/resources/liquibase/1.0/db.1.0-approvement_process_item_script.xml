@@ -25,10 +25,7 @@
             (
                 id
             ),
-                user_id UUID REFERENCES users
-            (
-                id
-            ),
+                signer_id UUID NOT NULL,
                 status TEXT,
                 created_at TIMESTAMP DEFAULT NOW
             (
@@ -36,7 +33,7 @@
                 UNIQUE
             (
                 document_version_id,
-                user_id
+                signer_id
             )
                 );
 
