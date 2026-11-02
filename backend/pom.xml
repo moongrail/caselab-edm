@@ -22,7 +22,7 @@
         <tika-core.version>2.9.2</tika-core.version>
         <springdoc.version>2.6.0</springdoc.version>
         <maven-surefire-plugin.version>3.5.1</maven-surefire-plugin.version>
-        <jacoco.version>0.8.12</jacoco.version>
+        <jacoco.version>0.8.16</jacoco.version>
         <jacoco.line.coverage>0.90</jacoco.line.coverage>
     </properties>
     <dependencies>
