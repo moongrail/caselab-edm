@@ -18,7 +18,7 @@
         <java.version>17</java.version>
         <maven.compiler.release>${java.version}</maven.compiler.release>
         <org.mapstruct.version>1.6.2</org.mapstruct.version>
-        <minio.version>8.5.8</minio.version>
+        <minio.version>9.0.3</minio.version>
         <tika-core.version>2.9.2</tika-core.version>
         <springdoc.version>2.6.0</springdoc.version>
         <maven-surefire-plugin.version>3.5.1</maven-surefire-plugin.version>
