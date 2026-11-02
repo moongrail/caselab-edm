@@ -1,168 +1,197 @@
-# Архитектура backend
+# Архитектура CaseLab EDM
 
-## 1. Контекст
+## 1. Назначение
 
-Сервис — REST API для электронного документооборота. Клиенты (web UI, интеграции)
-обращаются к API за JWT. Файлы хранятся в MinIO, метаданные и процессные данные — в
-PostgreSQL, поисковый индекс — в Elasticsearch. Elasticsearch и MinIO не являются
-источником истины: недоступность поиска не должна валить основной сценарий, а
-недоступность MinIO делает недоступной только работу с файлами.
+CaseLab EDM — система электронного документооборота. Репозиторий содержит два
+запускаемых Spring Boot приложения и один технический starter:
+
+| Компонент | Тип | Ответственность |
+|---|---|---|
+| `security-service` | отдельный микросервис | identity: пользователи, роли, подразделения, аутентификация, JWT/refresh, внутренний directory API |
+| `backend` | отдельный микросервис | документы, версии, атрибуты, согласование, подписание, голосование, делегирование, аналитика |
+| `platform-spring-boot-starter` | библиотека | JWT-кодек, JWT-фильтр, resource-server, MinIO, SMTP, Elasticsearch reindex; без бизнес-сущностей |
+
+Публичные URL бизнес-API сохранены: backend по-прежнему обслуживает
+`/api/v1/document/**`, `/api/v1/attributes/**`, `/api/v1/analytics/**`,
+`/api/v1/replacement_managers/**`. Identity API находится в отдельном приложении:
+`/api/v1/auth`, `/api/v1/jwt`, `/api/v1/users`, `/api/v1/department`.
+
+## 2. Компоненты и порты
 
 ```text
-Client
-  │ HTTPS + JWT
-  ▼
-Spring MVC controllers
-  │ DTO / validation / @PreAuthorize
-  ▼
-Services (транзакции, бизнес-правила)
-  ├── Repositories (JPA) ──► PostgreSQL
-  ├── MinioService ───────► MinIO
-  ├── Elasticsearch repositories
-  └── ApplicationEventPublisher ──► email/notifications
+                    ┌────────────────────────────┐
+Browser / Mobile ──►│ backend :8080/api/v1       │
+                    │ Spring MVC + @PreAuthorize │
+                    └───────┬───────────┬────────┘
+                            │           │
+             JWT-local check│           │ UserDirectory (HTTP)
+                            │           │ X-Internal-Token
+                            │           ▼
+                            │   ┌────────────────────────────┐
+                            │   │ security-service :8081     │
+                            │   │ /api/v1/auth|jwt|users|... │
+                            │   └──────────┬─────────────────┘
+                            │              │ JPA + Liquibase
+                            │              ▼
+                            │        PostgreSQL security
+                            │
+          ┌─────────────────┼─────────────────────┐
+          ▼                 ▼                     ▼
+   PostgreSQL edm         MinIO             Elasticsearch
 ```
 
-## 2. Слои и правила зависимостей
+Access-токен проверяется каждым сервисом локально. Обращение к
+`security-service` в happy path не требуется: backend извлекает `uid`, `roles`,
+`department_id`, `managed_department_id` из подписанного JWT.
 
-| Слой | Ответственность | Запрещено |
+## 3. Границы сервисов
+
+### 3.1. Security Service
+
+- `api` — публичные `/auth`, `/jwt/update`, `/users`, `/department`.
+- `internal` — `/internal/users/**` и `/internal/departments/**` для backend.
+- `domain` — `User`, `Department`, `Role`, `RefreshToken`, инварианты ролей и
+  подразделений.
+- `persistence` — JPA-репозитории identity.
+- `jwt` — выдача access/refresh токенов.
+- `config` — security chain, CORS, bootstrap администратора, фильтр
+  `X-Internal-Token`.
+
+Внутренние endpoint-ы не предназначены для внешних клиентов. Фильтр
+`InternalTokenFilter` сравнивает заголовок с `security.internal.token` и
+возвращает `401`, если токен пуст/неверен. В production reverse proxy не должен
+маршрутизировать `/internal/**` наружу.
+
+### 3.2. Backend
+
+Разбит по bounded contexts:
+
+```text
+ru.caselab.edm.backend
+├── document/       # Document, DocumentVersion, DocumentType, Attribute
+├── approval/       # ApprovementProcess, Signature, Voting
+├── delegation/     # ReplacementManager, делегирование подписи
+├── analytics/      # read model и агрегаты
+├── integration/    # Elasticsearch, MinIO, mail adapters
+└── shared/
+    ├── directory/  # UserDirectory + HTTP-клиент security-service
+    ├── security/   # ResourceAccessPolicy, AuthorizationService
+    ├── exception/  # единый error contract
+    └── config/     # OpenAPI, Jackson, scheduler
+```
+
+`ApprovalController` физически находится в `approval/api`, но сохраняет
+исторические URL `/document/approvement/**`, `/document/{id}/sign`,
+`/document/{id}/send_for_signature`. Это осознанная совместимость публичного
+контракта.
+
+### 3.3. Platform Starter
+
+Starter предоставляет только переиспользуемые технические адаптеры:
+
+- `security` — `JwtTokenService`, `JwtAuthenticationFilter`,
+  `AuthenticatedUser`, resource-server;
+- `storage` — интерфейс `ObjectStorage` и MinIO-реализация;
+- `mail` — `EmailSender` и SMTP-реализация;
+- `search` — `ElasticsearchReindexRunner`;
+- `autoconfigure` — Spring Boot auto-configuration с conditionals.
+
+Starter не содержит identity-сущностей, репозиториев или бизнес-правил
+документооборота. Оба приложения подключают его как зависимость и получают
+согласованную JWT-конфигурацию.
+
+## 4. Аутентификация и авторизация
+
+Access-token:
+
+```json
+{
+  "uid": "UUID",
+  "sub": "login",
+  "roles": ["USER", "ADMIN"],
+  "department_id": 1,
+  "managed_department_id": 2,
+  "type": "access",
+  "iat": 0,
+  "exp": 0
+}
+```
+
+- `platform.security.jwt.secret` должен совпадать в двух сервисах.
+- Backend создаёт `AuthenticatedUser` из claims, без запроса в БД.
+- Роли проверяются `@PreAuthorize` на уровне API.
+- Владение документами и доступ к файлам проверяются
+  `AuthorizationService`/`ResourceAccessPolicy`.
+- Refresh-токен обрабатывается только `security-service`; он хранится в БД и
+  может быть отозван.
+
+## 5. Данные
+
+### 5.1. PostgreSQL
+
+У сервисов разные базы и разные credentials:
+
+- `edm` — таблицы документов, версий, атрибутов, согласования, подписей,
+  замещений.
+- `security` — `users`, `roles`, `departments`, `user_roles`,
+  `refresh_token`, `department_managers`, `department_members`.
+
+В backend нет JPA-сущностей `User`, `Department`, `Role`. Нет и внешних ключей
+на identity-таблицы. Ссылки на пользователей — UUID-колонки
+`documents.owner_id`, `approvment_process_item.signer_id`,
+`replacement_managers.manager_user_id`,
+`replacement_managers.temp_manager_user_id`. Целостность ссылок обеспечивается
+приложением и identity API, а не межбазовым FK.
+
+### 5.2. UserDirectory
+
+`shared/directory/UserDirectory` — ACL между backend и identity:
+
+- `requireUser(UUID)` — профиль пользователя;
+- `findUsers(Collection<UUID>)` — пакетное обогащение ответов;
+- `replacementCandidates(UUID)` — кандидаты на замещение;
+- `departmentMembers(...)` — участники подразделения.
+
+HTTP-клиент передаёт `X-Internal-Token`, маппит `404` в
+`ResourceNotFoundException`, остальные ошибки — в `UserDirectoryException`.
+Сетевой вызов изолирован от доменной модели.
+
+### 5.3. MinIO и Elasticsearch
+
+Backend хранит файлы в MinIO через `ObjectStorage`; в БД сохраняется имя
+объекта. Наружу выдаётся presigned URL с TTL через публичный endpoint.
+Elasticsearch — производный поисковый индекс; его можно пересобрать
+`platform.search.reindex-on-startup=true`.
+
+## 6. Конфигурация
+
+| Префикс | Владелец | Пример |
 |---|---|---|
-| `controllers` | HTTP, DTO, коды ответов, OpenAPI | бизнес-логика, прямые репозитории |
-| `service` | транзакции, права, инварианты, orchestration | HTTP-детали |
-| `repository` | доступ к данным, fetch-графы | бизнес-решения |
-| `entity` | состояние и базовые доменные переходы | зависимости на сервисы |
-| `mapper` | entity ↔ DTO | обращение к БД |
-| `state` | переходы статусов документа | хранение состояния |
+| `platform.security.*` | starter | `jwt.secret`, `jwt.access-token-ttl`, `cors.allowed-origins` |
+| `platform.storage.minio.*` | starter | `endpoint`, `public-endpoint`, `bucket-name` |
+| `platform.search.*` | starter | `reindex-on-startup` |
+| `platform.mail.*` | starter | SMTP |
+| `security.service.*` | backend | `url`, `internal-token` |
+| `security.internal.token` | security | проверка внутреннего вызова |
+| `app.bootstrap.admin.*` | security | одноразовый администратор |
 
-Контроллер не возвращает JPA-сущности. Исключение — существующие endpoint-ы,
-которые маппятся в сервисе или контроллере сразу; при доработке их следует
-переводить на DTO.
+Production-профиль не содержит значений секретов: обязательные переменные
+передаются из GitHub Environment/`.env` на сервере. Compose использует
+`${VAR:?required}`, поэтому неполная конфигурация падает до запуска.
 
-## 3. Транзакции и загрузка связей
+## 7. Отказоустойчивость
 
-`spring.jpa.open-in-view=false`: сессия Hibernate не живёт до сериализации ответа.
-Поэтому каждая операция обязана загрузить все нужные связи **до** выхода из
-транзакции.
+- MinIO/Elasticsearch/SMTP не обязательны для старта backend, если
+  соответствующие флаги выключены.
+- Недоступность `security-service` не мешает проверке JWT, но ломает
+  обогащение пользовательских данных и операции, которым нужен профиль.
+- `UserDirectory` возвращает контролируемые ошибки, а не stack trace.
+- Оба сервиса имеют graceful shutdown и health endpoint
+  `/api/v1/actuator/health`.
 
-Правила:
+## 8. Связанные документы
 
-1. Изменяющие методы сервисов помечены `@Transactional`.
-2. Read-only методы, которые маппят ленивые связи, либо `@Transactional(readOnly = true)`,
-   либо используют `@EntityGraph`/join fetch.
-3. Репозитории версий документов загружают `document`, `document.user`,
-   `documentAttributeValue`, `documentAttributeValue.attribute`.
-4. Нельзя возвращать из сервиса сущность с неинициализированными коллекциями.
-5. Для поиска последней версии используется сортировка по `createdAt`, затем по `id`
-   (детерминированный результат при одинаковом времени).
-
-Ключевые точки:
-
-- `DocumentVersionRepository#findByDocumentId`, `findPageByDocumentId` — entity graph;
-- `DocumentServiceImpl#getLastVersionDocumentForUser` — проверка доступа + версия из
-  репозитория с загруженными связями;
-- `DocumentRepository#findWithUserById` — загрузка владельца для `AuthorizationService`;
-- `AuthorizationService#requireOwnedDocument` — единая проверка владельца при
-  update/delete и отправке на подписание;
-- `AttributeServiceImpl#findByNameWithMinLength`, `DelegationServiceImpl` — чтение
-  ленивых связей внутри транзакции.
-
-## 4. Авторизация
-
-- Аутентификация: `POST /api/v1/auth`, JWT access + refresh.
-- Access-токен проверяется `JwtFilter`; ошибки возвращают JSON 401.
-- Публичные пути: `/auth/**`, `/jwt/update`, `/actuator/health`, OpenAPI/Swagger.
-  `/jwt/update` обязан быть доступен с истёкшим access-токеном, иначе refresh
-  невозможен.
-- Авторизация разделена: `@PreAuthorize` проверяет роли на API-границе, а
-  `AuthorizationService` — владение документом, участие в согласовании и доступ к
-  `contentUrl`. Доменные сервисы не содержат собственных копий этих правил.
-- Документ доступен владельцу; версия — владельцу или участнику согласования.
-- Скачивание (`GET /document/download?url=...`) проверяет, что `contentUrl`
-  принадлежит доступной пользователю версии. Нельзя генерировать presigned URL по
-  произвольному пути.
-- Подпись привязана к заявке согласования; повторная подпись той же заявки
-  отклоняется с 409.
-
-## 5. Документы и подписание
-
-### 5.1. Создание и версии
-
-1. Пользователь создаёт документ: тип, имя, файл.
-2. Файл загружается в MinIO, в БД сохраняется `contentUrl`.
-3. Первая версия создаётся в состоянии `DRAFT`.
-4. Новая версия наследует тип и атрибуты; состояние начинается заново.
-5. Удаление — архивирование, без физического удаления истории.
-
-### 5.2. Согласование и подпись
-
-1. Автор отправляет версию на подписание (`sendForSign`).
-2. Для каждого участника создаётся `ApprovementProcessItem`, дубликаты участников
-   устраняются.
-3. Участники получают уведомление; подпись доступна только участнику своей заявки
-   и только для последней версии.
-4. `SignatureServiceImpl`:
-   - проверяет участие и состояние процесса;
-   - отклоняет повторную подпись;
-   - меняет статус заявки и версии через state machine;
-   - сохраняет SHA-256 от `userId + versionId` (UTF-8) как хеш подписи.
-5. При завершении процесса запускается голосование или фиксируется результат.
-
-### 5.3. Голосование
-
-- Задача Quartz планируется на дедлайн; ошибка планирования пробрасывается, чтобы
-  транзакция создания процесса откатилась.
-- Сбор результатов идемпотентен: повторный запуск завершённого процесса ничего не
-  меняет.
-- Сбор результатов выполняется в транзакции: частично применённый результат
-  невозможен.
-
-## 6. Согласованность и идемпотентность
-
-- Уникальные бизнес-ключи (email, логин, имя типа/атрибута) проверяются сервисом и
-  ограничениями БД там, где они есть.
-- Повторная подпись, повторное завершение голосования и повторная отправка не должны
-  создавать дубликаты.
-- Операции, затрагивающие несколько таблиц (процесс + заявки + версия), выполняются
-  в одной транзакции.
-- Внешние side-effect (MinIO, SMTP) не откатываются транзакцией; для них
-  предусмотрены повторяемые операции и логирование.
-
-## 7. Ошибки
-
-`GlobalExceptionHandler` возвращает:
-
-| Исключение | HTTP |
-|---|---|
-| `ResourceNotFoundException` | 404 |
-| `DocumentForbiddenAccess` | 403 |
-| `SignatureAlreadyExistsException` | 409 |
-| `ApprovementProccessItemAlreadyExistsException` | 409 |
-| `InvalidDocumentStateException` | 409 |
-| ошибки валидации | 400 |
-| `ExpiredJwtTokenException` | 401 |
-
-Ответы не содержат stack trace и внутренних путей.
-
-## 8. Наблюдаемость
-
-- Actuator: `/api/v1/actuator/health`, `/info`.
-- Health используется Docker/CI; детали скрыты (`show-details=never`).
-- Логи структурированы по уровням; токены, пароли и содержимое файлов не логируются.
-- При деплое CI проверяет health в течение заданного окна и печатает логи backend при
-  неудаче.
-
-## 9. Границы и известные ограничения
-
-- Elasticsearch-индекс не является транзакционным; переиндексация — отдельный
-  управляемый процесс (`ELASTIC_REINDEX_ON_STARTUP`).
-- Уведомления по email зависят от SMTP; ошибка отправки не должна откатывать
-  подписание.
-- Полнотекстовый поиск и файлы требуют MinIO/Elasticsearch; базовые CRUD-сценарии
-  работают без поиска.
-- Схема БД проверяется Hibernate (`ddl-auto=validate`), изменения — только Liquibase.
-
-## 10. Связанные документы
-
-- [SECURITY.md](SECURITY.md)
-- [DEPLOYMENT.md](DEPLOYMENT.md)
-- [TESTING.md](TESTING.md)
-- [REFACTORING_PLAN.md](REFACTORING_PLAN.md)
+- [DDD.md](DDD.md) — контексты, агрегаты, инварианты.
+- [SECURITY.md](SECURITY.md) — секреты и модель угроз.
+- [DEPLOYMENT.md](DEPLOYMENT.md) — CI/CD.
+- [TESTING.md](TESTING.md) — тесты и smoke.

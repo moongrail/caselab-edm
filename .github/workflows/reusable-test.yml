@@ -27,7 +27,7 @@ permissions:
 jobs:
   run_tests:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -41,7 +41,6 @@ jobs:
           cache-dependency-path: ${{ inputs.cache_path }}
 
       - name: Run tests
-        working-directory: backend
         run: |
           chmod +x mvnw
           ./mvnw -B -ntp clean verify
@@ -59,5 +58,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: surefire-reports
-          path: backend/target/surefire-reports/
+          path: '**/target/surefire-reports/'
           retention-days: 7

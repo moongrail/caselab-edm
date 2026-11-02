@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+    <changeSet id="security.1.0-identity" author="caselab">
+        <sql>
+            CREATE TABLE IF NOT EXISTS departments
+            (
+                id BIGSERIAL PRIMARY KEY,
+                name VARCHAR(255) NOT NULL,
+                description TEXT,
+                parent_id BIGINT
+            );
+
+            CREATE TABLE IF NOT EXISTS users
+            (
+                id UUID PRIMARY KEY,
+                login VARCHAR(255) UNIQUE NOT NULL,
+                email VARCHAR(255) UNIQUE NOT NULL,
+                password VARCHAR(255) NOT NULL,
+                first_name VARCHAR(100) NOT NULL,
+                last_name VARCHAR(100) NOT NULL,
+                patronymic VARCHAR(100),
+                position VARCHAR(255) NOT NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS roles
+            (
+                id BIGSERIAL PRIMARY KEY,
+                name VARCHAR(100) UNIQUE NOT NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS user_roles
+            (
+                user_id UUID REFERENCES users(id) ON DELETE CASCADE NOT NULL,
+                role_id BIGINT REFERENCES roles(id) ON DELETE CASCADE NOT NULL,
+                PRIMARY KEY (user_id, role_id)
+            );
+
+            CREATE TABLE IF NOT EXISTS department_managers
+            (
+                user_id UUID REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE,
+                department_id BIGINT REFERENCES departments(id) ON DELETE CASCADE ON UPDATE CASCADE
+            );
+
+            CREATE TABLE IF NOT EXISTS department_members
+            (
+                department_id BIGINT REFERENCES departments(id) ON DELETE CASCADE ON UPDATE CASCADE,
+                member_id UUID REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE
+            );
+
+            CREATE TABLE IF NOT EXISTS refresh_token
+            (
+                id BIGSERIAL PRIMARY KEY,
+                expiration_date TIMESTAMP WITH TIME ZONE NOT NULL,
+                token VARCHAR(255) NOT NULL UNIQUE,
+                user_id UUID REFERENCES users(id) ON DELETE CASCADE NOT NULL
+            );
+        </sql>
+    </changeSet>
+
+    <changeSet id="security.1.0-roles" author="caselab">
+        <sql>
+            INSERT INTO roles(name)
+            SELECT 'ADMIN'
+            WHERE NOT EXISTS (SELECT 1 FROM roles WHERE name = 'ADMIN');
+
+            INSERT INTO roles(name)
+            SELECT 'USER'
+            WHERE NOT EXISTS (SELECT 1 FROM roles WHERE name = 'USER');
+        </sql>
+    </changeSet>
+</databaseChangeLog>

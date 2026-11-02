@@ -7,6 +7,9 @@ on:
       - dev
     paths:
       - 'backend/**'
+      - 'security-service/**'
+      - 'platform-spring-boot-starter/**'
+      - 'pom.xml'
       - '.github/workflows/security.yml'
   pull_request:
     branches:
@@ -14,6 +17,9 @@ on:
       - dev
     paths:
       - 'backend/**'
+      - 'security-service/**'
+      - 'platform-spring-boot-starter/**'
+      - 'pom.xml'
       - '.github/workflows/security.yml'
   schedule:
     - cron: '23 3 * * 1'
@@ -43,7 +49,11 @@ jobs:
           java-version: '17'
           distribution: 'corretto'
           cache: maven
-          cache-dependency-path: backend/pom.xml
+          cache-dependency-path: |
+            pom.xml
+            platform-spring-boot-starter/pom.xml
+            security-service/pom.xml
+            backend/pom.xml
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
@@ -51,8 +61,7 @@ jobs:
           languages: java-kotlin
           queries: security-extended
 
-      - name: Build backend
-        working-directory: backend
+      - name: Build reactor
         run: |
           chmod +x mvnw
           ./mvnw -B -ntp -DskipTests compile

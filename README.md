@@ -1,246 +1,250 @@
-# CaseLab EDM — backend
+# CaseLab EDM
 
-Backend системы электронного документооборота: документы и версии, согласование,
-подписание, голосование, делегирование, атрибуты, аналитика и уведомления.
+CaseLab EDM — система электронного документооборота: документы и версии,
+согласование, подписание, голосование, делегирование, атрибуты, аналитика и
+уведомления.
+
+Репозиторий содержит **два запускаемых сервиса** и один переиспользуемый
+технический стартер:
+
+| Модуль | Назначение | Порт | Контекст |
+|---|---|---|---|
+| `security-service` | identity-сервис: пользователи, роли, подразделения, JWT, refresh-токены | `8081` | `/api/v1` |
+| `backend` | бизнес-API документооборота | `8080` | `/api/v1` |
+| `platform-spring-boot-starter` | общие технические интеграции: JWT-фильтр, resource-server, MinIO, mail, Elasticsearch | — | — |
+
+`backend` не содержит JPA-сущностей пользователей и подразделений и не
+подключается к базе `security-service`. Пользователи представлены UUID и
+read-only проекцией `UserSummary`, которую backend получает по внутреннему HTTP
+API. Публичные URL бизнес-API при разделении сервисов сохранены.
 
 ## Содержание
 
 - [Стек](#стек)
-- [Структура репозитория](#структура-репозитория)
+- [Структура](#структура)
+- [Архитектура](#архитектура)
 - [Быстрый старт](#быстрый-старт)
+- [Запуск без полного Docker](#запуск-без-полного-docker)
 - [Конфигурация](#конфигурация)
 - [Миграции БД](#миграции-бд)
 - [Тесты и покрытие](#тесты-и-покрытие)
-- [Полный стек в VirtualBox](#полный-стек-в-virtualbox)
 - [Автоматический деплой](#автоматический-деплой)
 - [Безопасность](#безопасность)
-- [Полезные адреса](#полезные-адреса)
 - [Документация](#документация)
 
 ## Стек
 
 - Java 17, Spring Boot 3
 - Spring Security + JWT, Spring Data JPA, Liquibase
-- PostgreSQL 14
+- PostgreSQL 14: отдельные базы для `security-service` и `backend`
 - MinIO (S3-совместимое хранилище файлов)
 - Elasticsearch 8
 - Maven Wrapper, JUnit 5, Mockito, AssertJ, H2 для тестов
 - Docker / Docker Compose, GitHub Actions
 
-## Структура репозитория
+## Структура
 
 ```text
-backend/                 Java-приложение, тесты, Dockerfile, Maven Wrapper
-docker/                  Compose-файлы для локального запуска и сервера
-docs/                    архитектура, безопасность, ТЗ, тестирование
-.github/workflows/       CI/CD: тесты, сборка образа, автоматический деплой
-.env.example             шаблон переменных окружения (без реальных секретов)
+.
+├── backend/                      # бизнес-контексты документооборота
+│   ├── src/main/java/ru/caselab/edm/backend/
+│   │   ├── document/             # документы, версии, типы, атрибуты
+│   │   ├── approval/             # согласование, подписание, голосование
+│   │   ├── delegation/           # замещение и делегирование
+│   │   ├── analytics/            # read model и отчёты
+│   │   ├── integration/          # Elasticsearch, MinIO, mail
+│   │   └── shared/               # directory, security, exceptions, config
+│   └── src/main/resources/liquibase/
+├── security-service/             # отдельное identity-приложение
+│   ├── src/main/java/ru/caselab/edm/security/
+│   │   ├── api/                  # /auth, /jwt, /users, /department
+│   │   ├── internal/             # /internal/** для backend
+│   │   ├── domain/               # User, Department, Role, RefreshToken
+│   │   └── persistence/
+│   └── src/main/resources/liquibase/
+├── platform-spring-boot-starter/ # общие интеграции без бизнес-логики
+├── docker/                       # compose для локального и production-запуска
+└── docs/                         # архитектура, DDD, тесты, деплой, безопасность
 ```
+
+## Архитектура
+
+```text
+Client
+  │ HTTPS + access JWT
+  ├──────────────────────────────► backend :8080/api/v1
+  │                                  │  UUID пользователя/роли из JWT
+  │                                  ├── PostgreSQL edm
+  │                                  ├── MinIO
+  │                                  ├── Elasticsearch
+  │                                  └── UserDirectory ──► security-service :8081/api/v1
+  │                                                           │ X-Internal-Token
+  │                                                           └── PostgreSQL security
+  │
+  └── /auth, /jwt/update ────────► security-service
+```
+
+- Access-token содержит `uid`, `roles`, `department_id`,
+  `managed_department_id` и `type=access`. Оба сервиса используют один
+  `JWT_SECRET`, но проверяют токен локально, без обращения в БД.
+- Backend получает профиль пользователя только через `UserDirectory` и
+  `/internal/**`. Внутренние endpoint-ы защищены заголовком
+  `X-Internal-Token`.
+- Бизнес-сущности хранят UUID-ссылки: `Document.ownerId`,
+  `ApprovementProcessItem.signerId`,
+  `ReplacementManager.managerUserId/tempManagerUserId`.
+- Resource-authorization контракты (`ResourceAccessPolicy` и
+  `AuthorizationService`) находятся в backend, а identity-сервис не знает о
+  документах.
+- `platform-spring-boot-starter` содержит только технические интеграции и
+  автоконфигурации; JPA-сущности и бизнес-правила туда не входят.
+
+Подробнее: [ARCHITECTURE.md](docs/ARCHITECTURE.md) и [DDD.md](docs/DDD.md).
 
 ## Быстрый старт
 
-### Вариант 1. Всё в Docker
-
-Требуются Docker Engine/Desktop с Compose v2 и свободные порты из
-[таблицы адресов](#полезные-адреса).
+Требуются Docker Engine/Desktop с Compose plugin.
 
 ```bash
 cp .env.example .env
-# отредактируйте .env: пароли, JWT_SECRET, CORS_ALLOWED_ORIGINS
+# заполнить все change-me значения; JWT_SECRET сгенерировать:
+# openssl rand -base64 64
 docker compose --env-file .env -f docker/docker-compose-all.yaml up -d --build
 ```
 
 Проверка:
 
 ```bash
-curl http://localhost:8080/api/v1/actuator/health
+curl -fsS http://localhost:8081/api/v1/actuator/health
+curl -fsS http://localhost:8080/api/v1/actuator/health
 ```
 
-Остановка:
+Ожидается `{"status":"UP"}` для обоих сервисов.
+
+- Backend Swagger: `http://localhost:8080/api/v1/swagger-ui/index.html`
+- Security Swagger: `http://localhost:8081/api/v1/swagger-ui/index.html`
+- MinIO console: `http://localhost:9090`
+
+Если база пустая и нужен первый администратор, временно установите
+`BOOTSTRAP_ADMIN_ENABLED=true` и заполните `BOOTSTRAP_ADMIN_*`. Bootstrap
+выполняется **security-service**, создаёт пользователя и роль `ADMIN`. После
+первого успешного входа выключите bootstrap и перезапустите сервис.
+
+## Запуск без полного Docker
+
+Можно поднять только инфраструктуру и запустить приложения из IDE:
 
 ```bash
-docker compose --env-file .env -f docker/docker-compose-all.yaml down
-```
-
-Данные PostgreSQL, MinIO и Elasticsearch хранятся в именованных volume и переживают
-перезапуск контейнеров. Удалить данные: добавить `-v` к команде `down`.
-
-### Вариант 2. Инфраструктура в Docker, backend из IDE
-
-```bash
-cp .env.example .env
 docker compose --env-file .env -f docker/docker-compose-services.yaml up -d
 ```
 
-Затем запустите `BackendApplication` в IDE с профилем `dev`. Переменные окружения
-можно задать в run configuration или в `.env`, подключённом IDE. Профиль `dev`
-ожидает PostgreSQL на `localhost:5432`, MinIO на `localhost:9000`,
-Elasticsearch на `localhost:9200`.
+Порты инфраструктуры:
 
-### Первый администратор
+| Сервис | Адрес |
+|---|---|
+| PostgreSQL backend | `localhost:5432` |
+| PostgreSQL security | `localhost:5433` |
+| MinIO | `localhost:9000` |
+| Elasticsearch | `localhost:9200` |
 
-Миграции больше не создают демонстрационных пользователей и подразделений. Для
-пустой базы администратор создаётся один раз через явные переменные окружения:
-
-```dotenv
-BOOTSTRAP_ADMIN_ENABLED=true
-BOOTSTRAP_ADMIN_LOGIN=admin
-BOOTSTRAP_ADMIN_EMAIL=admin@example.com
-BOOTSTRAP_ADMIN_PASSWORD=<длинный случайный пароль>
-```
-
-После успешного создания администратора установите
-`BOOTSTRAP_ADMIN_ENABLED=false` и перезапустите приложение. Пароль нигде в
-репозитории не хранится.
+Запустите `SecurityServiceApplication`, затем `BackendApplication`. Оба
+приложения читают переменные окружения из `.env` (или из run configuration).
+`DATABASE_URL` указывает на базу `edm`, `SECURITY_DATABASE_URL` — на базу
+`security`.
 
 ## Конфигурация
 
-Приложение читает настройки из переменных окружения. Реальные значения не
-коммитятся; `.env` исключён из Git.
+Все секреты передаются только через переменные окружения. В репозитории
+допустимы лишь заглушки `change-me-*`.
 
-| Переменная | Обязательность | Назначение |
-|---|---|---|
-| `SPRING_PROFILES_ACTIVE` | да | `dev` или `prod` |
-| `DATABASE_URL` | да | JDBC URL PostgreSQL |
-| `DATABASE_USERNAME` / `DATABASE_PASSWORD` | да | доступ к БД |
-| `JWT_SECRET` | да | base64-секрет подписи JWT |
-| `JWT_ACCESS_TOKEN_TTL` / `JWT_REFRESH_TOKEN_TTL` | нет | сроки жизни токенов |
-| `CORS_ALLOWED_ORIGINS` | да | список origin через запятую |
-| `MINIO_ENDPOINT` | да | внутренний адрес MinIO |
-| `MINIO_PUBLIC_ENDPOINT` | да | внешний адрес для presigned URL |
-| `MINIO_ACCESS_KEY` / `MINIO_SECRET_KEY` | да | доступ к MinIO |
-| `MINIO_BUCKET` | нет | имя bucket |
-| `ELASTIC_ENDPOINT` | да | адрес Elasticsearch |
-| `ELASTIC_REINDEX_ON_STARTUP` | нет | переиндексация при старте |
-| `MAIL_HOST` / `MAIL_PORT` | да (prod) | SMTP-сервер; локально можно оставить пустыми |
-| `MAIL_USERNAME` / `MAIL_PASSWORD` | да (prod) | SMTP-учётные данные |
-| `OPENAPI_SERVER_URL` | да | публичный URL API для Swagger |
-| `BOOTSTRAP_ADMIN_*` | нет | разовое создание администратора |
+| Группа | Переменные |
+|---|---|
+| Backend БД | `DATABASE_URL`, `DATABASE_USERNAME`, `DATABASE_PASSWORD` |
+| Security БД | `SECURITY_DATABASE_URL`, `SECURITY_DATABASE_USERNAME`, `SECURITY_DATABASE_PASSWORD` |
+| JWT | `JWT_SECRET`, `JWT_ACCESS_TOKEN_TTL`, `JWT_REFRESH_TOKEN_TTL` |
+| Межсервисное взаимодействие | `SECURITY_SERVICE_URL`, `SECURITY_INTERNAL_TOKEN` |
+| CORS | `CORS_ALLOWED_ORIGINS` |
+| MinIO | `MINIO_ENDPOINT`, `MINIO_PUBLIC_ENDPOINT`, `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY`, `MINIO_BUCKET` |
+| Elasticsearch | `ELASTIC_ENDPOINT`, `ELASTIC_REINDEX_ON_STARTUP` |
+| Mail | `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD` |
+| Bootstrap администратора | `BOOTSTRAP_ADMIN_ENABLED`, `BOOTSTRAP_ADMIN_LOGIN`, `BOOTSTRAP_ADMIN_EMAIL`, `BOOTSTRAP_ADMIN_PASSWORD` |
 
-Полный шаблон: [.env.example](.env.example). Для production значения хранятся
-только в GitHub Environments/Secrets и в защищённом `.env` на сервере.
+Backend использует префиксы `platform.security.*`, `platform.storage.minio.*`,
+`platform.search.*`, `platform.mail.*` и `security.service.*`.
+
+`JWT_SECRET` должен быть одинаковым для двух сервисов, но не совпадать с
+паролями БД, SMTP или MinIO. `SECURITY_INTERNAL_TOKEN` — отдельный случайный
+секрет; без него backend не сможет обращаться к directory API.
 
 ## Миграции БД
 
-Схема управляется только Liquibase:
+Liquibase управляет схемой; `ddl-auto=validate` проверяет соответствие сущностей
+схеме при старте.
 
-- мастер-файл: `backend/src/main/resources/liquibase/db.master.xml`;
-- изменения версионируются в `liquibase/<версия>/`;
-- Hibernate работает с `ddl-auto=validate` и не меняет схему;
-- новые изменения добавляются отдельным changeset, существующие не редактируются.
+- `security-service/src/main/resources/liquibase/` — `users`, `roles`,
+  `departments`, `refresh_token` и связи между ними.
+- `backend/src/main/resources/liquibase/` — `documents`, версии, атрибуты,
+  согласование, подписи, замещения и аналитика.
 
-При старте приложение проверяет соответствие схемы и падает, если миграция не
-применена или сущность расходится с БД. Это намеренное поведение.
+Backend-схема не содержит таблиц `users`, `roles` и `refresh_token`, а также
+внешних ключей на identity-базу. Обе базы мигрируют независимо.
 
 ## Тесты и покрытие
 
-Тесты не требуют Docker и не используют Testcontainers: H2 + Liquibase поднимают
-схему в памяти.
-
 ```bash
-cd backend
 ./mvnw -ntp clean verify
 ```
 
 Windows PowerShell:
 
 ```powershell
-cd backend
 .\mvnw.cmd -ntp clean verify
 ```
 
-`verify` запускает unit/интеграционные тесты, проверяет JaCoCo и собирает jar.
-Минимальное покрытие строк — 90%; при снижении сборка падает. Отчёт:
-`backend/target/site/jacoco/index.html`.
+Тесты не требуют Docker: repository-тесты используют H2 и ту же Liquibase-схему.
+JaCoCo проверяет минимум **90% строк отдельно** для
+`platform-spring-boot-starter`, `security-service` и `backend`.
 
-Тестовый профиль использует H2 и проверяет ту же Liquibase-схему, что и
-production (`ddl-auto=validate`). Подробнее: [docs/TESTING.md](docs/TESTING.md).
+Отчёты:
 
-## Полный стек в VirtualBox
+- `platform-spring-boot-starter/target/site/jacoco/index.html`
+- `security-service/target/site/jacoco/index.html`
+- `backend/target/site/jacoco/index.html`
 
-Если Docker Desktop локально недоступен, полный стек можно проверить в
-VirtualBox:
-
-1. Создайте VM с Ubuntu Server 22.04/24.04, 4 CPU, 8 ГБ RAM, 40 ГБ диска.
-2. Установите Docker Engine и Compose plugin по официальной инструкции Docker.
-3. Установите Git, клонируйте репозиторий на ветку с изменениями.
-4. Скопируйте `.env.example` в `.env` и заполните значения; `.env` не коммитьте.
-5. Запустите `docker compose --env-file .env -f docker/docker-compose-all.yaml up -d --build`.
-6. Пробросьте порт 8080 через NAT VirtualBox и проверьте
-   `http://<vm-host>:8080/api/v1/actuator/health`.
-7. Выполните smoke-сценарий: вход, создание документа, загрузка версии,
-   отправка на подписание, подписание, скачивание файла, проверка запрета доступа
-   для чужого пользователя.
-
-Для проверки production-конфигурации используйте `SPRING_PROFILES_ACTIVE=prod`
-и отдельные тестовые секреты. Не применяйте production-секреты в тестовой VM.
+Подробнее: [TESTING.md](docs/TESTING.md).
 
 ## Автоматический деплой
 
-Нормальный путь один: merge/push в `main`.
+Штатный путь выпуска — merge/push в `main`. GitHub Actions выполняет:
 
-```text
-push в main
-  → GitHub Actions: тесты + JaCoCo
-  → сборка и публикация Docker-образа
-  → SSH на сервер
-  → docker compose pull/up
-  → health-check /api/v1/actuator/health
-```
+1. `clean verify` всего reactor;
+2. сборку и публикацию двух Docker-образов;
+3. автоматический деплой на сервер;
+4. health-check обоих сервисов.
 
-Workflow: `.github/workflows/main-workflow.yml`. Деплой выполняется только после
-успешных тестов и сборки. Ручной перезапуск контейнеров не требуется и не является
-штатным способом выпуска.
-
-Одноразовая настройка сервера и список GitHub Secrets/Environments:
-[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md). Адрес сервера хранится только в
-секретах GitHub и не должен попадать в репозиторий или документацию.
+Push и pull request в `dev` запускают тесты, но не деплой. Ручной запуск
+production Compose не является штатным способом выпуска. Необходимые secrets,
+переменные и правила отката описаны в [DEPLOYMENT.md](docs/DEPLOYMENT.md).
 
 ## Безопасность
 
-- все секреты вынесены в переменные окружения/секреты CI;
-- старые секреты из истории Git считаются скомпрометированными и должны быть
-  ротированы (JWT, SMTP, БД, MinIO, администратор);
-- JWT access-токен короткоживущий, refresh-токен хранится в БД;
-- `/jwt/update` доступен с истёкшим access-токеном, но требует валидный refresh;
-- скачивание файла разрешено только владельцу документа или участнику согласования;
-- CORS ограничен явным списком origin;
-- контейнеры работают от непривилегированного пользователя, порты БД/MinIO/ES
-  опубликованы только на localhost (кроме API и публичного MinIO endpoint).
+- Не коммитьте `.env`, пароли, JWT-секреты, SMTP/MinIO-ключи и приватные
+  SSH-ключи.
+- Считать все ранее опубликованные значения скомпрометированными и
+  ротировать их.
+- Внутренние endpoint-ы `/internal/**` доступны только с
+  `X-Internal-Token`; не публикуйте их через reverse proxy.
+- Пароли хранятся в BCrypt, refresh-токены — в БД с возможностью отзыва.
+- Файлы MinIO не публичны; выдаются presigned URL с ограниченным TTL.
+- Проверка владельца/подписанта выполняется в backend до выдачи файла.
 
-Правила и порядок ротации: [docs/SECURITY.md](docs/SECURITY.md).
-
-## Полезные адреса
-
-| Сервис | Локальный адрес |
-|---|---|
-| API | `http://localhost:8080/api/v1` |
-| Swagger UI | `http://localhost:8080/api/v1/swagger-ui/index.html` |
-| OpenAPI JSON | `http://localhost:8080/api/v1/v3/api-docs` |
-| Health | `http://localhost:8080/api/v1/actuator/health` |
-| MinIO API | `http://localhost:9000` |
-| MinIO Console | `http://localhost:9090` |
-| Elasticsearch | `http://localhost:9200` |
-| PostgreSQL | `localhost:5432` |
+Подробнее: [SECURITY.md](docs/SECURITY.md).
 
 ## Документация
 
-- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — слои, границы транзакций, потоки.
-- [docs/SECURITY.md](docs/SECURITY.md) — модель угроз, секреты, ротация, аудит.
-- [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) — CI/CD, окружения, сервер, откат.
-- [docs/TESTING.md](docs/TESTING.md) — тесты, покрытие, VirtualBox, smoke-сценарий.
-- [docs/REFACTORING_PLAN.md](docs/REFACTORING_PLAN.md) — техническое задание и
-  последовательность выполненных задач.
-
-## Схема БД и статусы
-
-![Схема БД](img/schemeBD.PNG)
-
-![Статусы документов](img/docStatus.PNG)
-
-## Правила веток и PR
-
-- базовая ветка для новой работы — `dev`;
-- имя ветки: `feature/<краткое-описание>`, `fix/<краткое-описание>`;
-- коммиты: `feat:`, `fix:`, `test:`, `docs:`, `chore:`;
-- PR требует зелёного CI и ревью; merge в `main` автоматически запускает деплой.
+- [ARCHITECTURE.md](docs/ARCHITECTURE.md) — компоненты и потоки запросов.
+- [DDD.md](docs/DDD.md) — bounded contexts, агрегаты и инварианты.
+- [TESTING.md](docs/TESTING.md) — тесты, покрытие и smoke-сценарий.
+- [DEPLOYMENT.md](docs/DEPLOYMENT.md) — CI/CD и production-окружение.
+- [SECURITY.md](docs/SECURITY.md) — секреты, авторизация и инциденты.
+- [REFACTORING_PLAN.md](docs/REFACTORING_PLAN.md) — история рефакторинга.

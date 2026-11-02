@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.27.xsd">
+
+    <changeSet id="backend.1.2-detach-identity" author="caselab" dbms="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="documents" columnName="user_id"/>
+        </preConditions>
+        <sql splitStatements="false">
+            DO $$
+            DECLARE
+                foreign_key RECORD;
+            BEGIN
+                FOR foreign_key IN
+                    SELECT DISTINCT c.conrelid::regclass AS table_name, c.conname
+                    FROM pg_constraint c
+                    JOIN pg_attribute a
+                      ON a.attrelid = c.conrelid
+                     AND a.attnum = ANY (c.conkey)
+                    WHERE c.contype = 'f'
+                      AND c.conrelid IN ('documents'::regclass,
+                                         'approvment_process_item'::regclass,
+                                         'replacement_managers'::regclass)
+                      AND a.attname IN ('user_id', 'manager_user_id', 'temp_manager_user_id')
+                LOOP
+                    EXECUTE format('ALTER TABLE %s DROP CONSTRAINT %I',
+                                   foreign_key.table_name, foreign_key.conname);
+                END LOOP;
+
+                IF EXISTS (SELECT 1
+                           FROM information_schema.columns
+                           WHERE table_schema = current_schema()
+                             AND table_name = 'documents'
+                             AND column_name = 'user_id') THEN
+                    ALTER TABLE documents RENAME COLUMN user_id TO owner_id;
+                    IF NOT EXISTS (SELECT 1 FROM documents WHERE owner_id IS NULL) THEN
+                        ALTER TABLE documents ALTER COLUMN owner_id SET NOT NULL;
+                    END IF;
+                END IF;
+
+                IF EXISTS (SELECT 1
+                           FROM information_schema.columns
+                           WHERE table_schema = current_schema()
+                             AND table_name = 'approvment_process_item'
+                             AND column_name = 'user_id') THEN
+                    ALTER TABLE approvment_process_item RENAME COLUMN user_id TO signer_id;
+                    IF NOT EXISTS (SELECT 1 FROM approvment_process_item WHERE signer_id IS NULL) THEN
+                        ALTER TABLE approvment_process_item ALTER COLUMN signer_id SET NOT NULL;
+                    END IF;
+                END IF;
+            END $$;
+        </sql>
+    </changeSet>
+</databaseChangeLog>

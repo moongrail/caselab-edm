@@ -27,6 +27,11 @@
     </properties>
     <dependencies>
         <dependency>
+            <groupId>ru.caselab.edm</groupId>
+            <artifactId>platform-spring-boot-starter</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
@@ -131,23 +136,6 @@
         </dependency>
 
         <dependency>
-            <groupId>io.jsonwebtoken</groupId>
-            <artifactId>jjwt-api</artifactId>
-            <version>0.12.5</version>
-        </dependency>
-        <dependency>
-            <groupId>io.jsonwebtoken</groupId>
-            <artifactId>jjwt-impl</artifactId>
-            <version>0.12.5</version>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.jsonwebtoken</groupId>
-            <artifactId>jjwt-jackson</artifactId>
-            <version>0.12.5</version>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
             <groupId>io.minio</groupId>
             <artifactId>minio</artifactId>
             <version>${minio.version}</version>
@@ -240,13 +228,12 @@
                 <configuration>
                     <excludes>
                         <exclude>ru/caselab/edm/backend/BackendApplication.class</exclude>
-                        <exclude>ru/caselab/edm/backend/configurations/**</exclude>
-                        <exclude>ru/caselab/edm/backend/dto/**</exclude>
-                        <exclude>ru/caselab/edm/backend/entity/**</exclude>
-                        <exclude>ru/caselab/edm/backend/enums/**</exclude>
-                        <exclude>ru/caselab/edm/backend/exceptions/**</exclude>
-                        <exclude>ru/caselab/edm/backend/repository/**</exclude>
-                        <exclude>ru/caselab/edm/backend/mapper/**/*Impl.class</exclude>
+                        <exclude>ru/caselab/edm/backend/**/config/**</exclude>
+                        <exclude>ru/caselab/edm/backend/**/api/dto/**</exclude>
+                        <exclude>ru/caselab/edm/backend/**/domain/**</exclude>
+                        <exclude>ru/caselab/edm/backend/**/exception/**</exclude>
+                        <exclude>ru/caselab/edm/backend/**/mapper/**</exclude>
+                        <exclude>ru/caselab/edm/backend/**/infrastructure/**</exclude>
                     </excludes>
                 </configuration>
                 <executions>
