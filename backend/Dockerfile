@@ -12,7 +12,7 @@ COPY platform-spring-boot-starter/src platform-spring-boot-starter/src
 COPY backend/src backend/src
 RUN mvn -B -ntp -pl backend -am clean package -DskipTests
 
-FROM eclipse-temurin:17-jre-alpine
+FROM eclipse-temurin:25-jre-alpine
 
 RUN apk add --no-cache curl \
     && addgroup -S app \
