@@ -19,7 +19,7 @@
         <java.version>17</java.version>
         <maven.compiler.release>${java.version}</maven.compiler.release>
         <jjwt.version>0.12.5</jjwt.version>
-        <minio.version>8.5.8</minio.version>
+        <minio.version>9.0.3</minio.version>
         <springdoc.version>2.6.0</springdoc.version>
         <maven-surefire-plugin.version>3.5.1</maven-surefire-plugin.version>
         <jacoco.version>0.8.12</jacoco.version>
